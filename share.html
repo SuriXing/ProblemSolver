@@ -8,213 +8,398 @@
     <meta name="author" content="解忧杂货铺团队">
     <link rel="icon" href="favicon.ico" type="image/x-icon">
     <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
-    <title>分享你的故事 | 解忧杂货铺</title>
+    <title>帮助一个陌生人 | 解忧杂货铺</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        .share-container {
+        body {
+            background-color: #f7f9fc;
+        }
+        
+        .page-header {
+            display: flex;
+            align-items: center;
+            padding: 20px 0;
+        }
+        
+        .page-header .logo {
+            display: flex;
+            align-items: center;
+            color: var(--primary-color);
+            font-size: 1.1rem;
+        }
+        
+        .page-header .logo i {
+            margin-right: 6px;
+            font-size: 1.2rem;
+        }
+        
+        .page-header .nav-link {
+            margin-left: auto;
+            color: #888;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+        }
+        
+        .page-header .nav-link i {
+            margin-right: 4px;
+        }
+        
+        .main-content {
             max-width: 800px;
             margin: 0 auto;
+            padding: 20px 0 60px 0;
+        }
+        
+        .page-title {
+            text-align: center;
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+        
+        .page-subtitle {
+            text-align: center;
+            color: #888;
+            font-size: 0.95rem;
+            margin-bottom: 30px;
+        }
+        
+        .question-card {
             background-color: white;
-            border-radius: var(--border-radius);
-            box-shadow: var(--card-shadow);
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
             padding: 30px;
-            margin-top: -50px;
-            margin-bottom: 60px;
-            position: relative;
-            z-index: 2;
+            margin-bottom: 30px;
         }
         
-        .share-form {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-        
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        
-        .form-group label {
-            font-weight: 500;
-            color: var(--text-color);
-        }
-        
-        .form-group input, 
-        .form-group textarea,
-        .form-group select {
-            padding: 12px 15px;
-            border: 1px solid var(--lighter-gray);
+        .message-image {
+            width: 100%;
+            height: 220px;
             border-radius: 8px;
-            font-family: inherit;
-            font-size: 1rem;
-            color: var(--text-color);
-            background-color: white;
-            transition: var(--transition);
+            object-fit: cover;
+            margin-bottom: 20px;
         }
         
-        .form-group input:focus,
-        .form-group textarea:focus,
-        .form-group select:focus {
+        .message-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 16px;
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+        
+        .message-header i {
+            margin-right: 6px;
+            color: var(--primary-color);
+        }
+        
+        .message-id {
+            opacity: 0.8;
+        }
+        
+        .message-content {
+            font-size: 1rem;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+        
+        .message-tags {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        
+        .tag {
+            background-color: #f1f5f9;
+            color: #64748b;
+            padding: 4px 12px;
+            border-radius: 50px;
+            font-size: 0.8rem;
+        }
+        
+        .message-time {
+            font-size: 0.85rem;
+            color: #94a3b8;
+            margin-bottom: 30px;
+        }
+        
+        .response-input {
+            width: 100%;
+            padding: 16px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            resize: none;
+            margin-bottom: 16px;
+            font-family: inherit;
+            font-size: 0.95rem;
+            color: #4b5563;
+        }
+        
+        .response-input:focus {
             outline: none;
             border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(79, 124, 255, 0.2);
+            box-shadow: 0 0 0 3px rgba(79, 124, 255, 0.1);
         }
         
-        .form-group textarea {
-            min-height: 200px;
-            resize: vertical;
-        }
-        
-        .form-footer {
+        .reaction-bar {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 20px;
+            gap: 16px;
+            margin-bottom: 24px;
         }
         
-        .form-footer .text-muted {
-            color: var(--light-gray);
-            font-size: 0.9rem;
+        .reaction {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background-color: #f9fafb;
+            color: #6b7280;
+            cursor: pointer;
+            font-size: 1.1rem;
+            transition: all 0.2s ease;
+        }
+        
+        .reaction:hover {
+            background-color: #f3f4f6;
+            transform: scale(1.05);
+        }
+        
+        .action-bar {
+            display: flex;
+            gap: 12px;
+            align-items: center;
         }
         
         .submit-btn {
             background-color: var(--primary-color);
             color: white;
             border: none;
-            padding: 12px 30px;
-            border-radius: 50px;
+            padding: 10px 20px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
             font-weight: 500;
             cursor: pointer;
-            transition: var(--transition);
+            transition: all 0.2s ease;
+        }
+        
+        .submit-btn i {
+            margin-right: 6px;
         }
         
         .submit-btn:hover {
-            background-color: #3d6ae8;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(79, 124, 255, 0.3);
+            background-color: #4069e5;
         }
         
-        .hero-small {
-            padding: 60px 0;
-        }
-        
-        .back-link {
-            display: inline-flex;
+        .change-btn {
+            display: flex;
             align-items: center;
-            gap: 5px;
-            color: var(--light-gray);
-            margin-bottom: 20px;
+            color: #6b7280;
+            background-color: #f3f4f6;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .change-btn i {
+            margin-right: 6px;
+        }
+        
+        .change-btn:hover {
+            background-color: #e5e7eb;
+        }
+        
+        .stats-bar {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+            color: #6b7280;
             font-size: 0.9rem;
         }
         
-        .back-link:hover {
-            color: var(--primary-color);
+        .stats-item {
+            display: flex;
+            align-items: center;
+        }
+        
+        .stats-item i {
+            margin-right: 6px;
         }
     </style>
 </head>
 <body>
-    <header>
-        <div class="container">
-            <div class="logo">
-                <a href="index.html">
-                    <i class="fas fa-hands-helping"></i>
-                    <span>解忧杂货铺</span>
-                </a>
+    <div class="container">
+        <div class="page-header">
+            <a href="index.html" class="logo">
+                <i class="fas fa-hands-helping"></i>
+                <span>解忧杂货铺</span>
+            </a>
+            <a href="index.html" class="nav-link">
+                <i class="fas fa-clock-rotate-left"></i>
+                <span>过往问题</span>
+            </a>
+        </div>
+        
+        <div class="main-content">
+            <h1 class="page-title">帮助一个陌生人</h1>
+            <p class="page-subtitle">这些问题来自真正需要支持的人，请你用温柔的心去回答</p>
+            
+            <div class="question-card">
+                <img src="https://images.unsplash.com/photo-1517841900229-3d1958e2e831?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=900&q=80" alt="漂流瓶" class="message-image">
+                
+                <div class="message-header">
+                    <i class="fas fa-envelope"></i>
+                    <span class="message-id">来信编号信 #2831</span>
+                </div>
+                
+                <p class="message-content">最近总是感觉很焦虑，工作压力很大，晚上经常失眠，不知道该怎么调节自己的状态，希望能得到一些建议。</p>
+                
+                <div class="message-tags">
+                    <span class="tag">压力</span>
+                    <span class="tag">焦虑</span>
+                    <span class="tag">失眠</span>
+                </div>
+                
+                <div class="message-time">2小时前</div>
+                
+                <textarea class="response-input" placeholder="写下你的建议和鼓励..."></textarea>
+                
+                <div class="reaction-bar">
+                    <div class="reaction"><i class="fas fa-heart"></i></div>
+                    <div class="reaction"><i class="far fa-smile"></i></div>
+                    <div class="reaction"><i class="far fa-smile-beam"></i></div>
+                    <div class="reaction"><i class="far fa-laugh"></i></div>
+                    <div class="reaction"><i class="far fa-star"></i></div>
+                </div>
+                
+                <div class="action-bar">
+                    <button class="submit-btn" id="submitBtn">
+                        <i class="fas fa-paper-plane"></i>
+                        <span>发送回应</span>
+                    </button>
+                    <button class="change-btn" id="changeBtn">
+                        <i class="fas fa-random"></i>
+                        <span>换一个问题</span>
+                    </button>
+                </div>
             </div>
-            <div class="nav-actions">
-                <a href="index.html" class="history-link">
-                    <i class="fas fa-home"></i>
-                    <span>回到首页</span>
-                </a>
+            
+            <div class="stats-bar">
+                <div class="stats-item">
+                    <i class="fas fa-heart"></i>
+                    <span>今日已帮助: 3人</span>
+                </div>
+                <div class="stats-item">
+                    <i class="fas fa-users"></i>
+                    <span>累计帮助: 28人</span>
+                </div>
+                <div class="stats-item">
+                    <i class="fas fa-award"></i>
+                    <span>收到感谢: 12次</span>
+                </div>
             </div>
         </div>
-    </header>
+    </div>
 
-    <main>
-        <div class="hero hero-small">
-            <div class="container">
-                <h1 class="hero-title">分享你的故事</h1>
-                <p class="hero-subtitle">写下你的烦恼，让温暖的回应驱散阴霾</p>
-            </div>
-        </div>
-
-        <div class="container">
-            <div class="share-container">
-                <a href="index.html" class="back-link">
-                    <i class="fas fa-arrow-left"></i> 返回首页
-                </a>
-                <form class="share-form" id="shareForm">
-                    <div class="form-group">
-                        <label for="title">给你的烦恼起个标题</label>
-                        <input type="text" id="title" name="title" placeholder="例如：工作与生活的平衡问题" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="category">选择分类</label>
-                        <select id="category" name="category" required>
-                            <option value="" disabled selected>请选择一个分类</option>
-                            <option value="work">工作/学业</option>
-                            <option value="relationship">人际关系</option>
-                            <option value="love">爱情</option>
-                            <option value="family">家庭</option>
-                            <option value="mental">心理健康</option>
-                            <option value="others">其他</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="content">详细描述你的困扰</label>
-                        <textarea id="content" name="content" placeholder="请详细描述你的情况，这样能帮助他人更好地理解和给予建议..." required></textarea>
-                    </div>
-                    
-                    <div class="form-footer">
-                        <p class="text-muted">你的分享将匿名发布，请放心表达</p>
-                        <button type="submit" class="submit-btn" id="submitBtn">发布分享</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </main>
-
-    <footer>
-        <div class="container">
-            <p>© 2024 解忧杂货铺 - 一个温暖的心灵港湾</p>
-        </div>
-    </footer>
-
-    <script src="script.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const shareForm = document.getElementById('shareForm');
             const submitBtn = document.getElementById('submitBtn');
+            const changeBtn = document.getElementById('changeBtn');
+            const responseInput = document.querySelector('.response-input');
+            const reactions = document.querySelectorAll('.reaction');
             
-            // 提交表单处理
-            shareForm.addEventListener('submit', function(e) {
-                e.preventDefault();
+            // 添加表情反应选择效果
+            reactions.forEach(reaction => {
+                reaction.addEventListener('click', function() {
+                    // 移除其他选中
+                    reactions.forEach(r => r.classList.remove('selected'));
+                    // 选中当前反应
+                    this.classList.add('selected');
+                    this.style.backgroundColor = '#eef2ff';
+                    this.style.color = '#4f7cff';
+                });
+            });
+            
+            // 回应提交处理
+            submitBtn.addEventListener('click', function() {
+                if (responseInput.value.trim() === '') {
+                    alert('请先输入你的回应内容');
+                    return;
+                }
                 
-                // 收集表单数据
-                const formData = {
-                    title: document.getElementById('title').value,
-                    category: document.getElementById('category').value,
-                    content: document.getElementById('content').value,
-                    timestamp: new Date().toISOString()
-                };
-                
-                // 模拟表单提交
-                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 提交中...';
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>发送中...</span>';
                 submitBtn.disabled = true;
                 
-                // 延迟2秒模拟服务器处理
+                // 模拟提交延迟
                 setTimeout(() => {
-                    // 模拟成功提交
-                    alert('你的分享已成功发布！感谢你的勇气，希望你能得到帮助。');
+                    alert('回应已成功发送！感谢你的温暖帮助。');
+                    responseInput.value = '';
+                    submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i><span>发送回应</span>';
+                    submitBtn.disabled = false;
                     
-                    // 转到首页
-                    window.location.href = 'index.html';
-                }, 2000);
+                    // 可以在这里添加统计数据更新代码
+                    const helpedToday = document.querySelector('.stats-bar .stats-item:first-child span');
+                    const currentCount = parseInt(helpedToday.textContent.match(/\d+/)[0]);
+                    helpedToday.textContent = `今日已帮助: ${currentCount + 1}人`;
+                }, 1500);
+            });
+            
+            // 换一个问题
+            changeBtn.addEventListener('click', function() {
+                changeBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>加载中...</span>';
+                changeBtn.disabled = true;
+                
+                // 模拟加载新问题
+                setTimeout(() => {
+                    // 这里模拟加载新问题，实际应用中应从服务器获取
+                    const questions = [
+                        {
+                            id: 2832,
+                            content: "我和女朋友异地恋已经两年了，最近感觉越来越难维持，不知道该怎么办...",
+                            tags: ["异地恋", "感情", "沟通"],
+                            time: "1小时前"
+                        },
+                        {
+                            id: 2833,
+                            content: "最近在考虑要不要换工作，现在的环境不太好，但又担心换了会更糟糕，很纠结。",
+                            tags: ["职场", "选择", "纠结"],
+                            time: "30分钟前"
+                        }
+                    ];
+                    
+                    // 随机选择一个新问题
+                    const newQuestion = questions[Math.floor(Math.random() * questions.length)];
+                    
+                    // 更新问题内容
+                    document.querySelector('.message-id').textContent = `来信编号信 #${newQuestion.id}`;
+                    document.querySelector('.message-content').textContent = newQuestion.content;
+                    
+                    // 更新标签
+                    const tagsContainer = document.querySelector('.message-tags');
+                    tagsContainer.innerHTML = '';
+                    newQuestion.tags.forEach(tag => {
+                        const tagElem = document.createElement('span');
+                        tagElem.className = 'tag';
+                        tagElem.textContent = tag;
+                        tagsContainer.appendChild(tagElem);
+                    });
+                    
+                    // 更新时间
+                    document.querySelector('.message-time').textContent = newQuestion.time;
+                    
+                    // 重置表单和按钮
+                    responseInput.value = '';
+                    reactions.forEach(r => r.classList.remove('selected'));
+                    changeBtn.innerHTML = '<i class="fas fa-random"></i><span>换一个问题</span>';
+                    changeBtn.disabled = false;
+                }, 1000);
             });
         });
     </script>
