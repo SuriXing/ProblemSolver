@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="在解忧杂货铺分享你的困扰，获得温暖的回应">
+    <meta name="keywords" content="解忧杂货铺,匿名社区,心理倾诉,情感支持,解压空间">
+    <meta name="author" content="解忧杂货铺团队">
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+    <title>发送漂流瓶 | 解忧杂货铺</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background-color: #f7f9fc;
+        }
+        
+        .page-header {
+            display: flex;
+            align-items: center;
+            padding: 20px 0;
+        }
+        
+        .page-header .logo {
+            display: flex;
+            align-items: center;
+            color: var(--primary-color);
+            font-size: 1.1rem;
+        }
+        
+        .page-header .logo i {
+            margin-right: 6px;
+            font-size: 1.2rem;
+        }
+        
+        .page-header .nav-link {
+            margin-left: auto;
+            color: #888;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+        }
+        
+        .page-header .nav-link i {
+            margin-right: 4px;
+        }
+        
+        .main-content {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px 0 60px 0;
+        }
+        
+        .page-title {
+            text-align: center;
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+        
+        .page-subtitle {
+            text-align: center;
+            color: #888;
+            font-size: 0.95rem;
+            margin-bottom: 30px;
+        }
+        
+        .bottle-image {
+            display: block;
+            width: 100px;
+            margin: 0 auto 30px;
+            opacity: 0.8;
+        }
+        
+        .form-card {
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .form-group {
+            margin-bottom: 24px;
+        }
+        
+        .form-label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: #4b5563;
+        }
+        
+        .form-textarea {
+            width: 100%;
+            min-height: 180px;
+            padding: 16px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            resize: vertical;
+            font-family: inherit;
+            font-size: 0.95rem;
+            color: #4b5563;
+            transition: all 0.2s ease;
+        }
+        
+        .form-textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(79, 124, 255, 0.1);
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 0.95rem;
+            color: #4b5563;
+            transition: all 0.2s ease;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(79, 124, 255, 0.1);
+        }
+        
+        .form-checkbox-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        
+        .form-checkbox {
+            margin-right: 8px;
+            width: 18px;
+            height: 18px;
+            accent-color: var(--primary-color);
+        }
+        
+        .form-checkbox-label {
+            font-size: 0.95rem;
+            color: #4b5563;
+        }
+        
+        .email-input-container {
+            display: none;
+            margin-top: 16px;
+        }
+        
+        .form-description {
+            font-size: 0.85rem;
+            color: #9ca3af;
+            margin-top: 8px;
+            line-height: 1.5;
+        }
+        
+        .form-submit {
+            display: block;
+            width: 100%;
+            max-width: 250px;
+            margin: 40px auto 0;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            text-align: center;
+        }
+        
+        .form-submit:hover {
+            background-color: #4069e5;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(79, 124, 255, 0.3);
+        }
+        
+        .form-footer {
+            text-align: center;
+            margin-top: 24px;
+            font-size: 0.85rem;
+            color: #9ca3af;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="page-header">
+            <a href="index.html" class="logo">
+                <i class="fas fa-hands-helping"></i>
+                <span>解忧杂货铺</span>
+            </a>
+            <a href="index.html" class="nav-link">
+                <i class="fas fa-arrow-left"></i>
+                <span>返回首页</span>
+            </a>
+        </div>
+        
+        <div class="main-content">
+            <h1 class="page-title">投出你的漂流瓶</h1>
+            <p class="page-subtitle">写下你的烦恼，让温暖的回应驱散阴霾</p>
+            
+            <img src="https://cdn-icons-png.flaticon.com/512/3612/3612246.png" alt="漂流瓶" class="bottle-image">
+            
+            <form id="queryForm" class="form-card">
+                <div class="form-group">
+                    <label for="queryContent" class="form-label">说说你正在经历的烦恼吧</label>
+                    <textarea id="queryContent" name="queryContent" class="form-textarea" placeholder="请详细描述你的情况，这样能帮助他人更好地理解和给予建议..." required></textarea>
+                </div>
+                
+                <div class="form-checkbox-group">
+                    <input type="checkbox" id="anonymousCheck" name="anonymousCheck" class="form-checkbox" checked>
+                    <label for="anonymousCheck" class="form-checkbox-label">匿名发布（不显示昵称）</label>
+                </div>
+                
+                <div class="form-checkbox-group">
+                    <input type="checkbox" id="emailNotification" name="emailNotification" class="form-checkbox">
+                    <label for="emailNotification" class="form-checkbox-label">希望被Email通知有回应</label>
+                </div>
+                
+                <div id="emailInputContainer" class="email-input-container">
+                    <input type="email" id="emailInput" name="emailInput" class="form-input" placeholder="请输入你的邮箱">
+                    <p class="form-description">邮箱仅用于回复通知，不会显示给他人</p>
+                </div>
+                
+                <button type="submit" class="form-submit">
+                    <i class="fas fa-paper-plane"></i> 投出漂流瓶
+                </button>
+                
+                <div class="form-footer">
+                    你的分享将会被认真对待，会有善良的人给予回应
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const emailNotificationCheckbox = document.getElementById('emailNotification');
+            const emailInputContainer = document.getElementById('emailInputContainer');
+            const emailInput = document.getElementById('emailInput');
+            const queryForm = document.getElementById('queryForm');
+            
+            // 处理邮箱通知选项的显示/隐藏
+            emailNotificationCheckbox.addEventListener('change', function() {
+                if (this.checked) {
+                    emailInputContainer.style.display = 'block';
+                    emailInput.setAttribute('required', 'required');
+                } else {
+                    emailInputContainer.style.display = 'none';
+                    emailInput.removeAttribute('required');
+                }
+            });
+            
+            // 表单提交处理
+            queryForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // 收集表单数据
+                const formData = {
+                    content: document.getElementById('queryContent').value,
+                    isAnonymous: document.getElementById('anonymousCheck').checked,
+                    emailNotification: document.getElementById('emailNotification').checked,
+                    email: document.getElementById('emailNotification').checked ? document.getElementById('emailInput').value : null,
+                    timestamp: new Date().toISOString()
+                };
+                
+                // 模拟提交
+                const submitButton = document.querySelector('.form-submit');
+                submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 发送中...';
+                submitButton.disabled = true;
+                
+                // 模拟网络延迟
+                setTimeout(() => {
+                    // 生成一个随机的访问码
+                    const accessCode = Math.floor(10000 + Math.random() * 90000);
+                    
+                    // 存储数据到本地存储（实际应用中应发送到服务器）
+                    let storedQueries = JSON.parse(localStorage.getItem('queries') || '[]');
+                    formData.id = accessCode;
+                    storedQueries.push(formData);
+                    localStorage.setItem('queries', JSON.stringify(storedQueries));
+                    
+                    // 跳转到成功页面
+                    alert(`你的漂流瓶已成功投出！你的访问码是：#${accessCode}`);
+                    window.location.href = 'index.html';
+                }, 1500);
+            });
+        });
+    </script>
+</body>
+</html> 
