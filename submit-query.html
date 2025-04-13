@@ -8,88 +8,98 @@
     <meta name="author" content="解忧杂货铺团队">
     <link rel="icon" href="favicon.ico" type="image/x-icon">
     <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
-    <title>发送漂流瓶 | 解忧杂货铺</title>
+    <title>说出你的心事 | 解忧杂货铺</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body {
-            background-color: #f7f9fc;
+            background-color: #f9fafb;
+            font-family: 'PingFang SC', 'Helvetica Neue', 'Microsoft YaHei', sans-serif;
+            color: #374151;
+            line-height: 1.6;
         }
         
-        .page-header {
+        .header {
             display: flex;
+            justify-content: space-between;
             align-items: center;
             padding: 20px 0;
+            margin-bottom: 40px;
         }
         
-        .page-header .logo {
+        .logo {
             display: flex;
             align-items: center;
-            color: var(--primary-color);
+            color: #4f7cff;
+            text-decoration: none;
+        }
+        
+        .logo i {
+            font-size: 1.2rem;
+            margin-right: 6px;
+        }
+        
+        .logo span {
             font-size: 1.1rem;
         }
         
-        .page-header .logo i {
-            margin-right: 6px;
-            font-size: 1.2rem;
-        }
-        
-        .page-header .nav-link {
-            margin-left: auto;
-            color: #888;
-            font-size: 0.9rem;
+        .nav-link {
+            color: #6b7280;
+            text-decoration: none;
+            font-size: 0.95rem;
             display: flex;
             align-items: center;
         }
         
-        .page-header .nav-link i {
+        .nav-link i {
             margin-right: 4px;
         }
         
-        .main-content {
-            max-width: 800px;
+        .container {
+            max-width: 1000px;
             margin: 0 auto;
-            padding: 20px 0 60px 0;
+            padding: 0 24px;
+        }
+        
+        .main-content {
+            margin: 0 auto;
+            max-width: 750px;
         }
         
         .page-title {
-            text-align: center;
-            font-size: 1.8rem;
+            font-size: 2rem;
             font-weight: 600;
-            margin-bottom: 6px;
+            text-align: center;
+            margin-bottom: 8px;
+            color: #1f2937;
         }
         
         .page-subtitle {
             text-align: center;
-            color: #888;
-            font-size: 0.95rem;
-            margin-bottom: 30px;
-        }
-        
-        .bottle-image {
-            display: block;
-            width: 100px;
-            margin: 0 auto 30px;
-            opacity: 0.8;
-        }
-        
-        .form-card {
-            background-color: white;
-            border-radius: 12px;
-            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
-            padding: 30px;
-            margin-bottom: 30px;
-        }
-        
-        .form-group {
+            color: #6b7280;
             margin-bottom: 24px;
+            font-size: 1rem;
         }
         
-        .form-label {
-            display: block;
-            font-weight: 500;
-            margin-bottom: 8px;
-            color: #4b5563;
+        .store-image {
+            width: 100%;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            overflow: hidden;
+        }
+        
+        .store-image img {
+            width: 100%;
+            height: auto;
+            object-fit: cover;
+        }
+        
+        .query-form {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            padding: 24px;
+            margin-bottom: 40px;
         }
         
         .form-textarea {
@@ -97,198 +107,163 @@
             min-height: 180px;
             padding: 16px;
             border: 1px solid #e5e7eb;
-            border-radius: 8px;
-            resize: vertical;
+            border-radius: 6px;
             font-family: inherit;
-            font-size: 0.95rem;
+            font-size: 1rem;
             color: #4b5563;
-            transition: all 0.2s ease;
+            margin-bottom: 20px;
+            resize: vertical;
         }
         
         .form-textarea:focus {
             outline: none;
-            border-color: var(--primary-color);
+            border-color: #4f7cff;
             box-shadow: 0 0 0 3px rgba(79, 124, 255, 0.1);
         }
         
-        .form-input {
-            width: 100%;
-            padding: 12px 16px;
-            border: 1px solid #e5e7eb;
-            border-radius: 8px;
-            font-family: inherit;
-            font-size: 0.95rem;
-            color: #4b5563;
-            transition: all 0.2s ease;
-        }
-        
-        .form-input:focus {
-            outline: none;
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(79, 124, 255, 0.1);
-        }
-        
-        .form-checkbox-group {
+        .checkbox-group {
             display: flex;
             align-items: center;
             margin-bottom: 16px;
         }
         
-        .form-checkbox {
-            margin-right: 8px;
+        .checkbox-group input[type="checkbox"] {
             width: 18px;
             height: 18px;
-            accent-color: var(--primary-color);
+            margin-right: 8px;
+            accent-color: #4f7cff;
         }
         
-        .form-checkbox-label {
+        .checkbox-label {
             font-size: 0.95rem;
             color: #4b5563;
         }
         
-        .email-input-container {
-            display: none;
+        .email-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 0.95rem;
+            margin-bottom: 24px;
             margin-top: 16px;
         }
         
-        .form-description {
-            font-size: 0.85rem;
-            color: #9ca3af;
-            margin-top: 8px;
-            line-height: 1.5;
+        .email-input:focus {
+            outline: none;
+            border-color: #4f7cff;
+            box-shadow: 0 0 0 3px rgba(79, 124, 255, 0.1);
         }
         
-        .form-submit {
-            display: block;
-            width: 100%;
-            max-width: 250px;
-            margin: 40px auto 0;
-            background-color: var(--primary-color);
+        .submit-button {
+            background-color: #4f7cff;
             color: white;
             border: none;
-            padding: 12px 24px;
             border-radius: 50px;
+            padding: 12px 24px;
             font-size: 1rem;
             font-weight: 500;
             cursor: pointer;
-            transition: all 0.25s ease;
-            text-align: center;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 220px;
+            margin: 0 auto;
         }
         
-        .form-submit:hover {
+        .submit-button i {
+            margin-left: 8px;
+        }
+        
+        .submit-button:hover {
             background-color: #4069e5;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(79, 124, 255, 0.3);
-        }
-        
-        .form-footer {
-            text-align: center;
-            margin-top: 24px;
-            font-size: 0.85rem;
-            color: #9ca3af;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="page-header">
+        <div class="header">
             <a href="index.html" class="logo">
                 <i class="fas fa-hands-helping"></i>
                 <span>解忧杂货铺</span>
             </a>
             <a href="index.html" class="nav-link">
-                <i class="fas fa-arrow-left"></i>
-                <span>返回首页</span>
+                <i class="fas fa-history"></i>
+                <span>过往问题</span>
             </a>
         </div>
         
         <div class="main-content">
-            <h1 class="page-title">投出你的漂流瓶</h1>
-            <p class="page-subtitle">写下你的烦恼，让温暖的回应驱散阴霾</p>
+            <h1 class="page-title">说出你的心事</h1>
+            <p class="page-subtitle">在这里倾诉，总有人懂你</p>
             
-            <img src="https://cdn-icons-png.flaticon.com/512/3612/3612246.png" alt="漂流瓶" class="bottle-image">
+            <div class="store-image">
+                <img src="https://images.unsplash.com/photo-1519682577862-22b62b24e493?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1740&q=80" alt="解忧杂货铺">
+            </div>
             
-            <form id="queryForm" class="form-card">
-                <div class="form-group">
-                    <label for="queryContent" class="form-label">说说你正在经历的烦恼吧</label>
-                    <textarea id="queryContent" name="queryContent" class="form-textarea" placeholder="请详细描述你的情况，这样能帮助他人更好地理解和给予建议..." required></textarea>
+            <form id="queryForm" class="query-form">
+                <textarea class="form-textarea" placeholder="说说你正在经历的烦恼吧..." required></textarea>
+                
+                <div class="checkbox-group">
+                    <input type="checkbox" id="anonymousCheck" checked>
+                    <label for="anonymousCheck" class="checkbox-label">匿名发布</label>
                 </div>
                 
-                <div class="form-checkbox-group">
-                    <input type="checkbox" id="anonymousCheck" name="anonymousCheck" class="form-checkbox" checked>
-                    <label for="anonymousCheck" class="form-checkbox-label">匿名发布（不显示昵称）</label>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="emailNotification">
+                    <label for="emailNotification" class="checkbox-label">有回应时通过Email通知我</label>
                 </div>
                 
-                <div class="form-checkbox-group">
-                    <input type="checkbox" id="emailNotification" name="emailNotification" class="form-checkbox">
-                    <label for="emailNotification" class="form-checkbox-label">希望被Email通知有回应</label>
+                <div id="emailContainer" style="display: none;">
+                    <input type="email" placeholder="请输入您的邮箱地址" class="email-input" id="emailInput">
                 </div>
                 
-                <div id="emailInputContainer" class="email-input-container">
-                    <input type="email" id="emailInput" name="emailInput" class="form-input" placeholder="请输入你的邮箱">
-                    <p class="form-description">邮箱仅用于回复通知，不会显示给他人</p>
-                </div>
-                
-                <button type="submit" class="form-submit">
-                    <i class="fas fa-paper-plane"></i> 投出漂流瓶
+                <button type="submit" class="submit-button">
+                    投出漂流瓶
+                    <i class="fas fa-paper-plane"></i>
                 </button>
-                
-                <div class="form-footer">
-                    你的分享将会被认真对待，会有善良的人给予回应
-                </div>
             </form>
         </div>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const emailNotificationCheckbox = document.getElementById('emailNotification');
-            const emailInputContainer = document.getElementById('emailInputContainer');
+            const emailCheckbox = document.getElementById('emailNotification');
+            const emailContainer = document.getElementById('emailContainer');
             const emailInput = document.getElementById('emailInput');
             const queryForm = document.getElementById('queryForm');
             
-            // 处理邮箱通知选项的显示/隐藏
-            emailNotificationCheckbox.addEventListener('change', function() {
-                if (this.checked) {
-                    emailInputContainer.style.display = 'block';
-                    emailInput.setAttribute('required', 'required');
-                } else {
-                    emailInputContainer.style.display = 'none';
-                    emailInput.removeAttribute('required');
-                }
+            // Toggle email input visibility
+            emailCheckbox.addEventListener('change', function() {
+                emailContainer.style.display = this.checked ? 'block' : 'none';
+                emailInput.required = this.checked;
             });
             
-            // 表单提交处理
+            // Form submission
             queryForm.addEventListener('submit', function(e) {
                 e.preventDefault();
                 
-                // 收集表单数据
-                const formData = {
-                    content: document.getElementById('queryContent').value,
-                    isAnonymous: document.getElementById('anonymousCheck').checked,
-                    emailNotification: document.getElementById('emailNotification').checked,
-                    email: document.getElementById('emailNotification').checked ? document.getElementById('emailInput').value : null,
-                    timestamp: new Date().toISOString()
-                };
+                const submitButton = document.querySelector('.submit-button');
+                const originalButtonText = submitButton.innerHTML;
                 
-                // 模拟提交
-                const submitButton = document.querySelector('.form-submit');
+                // Show loading state
                 submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 发送中...';
                 submitButton.disabled = true;
                 
-                // 模拟网络延迟
+                // Generate a random access code
+                const accessCode = Math.floor(10000 + Math.random() * 90000);
+                
+                // Simulate server request
                 setTimeout(() => {
-                    // 生成一个随机的访问码
-                    const accessCode = Math.floor(10000 + Math.random() * 90000);
+                    alert(`你的漂流瓶已成功投出！\n访问码: #${accessCode}`);
+                    queryForm.reset();
+                    emailContainer.style.display = 'none';
+                    submitButton.innerHTML = originalButtonText;
+                    submitButton.disabled = false;
                     
-                    // 存储数据到本地存储（实际应用中应发送到服务器）
-                    let storedQueries = JSON.parse(localStorage.getItem('queries') || '[]');
-                    formData.id = accessCode;
-                    storedQueries.push(formData);
-                    localStorage.setItem('queries', JSON.stringify(storedQueries));
-                    
-                    // 跳转到成功页面
-                    alert(`你的漂流瓶已成功投出！你的访问码是：#${accessCode}`);
+                    // Redirect to index page
                     window.location.href = 'index.html';
                 }, 1500);
             });
