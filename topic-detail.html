@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="查看并回复解忧杂货铺的问题详情">
+    <meta name="keywords" content="解忧杂货铺,匿名社区,心理倾诉,情感支持,解压空间">
+    <meta name="author" content="解忧杂货铺团队">
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+    <title>问题详情 | 解忧杂货铺</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .topic-container {
+            max-width: 800px;
+            margin: 0 auto;
+            margin-top: -50px;
+            margin-bottom: 60px;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .topic-detail {
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--card-shadow);
+            padding: 30px;
+            margin-bottom: 20px;
+        }
+        
+        .topic-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        
+        .topic-meta {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .topic-category {
+            background-color: rgba(79, 124, 255, 0.1);
+            color: var(--primary-color);
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        
+        .topic-time {
+            color: var(--light-gray);
+            font-size: 0.85rem;
+        }
+        
+        .topic-views {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: var(--light-gray);
+            font-size: 0.85rem;
+        }
+        
+        .topic-title {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: var(--text-color);
+            line-height: 1.4;
+        }
+        
+        .topic-content {
+            color: var(--text-color);
+            line-height: 1.8;
+            font-size: 1rem;
+            margin-bottom: 20px;
+        }
+        
+        .topic-content p {
+            margin-bottom: 15px;
+        }
+        
+        .topic-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 20px;
+            border-top: 1px solid var(--lighter-gray);
+        }
+        
+        .topic-tags {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .topic-tag {
+            padding: 3px 10px;
+            background-color: var(--lighter-gray);
+            border-radius: 20px;
+            font-size: 0.8rem;
+            color: var(--light-gray);
+        }
+        
+        .topic-actions {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .topic-action {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: var(--light-gray);
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .topic-action:hover {
+            color: var(--primary-color);
+        }
+        
+        .replies-container {
+            margin-bottom: 30px;
+        }
+        
+        .replies-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--lighter-gray);
+        }
+        
+        .replies-title {
+            font-size: 1.2rem;
+            color: var(--text-color);
+            font-weight: 600;
+        }
+        
+        .replies-count {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin-left: 10px;
+        }
+        
+        .replies-sort {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .sort-option {
+            color: var(--light-gray);
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .sort-option.active {
+            color: var(--primary-color);
+            font-weight: 500;
+        }
+        
+        .sort-option:hover:not(.active) {
+            color: var(--text-color);
+        }
+        
+        .reply-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .reply-card {
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--card-shadow);
+            padding: 20px;
+        }
+        
+        .reply-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+        
+        .reply-user {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .reply-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background-color: #e0e0e0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            color: var(--light-gray);
+        }
+        
+        .reply-username {
+            font-weight: 500;
+            color: var(--text-color);
+        }
+        
+        .reply-time {
+            color: var(--light-gray);
+            font-size: 0.85rem;
+        }
+        
+        .reply-content {
+            color: var(--text-color);
+            line-height: 1.7;
+            font-size: 0.95rem;
+            margin-bottom: 15px;
+        }
+        
+        .reply-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+        }
+        
+        .reply-action {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: var(--light-gray);
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .reply-action:hover {
+            color: var(--primary-color);
+        }
+        
+        .post-reply {
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--card-shadow);
+            padding: 25px;
+        }
+        
+        .post-reply-title {
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+            color: var(--text-color);
+            font-weight: 600;
+        }
+        
+        .reply-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .reply-textarea {
+            padding: 15px;
+            border: 1px solid var(--lighter-gray);
+            border-radius: 8px;
+            min-height: 150px;
+            resize: vertical;
+            font-family: inherit;
+            font-size: 0.95rem;
+            color: var(--text-color);
+            line-height: 1.6;
+            transition: var(--transition);
+        }
+        
+        .reply-textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(79, 124, 255, 0.1);
+        }
+        
+        .reply-form-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .form-note {
+            color: var(--light-gray);
+            font-size: 0.85rem;
+        }
+        
+        .submit-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 50px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .submit-btn:hover {
+            background-color: #3d6ae8;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(79, 124, 255, 0.3);
+        }
+        
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            color: var(--light-gray);
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+        }
+        
+        .back-link:hover {
+            color: var(--primary-color);
+        }
+        
+        .hero-small {
+            padding: 40px 0;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="logo">
+                <a href="index.html">
+                    <i class="fas fa-hands-helping"></i>
+                    <span>解忧杂货铺</span>
+                </a>
+            </div>
+            <div class="nav-actions">
+                <a href="index.html" class="history-link">
+                    <i class="fas fa-home"></i>
+                    <span>回到首页</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="hero hero-small">
+            <div class="container">
+                <h1 class="hero-title">问题详情</h1>
+                <p class="hero-subtitle">了解别人的困扰，给予真诚的建议</p>
+            </div>
+        </div>
+
+        <div class="container topic-container">
+            <a href="help.html" class="back-link">
+                <i class="fas fa-arrow-left"></i> 返回问题列表
+            </a>
+            
+            <div class="topic-detail" id="topicDetail">
+                <!-- 话题详情将通过JavaScript动态加载 -->
+            </div>
+            
+            <div class="replies-container">
+                <div class="replies-header">
+                    <div class="replies-title">
+                        回复 <span class="replies-count" id="repliesCount">0</span>
+                    </div>
+                    <div class="replies-sort">
+                        <span class="sort-option active" data-sort="latest">最新</span>
+                        <span class="sort-option" data-sort="oldest">最早</span>
+                        <span class="sort-option" data-sort="helpful">最有帮助</span>
+                    </div>
+                </div>
+                
+                <div class="reply-list" id="replyList">
+                    <!-- 回复列表将通过JavaScript动态加载 -->
+                </div>
+            </div>
+            
+            <div class="post-reply">
+                <h3 class="post-reply-title">发表你的回复</h3>
+                <form class="reply-form" id="replyForm">
+                    <textarea class="reply-textarea" placeholder="分享你的建议、经验或鼓励的话..." required></textarea>
+                    <div class="reply-form-footer">
+                        <p class="form-note">请保持友善和尊重，互相理解和支持</p>
+                        <button type="submit" class="submit-btn">发表回复</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>© 2024 解忧杂货铺 - 一个温暖的心灵港湾</p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 获取URL参数中的话题ID
+            const urlParams = new URLSearchParams(window.location.search);
+            const topicId = urlParams.get('id') || '1'; // 默认为1，防止无参数
+            
+            // 模拟话题数据
+            const topicDetails = {
+                '1': {
+                    id: 1,
+                    title: "感觉工作压力太大，无法平衡生活，该怎么办？",
+                    category: "工作/学业",
+                    time: "2小时前",
+                    views: 42,
+                    content: `
+                        <p>最近工作压力非常大，每天加班到很晚，有时候甚至通宵加班。我在一家互联网公司工作，负责的项目非常紧急，每天都有解不完的bug和做不完的需求。</p>
+                        <p>我感觉自己的生活完全被工作占据了，没有时间陪家人，没有时间做自己喜欢的事情，甚至连基本的休息都无法保证。周末本应该休息，但总是惦记着工作的事情，要么加班，要么就是焦虑地想着周一又有一堆事情等着我。</p>
+                        <p>我曾经尝试过和主管沟通，但得到的回应是"这个阶段大家都很忙"，"坚持一下，项目上线后就好了"，但项目上线后又会有新的项目，感觉这是一个无限循环。</p>
+                        <p>我开始怀疑自己是不是不适合这个行业，或者是不是自己的能力不足导致效率低下。但每天加班这么久，已经尽力了，实在不知道还能怎么提高效率。</p>
+                        <p>我该如何平衡工作和生活？有什么方法可以减轻压力，找回生活的乐趣？还是说这个行业就是这样，必须接受？</p>
+                    `,
+                    tags: ["压力", "工作", "生活平衡"]
+                },
+                '2': {
+                    id: 2,
+                    title: "如何克服社交恐惧？",
+                    category: "心理健康",
+                    time: "昨天",
+                    views: 67,
+                    content: `
+                        <p>我一直都有社交恐惧的问题，在陌生人面前很难自然地表达自己。每次需要参加社交活动都会感到焦虑，心跳加速，甚至会感到恶心和头晕。</p>
+                        <p>在学校里，我总是很难融入群体，即使有人主动和我说话，我也不知道该如何回应，常常说错话或者表现得很奇怪。这让我越来越不敢与人交流。</p>
+                        <p>工作中，我害怕开会发言，害怕与同事一起吃饭，甚至害怕在公共场合被人注视。这种恐惧严重影响了我的工作和生活质量。</p>
+                        <p>我尝试过强迫自己参加社交活动，但每次都会感到极度不适，回家后需要很长时间才能平静下来。</p>
+                        <p>有没有人能分享一些克服社交恐惧的方法？或者有没有经历过类似问题并成功克服的朋友可以给我一些建议？</p>
+                    `,
+                    tags: ["社交恐惧", "焦虑", "心理"]
+                }
+            };
+            
+            // 模拟回复数据
+            const replies = {
+                '1': [
+                    {
+                        id: 1,
+                        username: "平衡达人",
+                        time: "1小时前",
+                        content: "我理解你的处境，我也曾经历过类似的情况。我的建议是：1. 明确边界：下班后坚决不看工作邮件和消息；2. 与主管再次沟通，但这次准备具体的数据，说明长期加班对工作质量的负面影响；3. 每天给自己留出哪怕30分钟的'我的时间'，做自己喜欢的事；4. 考虑是否值得换一个更尊重工作生活平衡的公司。记住，没有一份工作值得你牺牲健康和幸福感。",
+                        likes: 12
+                    },
+                    {
+                        id: 2,
+                        username: "职场老手",
+                        time: "50分钟前",
+                        content: "建议学习时间管理技巧，提高工作效率。多和同事协作，分担工作压力。如果公司文化就是加班文化，可能需要考虑是否适合长期发展。健康和家庭永远比工作重要。",
+                        likes: 8
+                    },
+                    {
+                        id: 3,
+                        username: "心理学爱好者",
+                        time: "30分钟前",
+                        content: "压力过大时可以尝试正念冥想，帮助你专注当下，减轻焦虑。定期锻炼也能有效释放压力。此外，不要给自己太大压力，适当放低预期，接受自己不可能完美完成所有事情。希望你能找到适合自己的平衡点！",
+                        likes: 6
+                    }
+                ],
+                '2': [
+                    {
+                        id: 1,
+                        username: "曾经恐社交",
+                        time: "10小时前",
+                        content: "我也曾有严重的社交恐惧，通过认知行为疗法有了很大改善。可以从小的社交互动开始，逐步提升难度。出现焦虑时，深呼吸，告诉自己这只是暂时的感觉，会过去的。建议寻求专业心理医生的帮助，这不是软弱，而是勇敢面对问题的表现。加油！",
+                        likes: 15
+                    }
+                ]
+            };
+            
+            // 渲染话题详情
+            function renderTopicDetail() {
+                const topicDetail = document.getElementById('topicDetail');
+                const topic = topicDetails[topicId];
+                
+                if (!topic) {
+                    topicDetail.innerHTML = '<p>抱歉，未找到该话题</p>';
+                    return;
+                }
+                
+                topicDetail.innerHTML = `
+                    <div class="topic-header">
+                        <div class="topic-meta">
+                            <span class="topic-category">${topic.category}</span>
+                            <span class="topic-time">${topic.time}</span>
+                        </div>
+                        <div class="topic-views">
+                            <i class="fas fa-eye"></i> ${topic.views} 次浏览
+                        </div>
+                    </div>
+                    <h2 class="topic-title">${topic.title}</h2>
+                    <div class="topic-content">${topic.content}</div>
+                    <div class="topic-footer">
+                        <div class="topic-tags">
+                            ${topic.tags.map(tag => `<span class="topic-tag">${tag}</span>`).join('')}
+                        </div>
+                        <div class="topic-actions">
+                            <span class="topic-action"><i class="far fa-heart"></i> 收藏</span>
+                            <span class="topic-action"><i class="far fa-share-square"></i> 分享</span>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // 渲染回复列表
+            function renderReplies() {
+                const replyList = document.getElementById('replyList');
+                const repliesCount = document.getElementById('repliesCount');
+                const topicReplies = replies[topicId] || [];
+                
+                repliesCount.textContent = topicReplies.length;
+                
+                if (topicReplies.length === 0) {
+                    replyList.innerHTML = '<p style="text-align: center; color: var(--light-gray); padding: 30px 0;">暂无回复，成为第一个回复的人吧！</p>';
+                    return;
+                }
+                
+                replyList.innerHTML = '';
+                
+                topicReplies.forEach(reply => {
+                    const replyElement = document.createElement('div');
+                    replyElement.className = 'reply-card';
+                    
+                    replyElement.innerHTML = `
+                        <div class="reply-header">
+                            <div class="reply-user">
+                                <div class="reply-avatar">${reply.username.charAt(0)}</div>
+                                <span class="reply-username">${reply.username}</span>
+                            </div>
+                            <span class="reply-time">${reply.time}</span>
+                        </div>
+                        <div class="reply-content">${reply.content}</div>
+                        <div class="reply-footer">
+                            <span class="reply-action" data-id="${reply.id}">
+                                <i class="far fa-thumbs-up"></i> 有帮助 (${reply.likes})
+                            </span>
+                            <span class="reply-action">
+                                <i class="far fa-comment"></i> 回复
+                            </span>
+                        </div>
+                    `;
+                    
+                    replyList.appendChild(replyElement);
+                });
+            }
+            
+            // 初始渲染
+            renderTopicDetail();
+            renderReplies();
+            
+            // 处理回复排序
+            const sortOptions = document.querySelectorAll('.sort-option');
+            sortOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    sortOptions.forEach(opt => opt.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // 这里可以添加实际排序逻辑
+                    // 当前只是UI交互示例
+                    const sortType = this.dataset.sort;
+                    alert(`正在按 ${sortType} 排序`);
+                });
+            });
+            
+            // 处理回复提交
+            const replyForm = document.getElementById('replyForm');
+            replyForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const textarea = this.querySelector('textarea');
+                const content = textarea.value.trim();
+                
+                if (!content) return;
+                
+                // 模拟添加新回复
+                const newReply = {
+                    id: Date.now(),
+                    username: "匿名用户",
+                    time: "刚刚",
+                    content: content,
+                    likes: 0
+                };
+                
+                // 添加到模拟数据
+                if (!replies[topicId]) {
+                    replies[topicId] = [];
+                }
+                replies[topicId].unshift(newReply);
+                
+                // 重新渲染回复列表
+                renderReplies();
+                
+                // 清空输入框
+                textarea.value = '';
+                
+                // 显示成功消息
+                alert('回复发表成功！感谢你的帮助。');
+            });
+            
+            // 处理点赞功能
+            document.addEventListener('click', function(e) {
+                const target = e.target.closest('.reply-action');
+                if (target && target.dataset.id) {
+                    const replyId = parseInt(target.dataset.id);
+                    const topicReplies = replies[topicId] || [];
+                    
+                    // 查找并更新点赞数
+                    const reply = topicReplies.find(r => r.id === replyId);
+                    if (reply) {
+                        reply.likes += 1;
+                        // 更新UI
+                        target.innerHTML = `<i class="fas fa-thumbs-up"></i> 已点赞 (${reply.likes})`;
+                        target.style.color = 'var(--primary-color)';
+                        // 禁用再次点击
+                        target.dataset.id = '';
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html> 
