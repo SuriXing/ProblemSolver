@@ -327,164 +327,19 @@
         </div>
     </footer>
 
+    <!-- Add i18n.js before script.js -->
+    <script src="i18n.js"></script>
     <script src="script.js"></script>
     <script>
+        // Initialize i18n after DOM is loaded
         document.addEventListener('DOMContentLoaded', function() {
-            // 模拟数据
-            const topics = [
-                {
-                    id: 1,
-                    title: "感觉工作压力太大，无法平衡生活，该怎么办？",
-                    category: "工作/学业",
-                    time: "2小时前",
-                    excerpt: "最近工作压力非常大，每天加班到很晚。感觉生活没有了乐趣，周末也在想工作的事情。我该如何平衡工作和生活，找回生活的意义？",
-                    replies: 5,
-                    views: 42,
-                    tags: ["压力", "工作", "生活平衡"]
-                },
-                {
-                    id: 2,
-                    title: "如何克服社交恐惧？",
-                    category: "心理健康",
-                    time: "昨天",
-                    excerpt: "我一直都有社交恐惧的问题，在陌生人面前很难自然地表达自己。每次需要参加社交活动都会感到焦虑。有没有人能分享一些克服社交恐惧的方法？",
-                    replies: 8,
-                    views: 67,
-                    tags: ["社交恐惧", "焦虑", "心理"]
-                },
-                {
-                    id: 3,
-                    title: "和父母的代沟问题，怎样才能让他们理解我？",
-                    category: "家庭",
-                    time: "3天前",
-                    excerpt: "我和父母有很大的代沟，他们总是不理解我的选择和想法。每次交流都容易演变成争吵。有什么好的方法能够改善和父母的沟通，让他们更理解我？",
-                    replies: 12,
-                    views: 103,
-                    tags: ["亲子关系", "沟通", "代沟"]
-                },
-                {
-                    id: 4,
-                    title: "分手后如何走出情感阴影？",
-                    category: "爱情",
-                    time: "5天前",
-                    excerpt: "最近经历了一段感情的结束，感觉很难走出来。经常会想起过去的点点滴滴，感到很痛苦。有什么方法可以帮助我尽快走出这段感情的阴影？",
-                    replies: 15,
-                    views: 128,
-                    tags: ["分手", "情感", "治愈"]
-                },
-                {
-                    id: 5,
-                    title: "如何应对同事之间的竞争和办公室政治？",
-                    category: "工作/学业",
-                    time: "1周前",
-                    excerpt: "我在一个竞争激烈的环境中工作，感觉同事之间的关系很复杂，也有一些办公室政治。我想保持良好的工作关系，同时也不想卷入不必要的冲突，应该怎么做？",
-                    replies: 7,
-                    views: 89,
-                    tags: ["职场", "人际关系", "竞争"]
-                }
-            ];
+            // Set up current language variable
+            window.currentLanguage = localStorage.getItem('language') || 'zh-CN';
             
-            // 渲染话题列表
-            function renderTopics() {
-                const topicsContainer = document.getElementById('topicsContainer');
-                topicsContainer.innerHTML = '';
-                
-                topics.forEach(topic => {
-                    const topicElement = document.createElement('div');
-                    topicElement.className = 'topic-card';
-                    
-                    // 设置HTML内容
-                    topicElement.innerHTML = `
-                        <div class="topic-stats">
-                            <div class="stat-replies">
-                                <span class="stat-number">${topic.replies}</span>
-                                <span class="stat-label">回复</span>
-                            </div>
-                            <div class="stat-views">
-                                <span class="stat-number">${topic.views}</span>
-                                <span class="stat-label">浏览</span>
-                            </div>
-                        </div>
-                        <div class="topic-content">
-                            <div class="topic-header">
-                                <span class="topic-category">${topic.category}</span>
-                                <span class="topic-time">${topic.time}</span>
-                            </div>
-                            <h3 class="topic-title"><a href="topic-detail.html?id=${topic.id}">${topic.title}</a></h3>
-                            <p class="topic-excerpt">${topic.excerpt}</p>
-                            <div class="topic-footer">
-                                <div class="topic-tags">
-                                    ${topic.tags.map(tag => `<span class="topic-tag">${tag}</span>`).join('')}
-                                </div>
-                                <a href="topic-detail.html?id=${topic.id}" class="topic-action">查看详情</a>
-                            </div>
-                        </div>
-                    `;
-                    
-                    topicsContainer.appendChild(topicElement);
-                });
+            // Initialize i18n
+            if (window.i18n && typeof window.i18n.init === 'function') {
+                window.i18n.init();
             }
-            
-            // 初始渲染
-            renderTopics();
-            
-            // 处理筛选按钮点击
-            const filterButtons = document.querySelectorAll('.filter-options button');
-            filterButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    // 移除所有按钮的active类
-                    filterButtons.forEach(btn => btn.classList.remove('active'));
-                    // 为当前点击的按钮添加active类
-                    this.classList.add('active');
-                    
-                    // 这里可以添加实际筛选逻辑
-                    // 当前只是UI交互示例
-                });
-            });
-            
-            // 处理分页按钮点击
-            const paginationButtons = document.querySelectorAll('.pagination button');
-            paginationButtons.forEach(button => {
-                if (!button.classList.contains('disabled')) {
-                    button.addEventListener('click', function() {
-                        if (this.classList.contains('active')) return;
-                        
-                        // 移除当前活动页码
-                        const activeButton = document.querySelector('.pagination button.active');
-                        if (activeButton) activeButton.classList.remove('active');
-                        
-                        // 如果是翻页箭头
-                        if (this.innerHTML.includes('chevron')) {
-                            // 这里可以添加上一页/下一页逻辑
-                        } else {
-                            // 为当前点击的页码添加active类
-                            this.classList.add('active');
-                        }
-                        
-                        // 这里可以添加实际分页逻辑
-                        // 当前只是UI交互示例
-                    });
-                }
-            });
-            
-            // 搜索功能
-            const searchInput = document.querySelector('.search-bar input');
-            const searchButton = document.querySelector('.search-bar button');
-            
-            function handleSearch() {
-                const searchTerm = searchInput.value.trim().toLowerCase();
-                if (searchTerm === '') return;
-                
-                // 这里可以添加实际搜索逻辑
-                alert(`正在搜索: ${searchTerm}`);
-            }
-            
-            searchButton.addEventListener('click', handleSearch);
-            searchInput.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    handleSearch();
-                }
-            });
         });
     </script>
 </body>

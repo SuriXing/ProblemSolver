@@ -23,13 +23,13 @@
             <div class="logo">
                 <a href="index.html">
                     <i class="fas fa-hands-helping"></i>
-                    <span>解忧杂货铺</span>
+                    <span data-i18n="siteName">解忧杂货铺</span>
                 </a>
             </div>
             <div class="nav-actions">
                 <a href="#" class="history-link">
                     <i class="fas fa-history"></i>
-                    <span>过往问题</span>
+                    <span data-i18n="pastQuestions">过往问题</span>
                 </a>
             </div>
         </div>
@@ -38,8 +38,8 @@
     <main>
         <div class="hero">
             <div class="container">
-                <h1 class="hero-title">在这里，你的故事有人倾听</h1>
-                <p class="hero-subtitle">匿名、安全、温暖的社区</p>
+                <h1 class="hero-title" data-i18n="homeTitle">在这里，你的故事有人倾听</h1>
+                <p class="hero-subtitle" data-i18n="homeSubtitle">匿名、安全、温暖的社区</p>
             </div>
         </div>
 
@@ -49,18 +49,18 @@
                     <div class="option-icon">
                         <i class="far fa-comment-dots"></i>
                     </div>
-                    <h2>我有话想说</h2>
-                    <p>在这里安全地分享你的困扰，收获温暖回应</p>
-                    <a href="submit-query.html" class="btn-primary">开始倾诉</a>
+                    <h2 data-i18n="confessCardTitle">我有话想说</h2>
+                    <p data-i18n="confessCardDesc">在这里安全地分享你的困扰，收获温暖回应</p>
+                    <a href="submit-query.html" class="btn-primary" data-i18n="startConfession">开始倾诉</a>
                 </div>
 
                 <div class="option-card">
                     <div class="option-icon">
                         <i class="fas fa-hands-helping"></i>
                     </div>
-                    <h2>我想帮助别人</h2>
-                    <p>给予他人温暖的建议，成为某人的光</p>
-                    <a href="help-detail.html" class="btn-primary">去帮助他人</a>
+                    <h2 data-i18n="helpCardTitle">我想帮助别人</h2>
+                    <p data-i18n="helpCardDesc">给予他人温暖的建议，成为某人的光</p>
+                    <a href="help-detail.html" class="btn-primary" data-i18n="goHelp">去帮助他人</a>
                 </div>
             </div>
         </div>
@@ -68,10 +68,23 @@
 
     <footer>
         <div class="container">
-            <p>© 2024 解忧杂货铺 - 一个温暖的心灵港湾</p>
+            <p data-i18n="copyright">© 2024 解忧杂货铺 - 一个温暖的心灵港湾</p>
         </div>
     </footer>
 
+    <script src="i18n.js"></script>
     <script src="script.js"></script>
+    <script>
+        // Initialize i18n after DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set up current language variable
+            window.currentLanguage = localStorage.getItem('language') || 'zh-CN';
+            
+            // Initialize i18n
+            if (window.i18n && typeof window.i18n.init === 'function') {
+                window.i18n.init();
+            }
+        });
+    </script>
 </body>
 </html> 
