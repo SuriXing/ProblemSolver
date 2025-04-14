@@ -187,17 +187,19 @@
         <div class="header">
             <a href="index.html" class="logo">
                 <i class="fas fa-hands-helping"></i>
-                <span>解忧杂货铺</span>
+                <span data-i18n="siteName">解忧杂货铺</span>
             </a>
-            <a href="index.html" class="nav-link">
-                <i class="fas fa-history"></i>
-                <span>过往问题</span>
-            </a>
+            <div class="nav-actions">
+                <a href="index.html" class="nav-link">
+                    <i class="fas fa-history"></i>
+                    <span data-i18n="pastQuestions">过往问题</span>
+                </a>
+            </div>
         </div>
         
         <div class="main-content">
-            <h1 class="page-title">说出你的心事</h1>
-            <p class="page-subtitle">在这里倾诉，总有人懂你</p>
+            <h1 class="page-title" data-i18n="confessionTitle">说出你的心事</h1>
+            <p class="page-subtitle" data-i18n="confessionSubtitle">在这里倾诉，总有人懂你</p>
             
             <div class="store-image">
                 <img src="https://images.unsplash.com/photo-1519682577862-22b62b24e493?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1740&q=80" alt="解忧杂货铺">
@@ -228,8 +230,20 @@
         </div>
     </div>
 
+    <!-- Add i18n.js before script.js -->
+    <script src="i18n.js"></script>
+    <script src="script.js"></script>
     <script>
+        // Initialize i18n after DOM is loaded
         document.addEventListener('DOMContentLoaded', function() {
+            // Set up current language variable
+            window.currentLanguage = localStorage.getItem('language') || 'zh-CN';
+            
+            // Initialize i18n
+            if (window.i18n && typeof window.i18n.init === 'function') {
+                window.i18n.init();
+            }
+            
             const emailCheckbox = document.getElementById('emailNotification');
             const emailContainer = document.getElementById('emailContainer');
             const emailInput = document.getElementById('emailInput');

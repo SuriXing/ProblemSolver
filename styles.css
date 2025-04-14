@@ -256,4 +256,70 @@ footer {
 
 .option-card:nth-child(2) {
     transition-delay: 0.7s;
+}
+
+/* Language Selector Styles */
+.language-selector {
+    position: relative;
+    margin-right: 20px;
+}
+
+.language-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--light-gray);
+    display: flex;
+    align-items: center;
+    font-size: 0.95rem;
+    padding: 5px 10px;
+    border-radius: 4px;
+    transition: var(--transition);
+}
+
+.language-btn:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.language-btn i {
+    margin-right: 5px;
+}
+
+.language-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background: white;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    width: 120px;
+    display: none;
+    z-index: 100;
+    overflow: hidden;
+}
+
+.language-dropdown.show {
+    display: block;
+}
+
+.language-option {
+    display: block;
+    padding: 8px 12px;
+    color: var(--text-color);
+    transition: var(--transition);
+}
+
+.language-option:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.language-option.active {
+    background-color: rgba(79, 124, 255, 0.1);
+    color: var(--primary-color);
+}
+
+/* Updated nav styles for language selector placement */
+.nav-actions {
+    display: flex;
+    align-items: center;
 } 

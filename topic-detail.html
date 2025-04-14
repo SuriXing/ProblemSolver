@@ -528,9 +528,20 @@
         </div>
     </footer>
 
+    <!-- Add i18n.js before script.js -->
+    <script src="i18n.js"></script>
     <script src="script.js"></script>
     <script>
+        // Initialize i18n after DOM is loaded
         document.addEventListener('DOMContentLoaded', function() {
+            // Set up current language variable
+            window.currentLanguage = localStorage.getItem('language') || 'zh-CN';
+            
+            // Initialize i18n
+            if (window.i18n && typeof window.i18n.init === 'function') {
+                window.i18n.init();
+            }
+            
             // 切换视图功能
             const shareToggle = document.getElementById('shareToggle');
             const viewToggle = document.getElementById('viewToggle');
