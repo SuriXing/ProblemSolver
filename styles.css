@@ -261,41 +261,39 @@ footer {
 /* Language Selector Styles */
 .language-selector {
     position: relative;
-    margin-right: 20px;
 }
 
 .language-btn {
     background: none;
     border: none;
-    cursor: pointer;
-    color: var(--light-gray);
     display: flex;
     align-items: center;
+    cursor: pointer;
+    color: var(--light-gray);
     font-size: 0.95rem;
-    padding: 5px 10px;
-    border-radius: 4px;
+    padding: 5px;
     transition: var(--transition);
 }
 
 .language-btn:hover {
-    background-color: rgba(0, 0, 0, 0.05);
+    color: var(--primary-color);
 }
 
 .language-btn i {
-    margin-right: 5px;
+    margin-left: 5px;
 }
 
 .language-dropdown {
     position: absolute;
     top: 100%;
-    left: 0;
+    right: 0;
     background: white;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     border-radius: 8px;
-    width: 120px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    padding: 10px 0;
+    min-width: 120px;
+    z-index: 10;
     display: none;
-    z-index: 100;
-    overflow: hidden;
 }
 
 .language-dropdown.show {
@@ -303,23 +301,660 @@ footer {
 }
 
 .language-option {
-    display: block;
-    padding: 8px 12px;
-    color: var(--text-color);
+    padding: 8px 15px;
+    cursor: pointer;
     transition: var(--transition);
 }
 
 .language-option:hover {
-    background-color: rgba(0, 0, 0, 0.05);
+    background-color: var(--lighter-gray);
 }
 
 .language-option.active {
+    color: var(--primary-color);
+    font-weight: 500;
+}
+
+.nav-actions {
+    display: flex;
+    gap: 20px;
+}
+
+/* Confession View Styles */
+.confession-view {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-width: 800px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+.confession-header {
+    text-align: center;
+    margin-bottom: 2rem;
+    padding: 1rem 0;
+}
+
+.confession-title {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: var(--text-color);
+}
+
+.confession-subtitle {
+    font-size: 1.125rem;
+    color: var(--light-gray);
+}
+
+.confession-form {
+    background-color: white;
+    border-radius: 0.75rem;
+    box-shadow: var(--card-shadow);
+    padding: 2rem;
+    width: 100%;
+}
+
+.confession-image {
+    margin-bottom: 1.5rem;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    max-height: 200px;
+}
+
+.confession-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 0.5rem;
+}
+
+.confession-form textarea {
+    width: 100%;
+    min-height: 180px;
+    padding: 1rem;
+    border: 1px solid var(--lighter-gray);
+    border-radius: 0.5rem;
+    font-family: inherit;
+    font-size: 1rem;
+    resize: vertical;
+    margin-bottom: 1.5rem;
+    transition: var(--transition);
+}
+
+.confession-form textarea:focus {
+    border-color: var(--primary-color);
+    outline: none;
+}
+
+.confession-options {
+    margin-bottom: 1.5rem;
+    border-top: 1px solid var(--lighter-gray);
+    padding-top: 1.5rem;
+}
+
+.privacy-options {
+    margin-bottom: 1.5rem;
+}
+
+.privacy-options p, .notification-option p {
+    margin-bottom: 0.75rem;
+    color: var(--light-gray);
+    font-weight: 500;
+}
+
+.radio-options {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.radio-label, .checkbox-label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    font-size: 0.95rem;
+    color: var(--text-color);
+}
+
+.radio-label input, .checkbox-label input {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.radio-custom {
+    position: relative;
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    margin-right: 10px;
+    border: 2px solid var(--lighter-gray);
+    border-radius: 50%;
+}
+
+.radio-label input:checked ~ .radio-custom::after {
+    content: "";
+    position: absolute;
+    display: block;
+    top: 3px;
+    left: 3px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: var(--primary-color);
+}
+
+.checkbox-custom {
+    position: relative;
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    margin-right: 10px;
+    border: 2px solid var(--lighter-gray);
+    border-radius: 4px;
+}
+
+.checkbox-label input:checked ~ .checkbox-custom::after {
+    content: "\f00c";
+    font-family: "Font Awesome 5 Free";
+    font-weight: 900;
+    position: absolute;
+    display: block;
+    top: -1px;
+    left: 3px;
+    color: var(--primary-color);
+    font-size: 14px;
+}
+
+.notification-option {
+    margin-bottom: 1rem;
+}
+
+.email-input-container {
+    margin-top: 0.75rem;
+    margin-left: 30px;
+}
+
+.email-input {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid var(--lighter-gray);
+    border-radius: 0.375rem;
+    font-family: inherit;
+    font-size: 0.95rem;
+    transition: var(--transition);
+}
+
+.email-input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 1rem;
+}
+
+.submit-confession-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background-color: var(--primary-color);
+    color: white;
+    font-weight: 500;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    transition: var(--transition);
+    border: none;
+    cursor: pointer;
+}
+
+.submit-confession-btn:hover {
+    background-color: #3b68e0;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(79, 124, 255, 0.3);
+}
+
+/* Tag Selector Styles */
+.tag-selector {
+    margin-bottom: 1.5rem;
+}
+
+.tag-selector p {
+    margin-bottom: 0.5rem;
+    color: var(--light-gray);
+}
+
+.tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.tag {
+    background-color: rgba(79, 124, 255, 0.1);
+    color: var(--primary-color);
+    padding: 0.25rem 0.75rem;
+    border-radius: 2rem;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.tag:hover, .tag.selected {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+/* Success View Styles */
+.success-view {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.success-header {
+    margin-bottom: 2rem;
+}
+
+.success-title {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.success-subtitle {
+    color: var(--light-gray);
+    font-size: 1.125rem;
+}
+
+.success-message {
+    width: 100%;
+    margin-bottom: 2rem;
+}
+
+.message-card {
+    background-color: white;
+    border-radius: 0.75rem;
+    box-shadow: var(--card-shadow);
+    padding: 2rem;
+    width: 100%;
+    display: flex;
+    gap: 1.5rem;
+}
+
+.message-icon {
+    flex-shrink: 0;
+    width: 60px;
+    height: 60px;
+    background-color: rgba(79, 124, 255, 0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.message-icon i {
+    font-size: 1.5rem;
+    color: var(--primary-color);
+}
+
+.message-content {
+    flex-grow: 1;
+    text-align: left;
+}
+
+.message-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+
+.message-poster {
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+.message-id {
+    color: var(--light-gray);
+    font-size: 0.875rem;
+}
+
+.message-text {
+    margin-bottom: 1rem;
+    color: var(--text-color);
+    line-height: 1.6;
+}
+
+.message-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.375rem;
+}
+
+.message-tag {
+    background-color: rgba(79, 124, 255, 0.1);
+    color: var(--primary-color);
+    padding: 0.125rem 0.5rem;
+    border-radius: 2rem;
+    font-size: 0.75rem;
+    display: inline-block;
+}
+
+/* Access Code Styles */
+.access-code-container {
+    background-color: rgba(79, 124, 255, 0.05);
+    border: 1px solid rgba(79, 124, 255, 0.2);
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    width: 100%;
+    text-align: center;
+}
+
+.access-code-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+}
+
+.access-code-display {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1rem;
+    flex-direction: row;
+    flex-wrap: nowrap;
+}
+
+#access-code {
+    font-family: monospace;
+    font-size: 1.25rem;
+    letter-spacing: 2px;
+    background-color: rgba(79, 124, 255, 0.1);
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    color: var(--primary-color);
+    font-weight: 600;
+    display: inline-block;
+    margin-right: 0.5rem;
+}
+
+.copy-code-btn {
+    background: none;
+    border: none;
+    color: var(--primary-color);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.875rem;
+    transition: var(--transition);
+    padding: 0.5rem;
+}
+
+.copy-code-btn i {
+    margin-right: 0.25rem;
+}
+
+.copy-code-btn.copied {
+    color: #28a745;
+}
+
+.access-code-desc {
+    font-size: 0.875rem;
+    color: var(--light-gray);
+    margin-top: 0.5rem;
+}
+
+.action-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+}
+
+.option-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    transition: var(--transition);
+    cursor: pointer;
+}
+
+.primary-action {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.primary-action:hover {
+    background-color: #3b68e0;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(79, 124, 255, 0.3);
+    color: white;
+}
+
+.secondary-action {
     background-color: rgba(79, 124, 255, 0.1);
     color: var(--primary-color);
 }
 
-/* Updated nav styles for language selector placement */
-.nav-actions {
+.secondary-action:hover {
+    background-color: rgba(79, 124, 255, 0.2);
+    transform: translateY(-2px);
+    color: var(--primary-color);
+}
+
+/* 隐藏视图 */
+.hidden {
+    display: none !important;
+}
+
+/* Responsive Design for Confession View */
+@media (max-width: 768px) {
+    .confession-form {
+        padding: 1.5rem;
+    }
+    
+    .tags {
+        gap: 0.25rem;
+    }
+    
+    .tag {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+    }
+    
+    .confession-title {
+        font-size: 1.5rem;
+    }
+    
+    .confession-subtitle {
+        font-size: 1rem;
+    }
+    
+    .confession-image {
+        max-height: 150px;
+    }
+    
+    .radio-label, .checkbox-label {
+        font-size: 0.85rem;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .action-buttons .option-btn {
+        width: 100%;
+    }
+    
+    .success-message .message-card {
+        flex-direction: column;
+    }
+    
+    .success-icon {
+        font-size: 3rem;
+    }
+    
+    .success-title {
+        font-size: 1.75rem;
+    }
+    
+    #access-code {
+        font-size: 1rem;
+        padding: 0.5rem 1rem;
+        letter-spacing: 1px;
+    }
+    
+    .access-code-title {
+        font-size: 1.1rem;
+    }
+    
+    .access-code-container {
+        padding: 1rem;
+    }
+}
+
+.message-image {
+    flex-shrink: 0;
+    width: 100%;
+    max-height: 180px;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+}
+
+.message-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 0.5rem;
+}
+
+.message-info {
+    width: 100%;
+}
+
+.message-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    color: var(--light-gray);
+    font-size: 0.875rem;
+}
+
+.message-author {
     display: flex;
     align-items: center;
+    gap: 0.25rem;
+}
+
+.message-author i {
+    color: var(--primary-color);
+}
+
+.message-time {
+    margin-top: 1rem;
+    color: var(--light-gray);
+    font-size: 0.75rem;
+    text-align: right;
+}
+
+.success-info-box {
+    background-color: rgba(79, 124, 255, 0.05);
+    border: 1px solid rgba(79, 124, 255, 0.2);
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    margin-top: 2rem;
+    width: 100%;
+    text-align: left;
+}
+
+.success-info-box h3 {
+    color: var(--primary-color);
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.success-info-box ul {
+    padding-left: 1.5rem;
+    margin-bottom: 0;
+}
+
+.success-info-box li {
+    margin-bottom: 0.5rem;
+    color: var(--text-color);
+}
+
+.success-info-box li:last-child {
+    margin-bottom: 0;
+}
+
+.success-actions {
+    margin: 2rem 0;
+    text-align: center;
+}
+
+.notification-info {
+    margin-bottom: 1rem;
+    color: var(--light-gray);
+}
+
+.return-home-btn {
+    color: white;
+}
+
+.return-home-btn:hover {
+    background-color: #3b68e0;
+    color: white;
+}
+
+.help-btn {
+    background-color: rgba(79, 124, 255, 0.1);
+    color: var(--primary-color);
+}
+
+.help-btn:hover {
+    background-color: rgba(79, 124, 255, 0.2);
+    color: var(--primary-color);
+}
+
+.success-icon {
+    font-size: 4rem;
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+}
+
+.success-icon i {
+    display: inline-block;
+    animation: bounceIn 0.8s ease-out;
+}
+
+@keyframes bounceIn {
+    0% {
+        transform: scale(0);
+        opacity: 0;
+    }
+    60% {
+        transform: scale(1.2);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(1);
+    }
 } 
