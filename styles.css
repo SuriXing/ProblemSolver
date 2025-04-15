@@ -1,0 +1,259 @@
+/* 基础设置 */
+:root {
+    --primary-color: #4f7cff;
+    --secondary-color: #fff;
+    --background-color: #f5f7fa;
+    --text-color: #333;
+    --light-gray: #888;
+    --lighter-gray: #eee;
+    --card-shadow: 0 8px 16px rgba(0, 0, 0, 0.05);
+    --transition: all 0.3s ease;
+    --border-radius: 12px;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'PingFang SC', 'Helvetica Neue', 'Microsoft YaHei', sans-serif;
+    line-height: 1.6;
+    color: var(--text-color);
+    background-color: var(--background-color);
+    opacity: 0;
+    transition: opacity 0.5s ease;
+}
+
+body.loaded {
+    opacity: 1;
+}
+
+a {
+    text-decoration: none;
+    color: var(--primary-color);
+    transition: var(--transition);
+}
+
+a:hover {
+    opacity: 0.9;
+}
+
+.container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* 头部样式 */
+header {
+    background-color: white;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    padding: 15px 0;
+}
+
+header .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo a {
+    display: flex;
+    align-items: center;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+.logo i {
+    color: var(--primary-color);
+    margin-right: 8px;
+    font-size: 1.8rem;
+}
+
+.nav-actions a {
+    display: flex;
+    align-items: center;
+    color: var(--light-gray);
+    font-size: 0.95rem;
+}
+
+.nav-actions i {
+    margin-right: 5px;
+}
+
+/* 英雄区域样式 */
+.hero {
+    background-color: white;
+    padding: 80px 0;
+    text-align: center;
+}
+
+.hero-title, .hero-subtitle, .option-card {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.hero-title.visible, .hero-subtitle.visible, .option-card.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.hero-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 15px;
+    color: var(--text-color);
+    transition-delay: 0.1s;
+}
+
+.hero-subtitle {
+    font-size: 1.2rem;
+    color: var(--light-gray);
+    margin-bottom: 30px;
+    transition-delay: 0.3s;
+}
+
+/* 选项卡片区域 */
+.options-container {
+    margin: -50px auto 80px;
+    position: relative;
+    z-index: 2;
+}
+
+.option-cards {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+}
+
+.option-card {
+    background-color: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--card-shadow);
+    padding: 40px 30px;
+    text-align: center;
+    flex: 1;
+    max-width: 400px;
+    transition: var(--transition);
+}
+
+.option-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+}
+
+.option-icon {
+    width: 80px;
+    height: 80px;
+    background-color: rgba(79, 124, 255, 0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+}
+
+.option-icon i {
+    font-size: 2rem;
+    color: var(--primary-color);
+}
+
+.option-card h2 {
+    font-size: 1.5rem;
+    margin-bottom: 15px;
+    color: var(--text-color);
+}
+
+.option-card p {
+    color: var(--light-gray);
+    margin-bottom: 25px;
+    font-size: 1rem;
+    line-height: 1.6;
+}
+
+.btn-primary {
+    display: inline-block;
+    background-color: var(--primary-color);
+    color: white;
+    padding: 10px 25px;
+    border-radius: 50px;
+    font-weight: 500;
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(79, 124, 255, 0.3);
+    color: white;
+}
+
+.ripple {
+    position: absolute;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.7);
+    transform: scale(0);
+    animation: ripple 0.6s linear;
+    pointer-events: none;
+}
+
+@keyframes ripple {
+    to {
+        transform: scale(4);
+        opacity: 0;
+    }
+}
+
+/* 页脚样式 */
+footer {
+    padding: 20px 0;
+    text-align: center;
+    color: var(--light-gray);
+    font-size: 0.9rem;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .option-cards {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .option-card {
+        width: 100%;
+        max-width: 100%;
+    }
+    
+    .hero-title {
+        font-size: 2rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .hero {
+        padding: 60px 0;
+    }
+    
+    .hero-title {
+        font-size: 1.8rem;
+    }
+    
+    .hero-subtitle {
+        font-size: 1rem;
+    }
+}
+
+/* 动画和过渡效果 */
+.option-card:nth-child(1) {
+    transition-delay: 0.5s;
+}
+
+.option-card:nth-child(2) {
+    transition-delay: 0.7s;
+} 

@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="在解忧杂货铺分享你的困扰，获得温暖的回应">
+    <meta name="keywords" content="解忧杂货铺,匿名社区,心理倾诉,情感支持,解压空间">
+    <meta name="author" content="解忧杂货铺团队">
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+    <title>分享你的故事 | 解忧杂货铺</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .share-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--card-shadow);
+            padding: 30px;
+            margin-top: -50px;
+            margin-bottom: 60px;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .share-form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .form-group label {
+            font-weight: 500;
+            color: var(--text-color);
+        }
+        
+        .form-group input, 
+        .form-group textarea,
+        .form-group select {
+            padding: 12px 15px;
+            border: 1px solid var(--lighter-gray);
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 1rem;
+            color: var(--text-color);
+            background-color: white;
+            transition: var(--transition);
+        }
+        
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(79, 124, 255, 0.2);
+        }
+        
+        .form-group textarea {
+            min-height: 200px;
+            resize: vertical;
+        }
+        
+        .form-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+        }
+        
+        .form-footer .text-muted {
+            color: var(--light-gray);
+            font-size: 0.9rem;
+        }
+        
+        .submit-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 50px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .submit-btn:hover {
+            background-color: #3d6ae8;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(79, 124, 255, 0.3);
+        }
+        
+        .hero-small {
+            padding: 60px 0;
+        }
+        
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            color: var(--light-gray);
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+        }
+        
+        .back-link:hover {
+            color: var(--primary-color);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="logo">
+                <a href="index.html">
+                    <i class="fas fa-hands-helping"></i>
+                    <span>解忧杂货铺</span>
+                </a>
+            </div>
+            <div class="nav-actions">
+                <a href="index.html" class="history-link">
+                    <i class="fas fa-home"></i>
+                    <span>回到首页</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="hero hero-small">
+            <div class="container">
+                <h1 class="hero-title">分享你的故事</h1>
+                <p class="hero-subtitle">写下你的烦恼，让温暖的回应驱散阴霾</p>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="share-container">
+                <a href="index.html" class="back-link">
+                    <i class="fas fa-arrow-left"></i> 返回首页
+                </a>
+                <form class="share-form" id="shareForm">
+                    <div class="form-group">
+                        <label for="title">给你的烦恼起个标题</label>
+                        <input type="text" id="title" name="title" placeholder="例如：工作与生活的平衡问题" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="category">选择分类</label>
+                        <select id="category" name="category" required>
+                            <option value="" disabled selected>请选择一个分类</option>
+                            <option value="work">工作/学业</option>
+                            <option value="relationship">人际关系</option>
+                            <option value="love">爱情</option>
+                            <option value="family">家庭</option>
+                            <option value="mental">心理健康</option>
+                            <option value="others">其他</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="content">详细描述你的困扰</label>
+                        <textarea id="content" name="content" placeholder="请详细描述你的情况，这样能帮助他人更好地理解和给予建议..." required></textarea>
+                    </div>
+                    
+                    <div class="form-footer">
+                        <p class="text-muted">你的分享将匿名发布，请放心表达</p>
+                        <button type="submit" class="submit-btn" id="submitBtn">发布分享</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>© 2024 解忧杂货铺 - 一个温暖的心灵港湾</p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const shareForm = document.getElementById('shareForm');
+            const submitBtn = document.getElementById('submitBtn');
+            
+            // 提交表单处理
+            shareForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // 收集表单数据
+                const formData = {
+                    title: document.getElementById('title').value,
+                    category: document.getElementById('category').value,
+                    content: document.getElementById('content').value,
+                    timestamp: new Date().toISOString()
+                };
+                
+                // 模拟表单提交
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 提交中...';
+                submitBtn.disabled = true;
+                
+                // 延迟2秒模拟服务器处理
+                setTimeout(() => {
+                    // 模拟成功提交
+                    alert('你的分享已成功发布！感谢你的勇气，希望你能得到帮助。');
+                    
+                    // 转到首页
+                    window.location.href = 'index.html';
+                }, 2000);
+            });
+        });
+    </script>
+</body>
+</html> 

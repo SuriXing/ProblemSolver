@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="在解忧杂货铺帮助他人，分享你的经验和智慧">
+    <meta name="keywords" content="解忧杂货铺,匿名社区,心理倾诉,情感支持,解压空间">
+    <meta name="author" content="解忧杂货铺团队">
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+    <title>帮助他人 | 解忧杂货铺</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .help-container {
+            max-width: 900px;
+            margin: 0 auto;
+            margin-top: -50px;
+            margin-bottom: 60px;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .filter-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: white;
+            border-radius: var(--border-radius);
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            box-shadow: var(--card-shadow);
+        }
+        
+        .filter-options {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .filter-options button {
+            background: none;
+            border: none;
+            font-size: 0.9rem;
+            color: var(--light-gray);
+            padding: 5px 10px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .filter-options button.active {
+            background-color: rgba(79, 124, 255, 0.1);
+            color: var(--primary-color);
+            font-weight: 500;
+        }
+        
+        .filter-options button:hover {
+            color: var(--primary-color);
+        }
+        
+        .search-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .search-bar input {
+            padding: 8px 12px;
+            border: 1px solid var(--lighter-gray);
+            border-radius: 20px;
+            font-size: 0.9rem;
+            width: 200px;
+            transition: var(--transition);
+        }
+        
+        .search-bar input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            width: 220px;
+        }
+        
+        .search-bar button {
+            background: none;
+            border: none;
+            color: var(--light-gray);
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        
+        .topics-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .topic-card {
+            background-color: white;
+            border-radius: var(--border-radius);
+            padding: 20px;
+            box-shadow: var(--card-shadow);
+            display: flex;
+            gap: 15px;
+            transition: var(--transition);
+        }
+        
+        .topic-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
+        }
+        
+        .topic-stats {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 70px;
+            padding-right: 15px;
+            border-right: 1px solid var(--lighter-gray);
+        }
+        
+        .stat-replies, .stat-views {
+            text-align: center;
+            padding: 5px 0;
+        }
+        
+        .stat-number {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--text-color);
+            display: block;
+        }
+        
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--light-gray);
+        }
+        
+        .topic-content {
+            flex: 1;
+        }
+        
+        .topic-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        
+        .topic-category {
+            background-color: rgba(79, 124, 255, 0.1);
+            color: var(--primary-color);
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        
+        .topic-time {
+            color: var(--light-gray);
+            font-size: 0.85rem;
+        }
+        
+        .topic-title {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            color: var(--text-color);
+        }
+        
+        .topic-title a {
+            color: inherit;
+            text-decoration: none;
+        }
+        
+        .topic-title a:hover {
+            color: var(--primary-color);
+        }
+        
+        .topic-excerpt {
+            color: var(--light-gray);
+            font-size: 0.95rem;
+            margin-bottom: 15px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .topic-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .topic-tags {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .topic-tag {
+            padding: 2px 8px;
+            background-color: var(--lighter-gray);
+            border-radius: 20px;
+            font-size: 0.75rem;
+            color: var(--light-gray);
+        }
+        
+        .topic-action {
+            color: var(--primary-color);
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+        
+        .topic-action:hover {
+            text-decoration: underline;
+        }
+        
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 30px;
+            gap: 5px;
+        }
+        
+        .pagination button {
+            background: none;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            color: var(--text-color);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .pagination button.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .pagination button:hover:not(.active, .disabled) {
+            background-color: rgba(79, 124, 255, 0.1);
+            color: var(--primary-color);
+        }
+        
+        .pagination button.disabled {
+            color: var(--lighter-gray);
+            cursor: not-allowed;
+        }
+        
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            color: var(--light-gray);
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+        }
+        
+        .back-link:hover {
+            color: var(--primary-color);
+        }
+        
+        .hero-small {
+            padding: 60px 0;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="logo">
+                <a href="index.html">
+                    <i class="fas fa-hands-helping"></i>
+                    <span>解忧杂货铺</span>
+                </a>
+            </div>
+            <div class="nav-actions">
+                <a href="index.html" class="history-link">
+                    <i class="fas fa-home"></i>
+                    <span>回到首页</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="hero hero-small">
+            <div class="container">
+                <h1 class="hero-title">帮助他人</h1>
+                <p class="hero-subtitle">你的一句话可能照亮他人的一片天空</p>
+            </div>
+        </div>
+
+        <div class="container help-container">
+            <a href="index.html" class="back-link">
+                <i class="fas fa-arrow-left"></i> 返回首页
+            </a>
+            
+            <div class="filter-bar">
+                <div class="filter-options">
+                    <button class="active">全部</button>
+                    <button>最新提问</button>
+                    <button>等待回答</button>
+                    <button>热门话题</button>
+                </div>
+                <div class="search-bar">
+                    <input type="text" placeholder="搜索话题...">
+                    <button><i class="fas fa-search"></i></button>
+                </div>
+            </div>
+            
+            <div class="topics-list" id="topicsContainer">
+                <!-- 话题将通过JavaScript动态加载 -->
+            </div>
+            
+            <div class="pagination">
+                <button class="disabled"><i class="fas fa-chevron-left"></i></button>
+                <button class="active">1</button>
+                <button>2</button>
+                <button>3</button>
+                <button><i class="fas fa-chevron-right"></i></button>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>© 2024 解忧杂货铺 - 一个温暖的心灵港湾</p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 模拟数据
+            const topics = [
+                {
+                    id: 1,
+                    title: "感觉工作压力太大，无法平衡生活，该怎么办？",
+                    category: "工作/学业",
+                    time: "2小时前",
+                    excerpt: "最近工作压力非常大，每天加班到很晚。感觉生活没有了乐趣，周末也在想工作的事情。我该如何平衡工作和生活，找回生活的意义？",
+                    replies: 5,
+                    views: 42,
+                    tags: ["压力", "工作", "生活平衡"]
+                },
+                {
+                    id: 2,
+                    title: "如何克服社交恐惧？",
+                    category: "心理健康",
+                    time: "昨天",
+                    excerpt: "我一直都有社交恐惧的问题，在陌生人面前很难自然地表达自己。每次需要参加社交活动都会感到焦虑。有没有人能分享一些克服社交恐惧的方法？",
+                    replies: 8,
+                    views: 67,
+                    tags: ["社交恐惧", "焦虑", "心理"]
+                },
+                {
+                    id: 3,
+                    title: "和父母的代沟问题，怎样才能让他们理解我？",
+                    category: "家庭",
+                    time: "3天前",
+                    excerpt: "我和父母有很大的代沟，他们总是不理解我的选择和想法。每次交流都容易演变成争吵。有什么好的方法能够改善和父母的沟通，让他们更理解我？",
+                    replies: 12,
+                    views: 103,
+                    tags: ["亲子关系", "沟通", "代沟"]
+                },
+                {
+                    id: 4,
+                    title: "分手后如何走出情感阴影？",
+                    category: "爱情",
+                    time: "5天前",
+                    excerpt: "最近经历了一段感情的结束，感觉很难走出来。经常会想起过去的点点滴滴，感到很痛苦。有什么方法可以帮助我尽快走出这段感情的阴影？",
+                    replies: 15,
+                    views: 128,
+                    tags: ["分手", "情感", "治愈"]
+                },
+                {
+                    id: 5,
+                    title: "如何应对同事之间的竞争和办公室政治？",
+                    category: "工作/学业",
+                    time: "1周前",
+                    excerpt: "我在一个竞争激烈的环境中工作，感觉同事之间的关系很复杂，也有一些办公室政治。我想保持良好的工作关系，同时也不想卷入不必要的冲突，应该怎么做？",
+                    replies: 7,
+                    views: 89,
+                    tags: ["职场", "人际关系", "竞争"]
+                }
+            ];
+            
+            // 渲染话题列表
+            function renderTopics() {
+                const topicsContainer = document.getElementById('topicsContainer');
+                topicsContainer.innerHTML = '';
+                
+                topics.forEach(topic => {
+                    const topicElement = document.createElement('div');
+                    topicElement.className = 'topic-card';
+                    
+                    // 设置HTML内容
+                    topicElement.innerHTML = `
+                        <div class="topic-stats">
+                            <div class="stat-replies">
+                                <span class="stat-number">${topic.replies}</span>
+                                <span class="stat-label">回复</span>
+                            </div>
+                            <div class="stat-views">
+                                <span class="stat-number">${topic.views}</span>
+                                <span class="stat-label">浏览</span>
+                            </div>
+                        </div>
+                        <div class="topic-content">
+                            <div class="topic-header">
+                                <span class="topic-category">${topic.category}</span>
+                                <span class="topic-time">${topic.time}</span>
+                            </div>
+                            <h3 class="topic-title"><a href="topic-detail.html?id=${topic.id}">${topic.title}</a></h3>
+                            <p class="topic-excerpt">${topic.excerpt}</p>
+                            <div class="topic-footer">
+                                <div class="topic-tags">
+                                    ${topic.tags.map(tag => `<span class="topic-tag">${tag}</span>`).join('')}
+                                </div>
+                                <a href="topic-detail.html?id=${topic.id}" class="topic-action">查看详情</a>
+                            </div>
+                        </div>
+                    `;
+                    
+                    topicsContainer.appendChild(topicElement);
+                });
+            }
+            
+            // 初始渲染
+            renderTopics();
+            
+            // 处理筛选按钮点击
+            const filterButtons = document.querySelectorAll('.filter-options button');
+            filterButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    // 移除所有按钮的active类
+                    filterButtons.forEach(btn => btn.classList.remove('active'));
+                    // 为当前点击的按钮添加active类
+                    this.classList.add('active');
+                    
+                    // 这里可以添加实际筛选逻辑
+                    // 当前只是UI交互示例
+                });
+            });
+            
+            // 处理分页按钮点击
+            const paginationButtons = document.querySelectorAll('.pagination button');
+            paginationButtons.forEach(button => {
+                if (!button.classList.contains('disabled')) {
+                    button.addEventListener('click', function() {
+                        if (this.classList.contains('active')) return;
+                        
+                        // 移除当前活动页码
+                        const activeButton = document.querySelector('.pagination button.active');
+                        if (activeButton) activeButton.classList.remove('active');
+                        
+                        // 如果是翻页箭头
+                        if (this.innerHTML.includes('chevron')) {
+                            // 这里可以添加上一页/下一页逻辑
+                        } else {
+                            // 为当前点击的页码添加active类
+                            this.classList.add('active');
+                        }
+                        
+                        // 这里可以添加实际分页逻辑
+                        // 当前只是UI交互示例
+                    });
+                }
+            });
+            
+            // 搜索功能
+            const searchInput = document.querySelector('.search-bar input');
+            const searchButton = document.querySelector('.search-bar button');
+            
+            function handleSearch() {
+                const searchTerm = searchInput.value.trim().toLowerCase();
+                if (searchTerm === '') return;
+                
+                // 这里可以添加实际搜索逻辑
+                alert(`正在搜索: ${searchTerm}`);
+            }
+            
+            searchButton.addEventListener('click', handleSearch);
+            searchInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    handleSearch();
+                }
+            });
+        });
+    </script>
+</body>
+</html> 
