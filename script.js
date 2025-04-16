@@ -198,21 +198,25 @@ document.addEventListener('DOMContentLoaded', function() {
                 accessCodeSpan.textContent = submissionData.accessCode || 'XXXX-XXXX-XXXX';
             }
             
-            if (submissionData.selectedTags && submissionData.selectedTags.length > 0 && confessionTags) {
+            // Populate tags if they exist
+            if (confessionTags && submissionData.selectedTags && submissionData.selectedTags.length > 0) {
                 confessionTags.innerHTML = '';
                 submissionData.selectedTags.forEach(tag => {
-                    const tagSpan = document.createElement('span');
-                    tagSpan.className = 'message-tag';
-                    tagSpan.textContent = tag;
-                    confessionTags.appendChild(tagSpan);
+                    const tagElement = document.createElement('span');
+                    tagElement.className = 'message-tag';
+                    tagElement.textContent = tag;
+                    confessionTags.appendChild(tagElement);
                 });
             } else if (confessionTags) {
-                // If no tags were selected, add a default one
-                const tagSpan = document.createElement('span');
-                tagSpan.className = 'message-tag';
-                tagSpan.setAttribute('data-i18n', 'tagThoughts');
-                tagSpan.textContent = t('tagThoughts');
-                confessionTags.appendChild(tagSpan);
+                // Add some default tags if none were selected
+                const defaultTags = [t('tagThoughts'), t('tagLife')];
+                confessionTags.innerHTML = '';
+                defaultTags.forEach(tag => {
+                    const tagElement = document.createElement('span');
+                    tagElement.className = 'message-tag';
+                    tagElement.textContent = tag;
+                    confessionTags.appendChild(tagElement);
+                });
             }
         }
         

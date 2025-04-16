@@ -54,7 +54,12 @@
                     </div>
                     <div class="message-info">
                         <div class="message-meta">
-                            <span class="message-author"><i class="fa-solid fa-circle-user"></i> <span data-i18n="yourAnonymousId">你的匿名ID: #</span><span id="user-id">3842</span></span>
+                            <span class="message-author">
+                                <i class="fa-solid fa-circle-user"></i> 
+                                <span data-i18n="yourAnonymousId">你的匿名ID: #</span>
+                                <span id="user-id">3842</span>
+                            </span>
+                            <span class="message-time" data-i18n="justPosted">刚刚发布</span>
                         </div>
                         <div class="message-content">
                             <p id="confession-preview">你的内容将显示在这里...</p>
@@ -62,7 +67,6 @@
                         <div class="message-tags" id="confession-tags">
                             <!-- Tags will be inserted by JavaScript -->
                         </div>
-                        <div class="message-time" data-i18n="justPosted">刚刚发布</div>
                     </div>
                 </div>
             </div>
@@ -107,6 +111,33 @@
             // Initialize i18n after DOM is loaded
             if (window.i18n) {
                 window.i18n.init();
+            }
+            
+            // Add copy access code functionality
+            const copyCodeBtn = document.getElementById('copy-code-btn');
+            const accessCodeSpan = document.getElementById('access-code');
+            
+            if (copyCodeBtn && accessCodeSpan) {
+                copyCodeBtn.addEventListener('click', function() {
+                    // Create a temporary textarea to copy the text
+                    const textarea = document.createElement('textarea');
+                    textarea.value = accessCodeSpan.textContent;
+                    document.body.appendChild(textarea);
+                    textarea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textarea);
+                    
+                    // Show copied status
+                    copyCodeBtn.classList.add('copied');
+                    const originalTitle = copyCodeBtn.getAttribute('title');
+                    copyCodeBtn.setAttribute('title', window.i18n ? window.i18n.t('copied') : '已复制!');
+                    
+                    // Reset after short delay
+                    setTimeout(() => {
+                        copyCodeBtn.classList.remove('copied');
+                        copyCodeBtn.setAttribute('title', originalTitle);
+                    }, 2000);
+                });
             }
         });
     </script>
