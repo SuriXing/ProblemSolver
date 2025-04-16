@@ -85,6 +85,7 @@ const translations = {
         'mightThankYou': '对方收到后可能会给你发送感谢',
         'checkPastResponses': '你可以在"过往回应"中查看你的所有回应和对方的反馈',
         'everyReplyMatters': '每一个温暖的回应都可能改变一个人的处境',
+        'continueHelping': '继续帮助他人',
 
         // Language selector
         'language': '语言',
@@ -217,14 +218,15 @@ const translations = {
 
         // Helper success page
         'thankHelperTitle': 'Thank you for your warm response',
-        'thankHelperSubtitle': 'Your advice and encouragement will bring strength and hope to others',
+        'thankHelperSubtitle': 'Your suggestions and encouragement will bring strength and hope to others',
         'helperStats': 'Your Help Statistics',
-        'yourReply': 'Your Response:',
-        'kindnessMatters': 'Your kindness matters',
-        'replyDelivered': 'Your response has been delivered to the person who needs help',
-        'mightThankYou': 'They may send you thanks after receiving it',
-        'checkPastResponses': 'You can check all your responses and feedback in "Past Responses"',
-        'everyReplyMatters': 'Every warm response may change someone\'s situation',
+        'yourReply': 'Your Reply:',
+        'kindnessMatters': 'Your Kindness Matters',
+        'replyDelivered': 'Your response has been delivered to someone who needs help',
+        'mightThankYou': 'The recipient may send you thanks after they receive it',
+        'checkPastResponses': 'You can check all your responses and their feedback in "Past Responses"',
+        'everyReplyMatters': 'Every warm response could change someone\'s situation',
+        'continueHelping': 'Continue Helping',
 
         // Language selector
         'language': 'Language',
@@ -365,6 +367,7 @@ const translations = {
         'mightThankYou': 'Pueden enviarte agradecimientos después de recibirla',
         'checkPastResponses': 'Puedes verificar todas tus respuestas y comentarios en "Respuestas Pasadas"',
         'everyReplyMatters': 'Cada respuesta cálida puede cambiar la situación de alguien',
+        'continueHelping': 'Continuar ayudando a otros',
 
         // Language selector
         'language': 'Idioma',
@@ -505,6 +508,7 @@ const translations = {
         'mightThankYou': '相手は受け取った後にお礼を送るかもしれません',
         'checkPastResponses': '"これまでの回答"ですべての返信と相手からのフィードバックを確認できます',
         'everyReplyMatters': 'すべての温かい返信が誰かの状況を変える可能性があります',
+        'continueHelping': '継続して助ける',
 
         // Language selector
         'language': '言語',
@@ -616,6 +620,7 @@ const translations = {
         'mightThankYou': '상대방은 받은 후 감사의 마음을 보낼 수 있습니다',
         'checkPastResponses': '"이전 답변들"에서 모든 답변과 상대방의 피드백을 확인할 수 있습니다',
         'everyReplyMatters': '모든 따뜻한 답변이 누군가의 상황을 바꿀 수 있습니다',
+        'continueHelping': '계속 돕기',
 
         // Language selector
         'language': '언어',

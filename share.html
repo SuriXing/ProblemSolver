@@ -321,6 +321,114 @@
             if (window.i18n && typeof window.i18n.init === 'function') {
                 window.i18n.init();
             }
+            
+            // Get DOM elements
+            const submitBtn = document.getElementById('submitBtn');
+            const changeBtn = document.getElementById('changeBtn');
+            const responseInput = document.querySelector('.response-input');
+            const reactions = document.querySelectorAll('.reaction');
+            
+            // Get current stats from localStorage or set defaults
+            let helpedToday = parseInt(localStorage.getItem('helpedToday') || '0');
+            let helpedTotal = parseInt(localStorage.getItem('helpedTotal') || '0');
+            let receivedThanks = parseInt(localStorage.getItem('receivedThanks') || '0');
+            
+            // Update stats display
+            document.querySelectorAll('.stats-bar .stats-item')[0].querySelector('span').textContent = `今日已帮助: ${helpedToday}人`;
+            document.querySelectorAll('.stats-bar .stats-item')[1].querySelector('span').textContent = `累计帮助: ${helpedTotal}人`;
+            document.querySelectorAll('.stats-bar .stats-item')[2].querySelector('span').textContent = `收到感谢: ${receivedThanks}次`;
+            
+            // Add reaction selection effect
+            reactions.forEach(reaction => {
+                reaction.addEventListener('click', function() {
+                    // Remove other selections
+                    reactions.forEach(r => r.classList.remove('selected'));
+                    // Select current reaction
+                    this.classList.add('selected');
+                    this.style.backgroundColor = '#eef2ff';
+                    this.style.color = '#4f7cff';
+                });
+            });
+            
+            // Handle response submission
+            submitBtn.addEventListener('click', function() {
+                if (responseInput.value.trim() === '') {
+                    alert('请先输入你的回应内容');
+                    return;
+                }
+                
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>发送中...</span>';
+                submitBtn.disabled = true;
+                
+                // Save the response text to localStorage for the success page
+                localStorage.setItem('lastReplyText', responseInput.value.trim());
+                
+                // Update stats
+                helpedToday += 1;
+                helpedTotal += 1;
+                
+                // Store updated stats in localStorage
+                localStorage.setItem('helpedToday', helpedToday);
+                localStorage.setItem('helpedTotal', helpedTotal);
+                localStorage.setItem('receivedThanks', receivedThanks);
+                
+                // Simulate submission delay
+                setTimeout(() => {
+                    // Redirect to success page
+                    window.location.href = 'help-success.html';
+                }, 1500);
+            });
+            
+            // Change question button
+            changeBtn.addEventListener('click', function() {
+                changeBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>加载中...</span>';
+                changeBtn.disabled = true;
+                
+                // Simulate loading new question
+                setTimeout(() => {
+                    // Example questions (in a real app, these would come from the server)
+                    const questions = [
+                        {
+                            id: 2832,
+                            content: "我和女朋友异地恋已经两年了，最近感觉越来越难维持，不知道该怎么办...",
+                            tags: ["异地恋", "感情", "沟通"],
+                            time: "1小时前"
+                        },
+                        {
+                            id: 2833,
+                            content: "最近在考虑要不要换工作，现在的环境不太好，但又担心换了会更糟糕，很纠结。",
+                            tags: ["职场", "选择", "纠结"],
+                            time: "30分钟前"
+                        }
+                    ];
+                    
+                    // Randomly select a new question
+                    const newQuestion = questions[Math.floor(Math.random() * questions.length)];
+                    
+                    // Update question content
+                    document.querySelector('.message-id').textContent = `来信编号信 #${newQuestion.id}`;
+                    document.querySelector('.message-content').textContent = newQuestion.content;
+                    
+                    // Update tags
+                    const tagsContainer = document.querySelector('.message-tags');
+                    tagsContainer.innerHTML = '';
+                    newQuestion.tags.forEach(tag => {
+                        const tagElem = document.createElement('span');
+                        tagElem.className = 'tag';
+                        tagElem.textContent = tag;
+                        tagsContainer.appendChild(tagElem);
+                    });
+                    
+                    // Update time
+                    document.querySelector('.message-time').textContent = newQuestion.time;
+                    
+                    // Reset form and button
+                    responseInput.value = '';
+                    reactions.forEach(r => r.classList.remove('selected'));
+                    changeBtn.innerHTML = '<i class="fas fa-random"></i><span>换一个问题</span>';
+                    changeBtn.disabled = false;
+                }, 1000);
+            });
         });
     </script>
 </body>

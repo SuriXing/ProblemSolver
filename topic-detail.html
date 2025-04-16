@@ -766,30 +766,33 @@
                 
                 if (!content) return;
                 
-                // 模拟添加新回复
-                const newReply = {
-                    id: Date.now(),
-                    username: "匿名用户",
-                    time: "刚刚",
-                    content: content,
-                    likes: 0
-                };
+                // Save the response text to localStorage for the success page
+                localStorage.setItem('lastReplyText', content);
                 
-                // 添加到模拟数据
-                const topicId = urlParams.get('id') || '1';
-                if (!replies[topicId]) {
-                    replies[topicId] = [];
-                }
-                replies[topicId].unshift(newReply);
+                // Get current stats from localStorage or set defaults
+                let helpedToday = parseInt(localStorage.getItem('helpedToday') || '0');
+                let helpedTotal = parseInt(localStorage.getItem('helpedTotal') || '0');
+                let receivedThanks = parseInt(localStorage.getItem('receivedThanks') || '0');
                 
-                // 重新渲染回复列表
-                loadTopicDetails();
+                // Update stats
+                helpedToday += 1;
+                helpedTotal += 1;
                 
-                // 清空输入框
-                textarea.value = '';
+                // Store updated stats in localStorage
+                localStorage.setItem('helpedToday', helpedToday);
+                localStorage.setItem('helpedTotal', helpedTotal);
+                localStorage.setItem('receivedThanks', receivedThanks);
                 
-                // 显示成功消息
-                alert('回复发表成功！感谢你的帮助。');
+                // Show loading state
+                const submitBtn = this.querySelector('.submit-btn');
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 发送中...';
+                submitBtn.disabled = true;
+                
+                // Simulate submission delay
+                setTimeout(() => {
+                    // Redirect to success page
+                    window.location.href = 'help-success.html';
+                }, 1500);
             });
             
             // 处理点赞功能
