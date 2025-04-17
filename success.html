@@ -18,10 +18,23 @@
                 </a>
             </div>
             <div class="nav-actions">
-                <a href="#" class="history-link">
+                <a href="past-questions.html" class="history-link">
                     <i class="fas fa-history"></i>
                     <span data-i18n="pastQuestions">过往问题</span>
                 </a>
+                <!-- Language Selector -->
+                <div class="language-selector" id="languageSelector">
+                    <div class="language-button" id="languageButton">
+                        <i class="fas fa-globe"></i> <span data-i18n="language">语言</span>
+                    </div>
+                    <div class="language-dropdown">
+                        <div class="language-option" data-lang="zh-CN" data-i18n="chinese">中文</div>
+                        <div class="language-option" data-lang="en" data-i18n="english">English</div>
+                        <div class="language-option" data-lang="es" data-i18n="spanish">Español</div>
+                        <div class="language-option" data-lang="ja" data-i18n="japanese">日本語</div>
+                        <div class="language-option" data-lang="ko" data-i18n="korean">한국어</div>
+                    </div>
+                </div>
             </div>
         </div>
     </header>
@@ -45,6 +58,9 @@
                     </button>
                 </div>
                 <p class="access-code-desc" data-i18n="saveAccessCode">请保存这个访问码，以便稍后查看回复</p>
+                <button id="view-post-btn" class="view-post-btn">
+                    <i class="fas fa-eye"></i> <span data-i18n="viewMyPost">查看我的帖子</span>
+                </button>
             </div>
 
             <div class="success-message">
@@ -113,9 +129,13 @@
                 window.i18n.init();
             }
             
+            // Set up language selector
+            setupLanguageSelector();
+            
             // Add copy access code functionality
             const copyCodeBtn = document.getElementById('copy-code-btn');
             const accessCodeSpan = document.getElementById('access-code');
+            const viewPostBtn = document.getElementById('view-post-btn');
             
             if (copyCodeBtn && accessCodeSpan) {
                 copyCodeBtn.addEventListener('click', function() {
@@ -139,7 +159,138 @@
                     }, 2000);
                 });
             }
+            
+            // Add view post button functionality
+            if (viewPostBtn && accessCodeSpan) {
+                viewPostBtn.addEventListener('click', function() {
+                    const accessCode = accessCodeSpan.textContent;
+                    // Save the access code in localStorage for persistence
+                    localStorage.setItem('accessCode', accessCode);
+                    // Redirect to past-questions page with the access code
+                    window.location.href = `past-questions.html?code=${accessCode}`;
+                });
+            }
+            
+            // Function to set up language selector
+            function setupLanguageSelector() {
+                const languageButton = document.getElementById('languageButton');
+                const languageSelector = document.getElementById('languageSelector');
+                const languageOptions = document.querySelectorAll('.language-option');
+                
+                if (!languageButton || !languageSelector) return;
+                
+                // Toggle dropdown
+                languageButton.addEventListener('click', () => {
+                    languageSelector.classList.toggle('active');
+                });
+                
+                // Handle language selection
+                languageOptions.forEach(option => {
+                    option.addEventListener('click', () => {
+                        const lang = option.getAttribute('data-lang');
+                        
+                        // Save language preference
+                        localStorage.setItem('language', lang);
+                        
+                        // Update current language and translate
+                        window.currentLanguage = lang;
+                        if (window.i18n) {
+                            window.i18n.changeLanguage(lang);
+                        }
+                        
+                        // Close dropdown
+                        languageSelector.classList.remove('active');
+                    });
+                });
+                
+                // Close dropdown when clicking outside
+                document.addEventListener('click', (e) => {
+                    if (languageSelector && !languageSelector.contains(e.target)) {
+                        languageSelector.classList.remove('active');
+                    }
+                });
+            }
         });
     </script>
+
+    <style>
+        /* Additional styles for language selector */
+        .language-selector {
+            position: relative;
+            margin-left: 15px;
+            display: inline-block;
+        }
+        
+        .language-button {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 6px 12px;
+            color: #fff;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            transition: background-color 0.2s;
+        }
+        
+        .language-button i {
+            margin-right: 5px;
+        }
+        
+        .language-button:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        
+        .language-dropdown {
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 5px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 100;
+            min-width: 150px;
+            overflow: hidden;
+        }
+        
+        .language-option {
+            padding: 10px 15px;
+            color: #374151;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .language-option:hover {
+            background-color: #f3f4f6;
+        }
+        
+        .language-selector.active .language-dropdown {
+            display: block;
+        }
+        
+        /* View post button styles */
+        .view-post-btn {
+            margin-top: 10px;
+            background-color: #f3f4f6;
+            color: #4b5563;
+            border: none;
+            border-radius: 20px;
+            padding: 8px 15px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background-color 0.2s;
+            display: inline-flex;
+            align-items: center;
+        }
+        
+        .view-post-btn i {
+            margin-right: 5px;
+        }
+        
+        .view-post-btn:hover {
+            background-color: #e5e7eb;
+        }
+    </style>
 </body>
 </html> 
