@@ -139,7 +139,18 @@ const translations = {
         'accessCodeMessage': '访问码',
         'emailSubmittedMessage': '已提交，我们会通过邮件通知你',
         'pleaseEnterReply': '请输入你的回复',
-        'thankYouForHelping': '感谢你的帮助'
+        'thankYouForHelping': '感谢你的帮助',
+
+        // Past questions page
+        'viewMyPost': '查看我的帖子',
+        'loadDemo': '加载示例数据',
+        'replies': '回复',
+        'noRepliesYet': '暂无回复',
+        'checkBackLater': '请稍后再查看',
+        'errorMessage': '我们找不到使用此访问码的帖子。请检查您的访问码并重试。',
+        'noQuestionsMessage': '找不到使用此访问码的帖子。如果您最近提交了问题，可能需要一些时间才能显示在系统中。',
+        'pleaseEnterAccessCode': '请输入访问码查看您的帖子',
+        'enterAccessCode': '请输入帖子的访问码'
     },
     'en': { // English
         // Common elements
@@ -280,7 +291,18 @@ const translations = {
         'accessCodeMessage': 'Access Code',
         'emailSubmittedMessage': 'submitted, we will notify you by email',
         'pleaseEnterReply': 'Please enter your reply',
-        'thankYouForHelping': 'Thank you for your help'
+        'thankYouForHelping': 'Thank you for your help',
+
+        // Past questions page
+        'viewMyPost': 'View My Post',
+        'loadDemo': 'Load Demo Data',
+        'replies': 'Replies',
+        'noRepliesYet': 'No replies yet',
+        'checkBackLater': 'Check back later',
+        'errorMessage': 'We couldn\'t find a post with this access code. Please check your access code and try again.',
+        'noQuestionsMessage': 'No post found with this access code. If you recently submitted a question, it may take some time to appear in the system.',
+        'pleaseEnterAccessCode': 'Please enter an access code to view your post',
+        'enterAccessCode': 'Enter the access code for your post'
     },
     'es': { // Spanish
         // Common elements
@@ -421,7 +443,18 @@ const translations = {
         'accessCodeMessage': 'Código de Acceso',
         'emailSubmittedMessage': 'enviado, te notificaremos por correo electrónico',
         'pleaseEnterReply': 'Por favor ingresa tu respuesta',
-        'thankYouForHelping': 'Gracias por tu ayuda'
+        'thankYouForHelping': 'Gracias por tu ayuda',
+
+        // Past questions page
+        'viewMyPost': 'Ver Mi Publicación',
+        'loadDemo': 'Cargar Datos de Demostración',
+        'replies': 'Respuestas',
+        'noRepliesYet': 'Aún no hay respuestas',
+        'checkBackLater': 'Revisa más tarde',
+        'errorMessage': 'No pudimos encontrar una publicación con este código de acceso. Por favor, verifica tu código de acceso e intenta nuevamente.',
+        'noQuestionsMessage': 'No se encontró ninguna publicación con este código de acceso. Si has enviado una pregunta recientemente, puede tardar un tiempo en aparecer en el sistema.',
+        'pleaseEnterAccessCode': 'Por favor, ingresa un código de acceso para ver tu publicación',
+        'enterAccessCode': 'Ingresa el código de acceso de tu publicación'
     },
     'ja': { // Japanese
         // Common elements
@@ -533,7 +566,18 @@ const translations = {
         'accessCodeMessage': 'アクセスコード',
         'emailSubmittedMessage': '送信されました。メールで通知します',
         'pleaseEnterReply': '返信を入力してください',
-        'thankYouForHelping': '助けてくれてありがとう'
+        'thankYouForHelping': '助けてくれてありがとう',
+
+        // Past questions page
+        'viewMyPost': '自分の投稿を見る',
+        'loadDemo': 'デモデータをロード',
+        'replies': '返信',
+        'noRepliesYet': 'まだ返信がありません',
+        'checkBackLater': '後で確認してください',
+        'errorMessage': 'このアクセスコードでは投稿が見つかりませんでした。アクセスコードを確認して、もう一度お試しください。',
+        'noQuestionsMessage': 'このアクセスコードでは投稿が見つかりませんでした。最近質問を送信した場合は、システムに表示されるまで時間がかかることがあります。',
+        'pleaseEnterAccessCode': '投稿を表示するにはアクセスコードを入力してください',
+        'enterAccessCode': '投稿のアクセスコードを入力してください'
     },
     'ko': { // Korean
         // Common elements
@@ -645,7 +689,18 @@ const translations = {
         'accessCodeMessage': '접근 코드',
         'emailSubmittedMessage': '제출되었습니다. 이메일로 알려드리겠습니다',
         'pleaseEnterReply': '답변을 입력해주세요',
-        'thankYouForHelping': '도움 주셔서 감사합니다'
+        'thankYouForHelping': '도움 주셔서 감사합니다',
+
+        // Past questions page
+        'viewMyPost': '자신의 게시물 보기',
+        'loadDemo': '데모 데이터 로드',
+        'replies': '답변',
+        'noRepliesYet': '아직 답변이 없습니다',
+        'checkBackLater': '나중에 확인해주세요',
+        'errorMessage': '이 접근 코드로 게시물을 찾을 수 없습니다. 접근 코드를 확인하고 다시 시도해주세요.',
+        'noQuestionsMessage': '이 접근 코드로 게시물을 찾을 수 없습니다. 최근에 질문을 제출한 경우, 시스템에 표시되기까지 시간이 걸릴 수 있습니다.',
+        'pleaseEnterAccessCode': '게시물을 보려면 접근 코드를 입력해주세요',
+        'enterAccessCode': '게시물의 접근 코드를 입력해주세요'
     }
 };
 
@@ -654,158 +709,108 @@ let currentLanguage = 'zh-CN';
 
 // Initialize i18n
 function initI18n() {
-    // Check if language is stored in localStorage
-    const storedLanguage = localStorage.getItem('language');
-    if (storedLanguage && translations[storedLanguage]) {
-        currentLanguage = storedLanguage;
-    }
+    // Check localStorage for saved language preference
+    const savedLanguage = localStorage.getItem('language');
     
-    // Add language selector to all pages
-    addLanguageSelector();
+    // Set current language, default to 'zh-CN' if no saved preference
+    window.currentLanguage = savedLanguage || 'zh-CN';
     
-    // Translate the page
+    // Expose i18n methods globally
+    window.i18n = {
+        t: t,
+        init: function() {
+            addLanguageSelector();
+            translatePage();
+        },
+        changeLanguage: changeLanguage,
+        translatePage: translatePage,
+        currentLanguage: window.currentLanguage
+    };
+    
+    // Call translate on initial load
     translatePage();
 }
 
 // Add language selector to the page
 function addLanguageSelector() {
-    // First try to find the nav-actions
-    const navActions = document.querySelector('.nav-actions');
-    if (navActions) {
-        // Create language dropdown
-        const languageContainer = document.createElement('div');
-        languageContainer.className = 'language-selector';
-        
-        languageContainer.innerHTML = `
-            <button class="language-btn">
-                <i class="fas fa-globe"></i>
-                <span class="lang-text" data-i18n="language">语言</span>
-            </button>
-            <div class="language-dropdown">
-                <a href="#" data-lang="zh-CN" class="language-option ${currentLanguage === 'zh-CN' ? 'active' : ''}">
-                    <span data-i18n="chinese">中文</span>
-                </a>
-                <a href="#" data-lang="en" class="language-option ${currentLanguage === 'en' ? 'active' : ''}">
-                    <span data-i18n="english">English</span>
-                </a>
-                <a href="#" data-lang="es" class="language-option ${currentLanguage === 'es' ? 'active' : ''}">
-                    <span data-i18n="spanish">Español</span>
-                </a>
-                <a href="#" data-lang="ja" class="language-option ${currentLanguage === 'ja' ? 'active' : ''}">
-                    <span data-i18n="japanese">日本語</span>
-                </a>
-                <a href="#" data-lang="ko" class="language-option ${currentLanguage === 'ko' ? 'active' : ''}">
-                    <span data-i18n="korean">한국어</span>
-                </a>
+    const existingSelector = document.getElementById('languageSelector');
+    
+    // Only create language selector if it doesn't already exist
+    if (!existingSelector) {
+        // Create language selector HTML
+        const languageSelectorHTML = `
+            <div class="language-selector" id="languageSelector">
+                <div class="language-button" id="languageButton">
+                    <i class="fas fa-globe"></i> <span data-i18n="language">${t('language')}</span>
+                </div>
+                <div class="language-dropdown">
+                    <div class="language-option" data-lang="zh-CN" data-i18n="chinese">${t('chinese')}</div>
+                    <div class="language-option" data-lang="en" data-i18n="english">${t('english')}</div>
+                    <div class="language-option" data-lang="es" data-i18n="spanish">${t('spanish')}</div>
+                    <div class="language-option" data-lang="ja" data-i18n="japanese">${t('japanese')}</div>
+                    <div class="language-option" data-lang="ko" data-i18n="korean">${t('korean')}</div>
+                </div>
             </div>
         `;
         
-        // Insert at the beginning of nav-actions
-        navActions.insertBefore(languageContainer, navActions.firstChild);
-    } else {
-        // Try to find the header or similar container to insert the language selector
-        const header = document.querySelector('.header, header');
-        if (!header) return;
-        
-        // Create a nav-actions div if it doesn't exist
-        const newNavActions = document.createElement('div');
-        newNavActions.className = 'nav-actions';
-        
-        // Find the existing nav link if any (generally the "past questions" link)
-        const existingNavLink = header.querySelector('.nav-link, .history-link');
-        
-        // Create language dropdown
-        const languageContainer = document.createElement('div');
-        languageContainer.className = 'language-selector';
-        
-        languageContainer.innerHTML = `
-            <button class="language-btn">
-                <i class="fas fa-globe"></i>
-                <span class="lang-text" data-i18n="language">语言</span>
-            </button>
-            <div class="language-dropdown">
-                <a href="#" data-lang="zh-CN" class="language-option ${currentLanguage === 'zh-CN' ? 'active' : ''}">
-                    <span data-i18n="chinese">中文</span>
-                </a>
-                <a href="#" data-lang="en" class="language-option ${currentLanguage === 'en' ? 'active' : ''}">
-                    <span data-i18n="english">English</span>
-                </a>
-                <a href="#" data-lang="es" class="language-option ${currentLanguage === 'es' ? 'active' : ''}">
-                    <span data-i18n="spanish">Español</span>
-                </a>
-                <a href="#" data-lang="ja" class="language-option ${currentLanguage === 'ja' ? 'active' : ''}">
-                    <span data-i18n="japanese">日本語</span>
-                </a>
-                <a href="#" data-lang="ko" class="language-option ${currentLanguage === 'ko' ? 'active' : ''}">
-                    <span data-i18n="korean">한국어</span>
-                </a>
-            </div>
-        `;
-        
-        // Add the language container to nav-actions
-        newNavActions.appendChild(languageContainer);
-        
-        // If there's an existing nav link, move it to our new nav-actions div
-        if (existingNavLink) {
-            existingNavLink.parentNode.removeChild(existingNavLink);
-            newNavActions.appendChild(existingNavLink);
-        }
-        
-        // If there's a container div in the header, find the right place to put the nav-actions
-        const container = header.querySelector('.container');
-        if (container) {
-            container.appendChild(newNavActions);
+        // Insert language selector into the page
+        const headerNav = document.querySelector('header .nav-actions');
+        if (headerNav) {
+            headerNav.insertAdjacentHTML('beforeend', languageSelectorHTML);
         } else {
-            // If no container, just append to the header
-            header.appendChild(newNavActions);
+            // If no header nav found, insert at top right of body
+            const selectorDiv = document.createElement('div');
+            selectorDiv.style.position = 'fixed';
+            selectorDiv.style.top = '20px';
+            selectorDiv.style.right = '20px';
+            selectorDiv.style.zIndex = '1000';
+            selectorDiv.innerHTML = languageSelectorHTML;
+            document.body.appendChild(selectorDiv);
         }
-    }
-    
-    // Add event listeners for language selection
-    const languageBtn = document.querySelector('.language-btn');
-    const languageDropdown = document.querySelector('.language-dropdown');
-    
-    if (languageBtn && languageDropdown) {
-        languageBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            languageDropdown.classList.toggle('show');
-        });
+        
+        // Add event listeners for language selector
+        const languageButton = document.getElementById('languageButton');
+        const languageSelector = document.getElementById('languageSelector');
+        const languageOptions = document.querySelectorAll('.language-option');
+        
+        // Toggle dropdown visibility
+        if (languageButton) {
+            languageButton.addEventListener('click', function(event) {
+                event.stopPropagation(); // Prevent body click handler from triggering
+                languageSelector.classList.toggle('active');
+            });
+        }
+        
+        // Handle language selection
+        if (languageOptions) {
+            languageOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    const lang = this.getAttribute('data-lang');
+                    changeLanguage(lang);
+                    languageSelector.classList.remove('active');
+                });
+            });
+        }
         
         // Close dropdown when clicking outside
-        document.addEventListener('click', (e) => {
-            if (!e.target.closest('.language-selector')) {
-                languageDropdown.classList.remove('show');
+        document.addEventListener('click', function(event) {
+            if (languageSelector && !languageSelector.contains(event.target)) {
+                languageSelector.classList.remove('active');
             }
-        });
-        
-        // Add event listeners for language options
-        const languageOptions = document.querySelectorAll('.language-option');
-        languageOptions.forEach(option => {
-            option.addEventListener('click', (e) => {
-                e.preventDefault();
-                const lang = option.getAttribute('data-lang');
-                changeLanguage(lang);
-                
-                // Update active class
-                languageOptions.forEach(opt => opt.classList.remove('active'));
-                option.classList.add('active');
-                
-                // Hide dropdown
-                languageDropdown.classList.remove('show');
-            });
         });
     }
 }
 
 // Change the language
 function changeLanguage(lang) {
-    if (translations[lang]) {
-        currentLanguage = lang;
-        // Save to localStorage
-        localStorage.setItem('language', lang);
-        // Update the page content
-        translatePage();
-    }
+    // Save language preference to localStorage
+    localStorage.setItem('language', lang);
+    
+    // Update current language
+    window.currentLanguage = lang;
+    
+    // Update page content
+    translatePage();
 }
 
 // Translate the page
@@ -831,6 +836,15 @@ function translatePage() {
         }
     });
     
+    // Handle special data-i18n-placeholder attribute for inputs
+    const placeholderElements = document.querySelectorAll('[data-i18n-placeholder]');
+    placeholderElements.forEach(element => {
+        const key = element.getAttribute('data-i18n-placeholder');
+        if (translations[currentLanguage] && translations[currentLanguage][key]) {
+            element.placeholder = translations[currentLanguage][key];
+        }
+    });
+    
     // Special case for title
     document.title = document.title.replace('解忧杂货铺', translations[currentLanguage]['siteName']);
     document.title = document.title.replace('Worry-Free Store', translations[currentLanguage]['siteName']);
@@ -847,11 +861,5 @@ function t(key) {
     return key;
 }
 
-// Export functions for use in other scripts
-window.i18n = {
-    init: initI18n,
-    changeLanguage: changeLanguage,
-    translate: translatePage,
-    t: t,
-    getCurrentLanguage: () => currentLanguage
-}; 
+// Initialize i18n when the DOM is loaded
+document.addEventListener('DOMContentLoaded', initI18n); 

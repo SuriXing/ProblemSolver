@@ -1,103 +1,73 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Past Questions - Problem Solver</title>
-    <!-- Favicon -->
-    <link rel="icon" type="image/png" href="assets/favicon.png">
+    <title data-i18n="pastQuestions">Access Past Questions</title>
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Base CSS -->
-    <link rel="stylesheet" href="css/base.css">
-    <!-- Page specific CSS -->
-    <link rel="stylesheet" href="css/past-questions.css">
     <style>
         body {
-            background-color: #f9fafb;
             font-family: 'Poppins', sans-serif;
+            background-color: #f9fafb;
             color: #374151;
             line-height: 1.6;
+            margin: 0;
+            padding: 0;
         }
         
         .container {
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 0 24px;
-        }
-        
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 20px 0;
-            margin-bottom: 20px;
+            max-width: 600px;
+            margin: 40px auto;
+            padding: 0 20px;
         }
         
         .logo {
-            display: flex;
-            align-items: center;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .logo a {
             color: #4f7cff;
             text-decoration: none;
-        }
-        
-        .logo i, .logo img {
-            font-size: 1.2rem;
-            margin-right: 6px;
-        }
-        
-        .logo span {
-            font-size: 1.1rem;
-            font-weight: 500;
-        }
-        
-        .nav-link {
-            color: #6b7280;
-            text-decoration: none;
-            font-size: 0.95rem;
-            display: flex;
+            font-size: 1.5rem;
+            font-weight: 600;
+            display: inline-flex;
             align-items: center;
         }
         
-        .nav-link i {
-            margin-right: 4px;
+        .logo i {
+            font-size: 28px;
+            margin-right: 10px;
         }
         
-        .main-content {
-            max-width: 700px;
-            margin: 0 auto;
-            padding-bottom: 60px;
+        .access-box {
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            text-align: center;
         }
         
         .page-title {
-            font-size: 2rem;
+            font-size: 1.8rem;
             font-weight: 600;
-            text-align: center;
-            margin-bottom: 8px;
+            margin-top: 0;
+            margin-bottom: 10px;
             color: #1f2937;
         }
         
         .page-subtitle {
-            text-align: center;
             color: #6b7280;
-            margin-bottom: 28px;
+            margin-bottom: 25px;
             font-size: 1rem;
         }
         
-        .access-form {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-            padding: 24px;
-            margin-bottom: 40px;
-        }
-        
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 25px;
+            text-align: left;
         }
         
         .form-group label {
@@ -115,6 +85,7 @@
             font-family: inherit;
             font-size: 1rem;
             color: #4b5563;
+            box-sizing: border-box;
         }
         
         .access-code-input:focus {
@@ -123,10 +94,17 @@
             box-shadow: 0 0 0 3px rgba(79, 124, 255, 0.1);
         }
         
+        .form-hint {
+            font-size: 0.85rem;
+            color: #6b7280;
+            margin-top: 8px;
+            margin-bottom: 0;
+            font-style: italic;
+        }
+        
         .form-actions {
             display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
+            flex-direction: column;
             gap: 12px;
             margin-top: 20px;
         }
@@ -172,6 +150,7 @@
             border-radius: 8px;
             margin-top: 20px;
             text-align: center;
+            display: none;
         }
         
         .error-message {
@@ -188,7 +167,7 @@
         
         /* Loading indicator */
         .loading-indicator {
-            display: flex;
+            display: none;
             justify-content: center;
             margin-top: 20px;
         }
@@ -207,7 +186,7 @@
             100% { transform: rotate(360deg); }
         }
         
-        /* Questions display */
+        /* Results area */
         .questions-wrapper {
             margin-top: 30px;
         }
@@ -218,158 +197,367 @@
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
             margin-bottom: 16px;
             overflow: hidden;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
         
-        .question-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        
-        .question-header {
-            padding: 16px;
-            border-bottom: 1px solid #e5e7eb;
-        }
-        
-        .question-title {
-            margin: 0 0 8px 0;
-            font-size: 1.1rem;
-            color: #1f2937;
-        }
-        
-        .question-meta {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.85rem;
-            color: #6b7280;
-        }
-        
-        .question-preview {
-            padding: 16px;
-            color: #4b5563;
-            margin: 0;
-        }
-        
-        .question-footer {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 16px;
-            background-color: #f9fafb;
-            border-top: 1px solid #e5e7eb;
-        }
-        
-        .question-stats {
-            display: flex;
-            gap: 12px;
-            color: #6b7280;
-            font-size: 0.85rem;
-        }
-        
-        .view-question-btn {
-            color: #4f7cff;
-            font-size: 0.9rem;
-            font-weight: 500;
-            text-decoration: none;
-        }
-        
-        .view-question-btn:hover {
-            text-decoration: underline;
-        }
-        
-        .hidden {
-            display: none !important;
-        }
-        
-        /* Footer */
         .footer {
             text-align: center;
             padding: 20px 0;
             color: #6b7280;
             font-size: 0.9rem;
-            border-top: 1px solid #e5e7eb;
-            margin-top: 60px;
+            margin-top: 40px;
         }
         
-        /* Responsive */
-        @media (max-width: 640px) {
-            .page-title {
-                font-size: 1.6rem;
-            }
-            
-            .form-actions {
-                flex-direction: column;
-                width: 100%;
-            }
-            
-            .primary-button, .secondary-button {
-                width: 100%;
-            }
+        /* Language selector styles */
+        .language-selector {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 100;
+        }
+        
+        .language-button {
+            background-color: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 50px;
+            padding: 6px 12px;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            font-size: 0.85rem;
+            color: #4b5563;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .language-button i {
+            margin-right: 5px;
+        }
+        
+        .language-dropdown {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 100%;
+            margin-top: 5px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+            min-width: 150px;
+        }
+        
+        .language-option {
+            padding: 10px 15px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .language-option:hover {
+            background-color: #f3f4f6;
+        }
+        
+        .language-selector.active .language-dropdown {
+            display: block;
         }
     </style>
 </head>
 <body>
+    <!-- Language Selector -->
+    <div class="language-selector" id="languageSelector">
+        <div class="language-button" id="languageButton">
+            <i class="fas fa-globe"></i> <span data-i18n="language">Language</span>
+        </div>
+        <div class="language-dropdown">
+            <div class="language-option" data-lang="zh-CN" data-i18n="chinese">中文</div>
+            <div class="language-option" data-lang="en" data-i18n="english">English</div>
+            <div class="language-option" data-lang="es" data-i18n="spanish">Español</div>
+            <div class="language-option" data-lang="ja" data-i18n="japanese">日本語</div>
+            <div class="language-option" data-lang="ko" data-i18n="korean">한국어</div>
+        </div>
+    </div>
+
     <div class="container">
-        <div class="header">
-            <a href="index.html" class="logo">
-                <img src="assets/logo.png" alt="Problem Solver Logo" height="30">
-                <span>Problem Solver</span>
-            </a>
-            <a href="index.html" class="nav-link">
-                <i class="fas fa-home"></i>
-                <span>Home</span>
+        <div class="logo">
+            <a href="index.html">
+                <i class="fas fa-hands-helping"></i>
+                <span data-i18n="siteName">Problem Solver</span>
             </a>
         </div>
         
-        <div class="main-content">
-            <h1 class="page-title">Past Questions</h1>
-            <p class="page-subtitle">Enter your access code to view your past questions and responses</p>
+        <div class="access-box">
+            <h1 class="page-title" data-i18n="pastQuestions">Access Past Questions</h1>
+            <p class="page-subtitle" data-i18n="checkWithCode">Enter your access code to view your post and responses</p>
             
-            <form class="access-form">
+            <form id="accessForm">
                 <div class="form-group">
-                    <label for="accessCodeInput">Access Code</label>
-                    <input type="text" id="accessCodeInput" class="access-code-input" placeholder="Enter your access code" autocomplete="off">
+                    <label for="accessCodeInput" data-i18n="yourAccessCode">Access Code</label>
+                    <input type="text" id="accessCodeInput" class="access-code-input" data-i18n-placeholder="enterAccessCode" placeholder="Enter the access code for your post" autocomplete="off">
+                    <p class="form-hint" data-i18n="saveAccessCode">The access code was provided to you when you submitted your question</p>
                 </div>
                 
                 <div class="form-actions">
                     <button type="button" id="fetchQuestionsBtn" class="primary-button">
-                        <i class="fas fa-search"></i> Look Up Questions
+                        <i class="fas fa-search"></i> <span data-i18n="viewMyPost">View My Post</span>
                     </button>
                     <button type="button" id="loadDemoBtn" class="secondary-button">
-                        <i class="fas fa-flask"></i> Load Demo Data
+                        <i class="fas fa-flask"></i> <span data-i18n="loadDemo">Load Demo Data</span>
                     </button>
                 </div>
             </form>
             
-            <!-- Loading Indicator -->
-            <div id="loadingIndicator" class="loading-indicator hidden">
+            <div id="loadingIndicator" class="loading-indicator">
                 <div class="loading-spinner"></div>
             </div>
             
-            <!-- Error Message -->
-            <div id="errorMessage" class="message error-message hidden">
-                We couldn't find any questions associated with this access code. Please check and try again.
+            <div id="errorMessage" class="message error-message" data-i18n="errorMessage">
+                We couldn't find a post with this access code. Please check and try again.
             </div>
             
-            <!-- No Questions Message -->
-            <div id="noQuestionsMessage" class="message no-questions-message hidden">
-                No questions found for this access code. If you recently submitted a question, it may take some time to appear in the system.
-            </div>
-            
-            <!-- Questions Container -->
-            <div id="questionsContainer" class="questions-wrapper">
-                <!-- Question cards will be dynamically inserted here by JavaScript -->
+            <div id="noQuestionsMessage" class="message no-questions-message" data-i18n="noQuestionsMessage">
+                No post found with this access code. If you recently submitted a question, it may take some time to appear in the system.
             </div>
         </div>
         
+        <div id="questionsContainer" class="questions-wrapper">
+            <!-- Question cards will be dynamically inserted here by JavaScript -->
+        </div>
+        
         <div class="footer">
-            <p>&copy; 2023 Problem Solver. All rights reserved.</p>
+            <p data-i18n="copyright">&copy; 2023 Problem Solver. All rights reserved.</p>
         </div>
     </div>
 
-    <!-- Base JavaScript -->
-    <script src="js/base.js"></script>
-    <!-- Page specific JavaScript -->
-    <script src="js/past-questions.js"></script>
+    <script src="i18n.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Get the language from localStorage or set default
+            window.currentLanguage = localStorage.getItem('language') || 'zh-CN';
+            
+            // Set the document's lang attribute to match the current language
+            document.documentElement.lang = window.currentLanguage;
+            
+            // Initialize i18n after DOM is loaded
+            if (window.i18n) {
+                window.i18n.init();
+            } else {
+                console.error("i18n object not available");
+            }
+            
+            // Update input placeholders with translations
+            updatePlaceholders();
+            
+            // Language selector functionality
+            setupLanguageSelector();
+
+            // DOM Elements
+            const accessCodeInput = document.getElementById('accessCodeInput');
+            const fetchQuestionsBtn = document.getElementById('fetchQuestionsBtn');
+            const loadDemoBtn = document.getElementById('loadDemoBtn');
+            const questionsContainer = document.getElementById('questionsContainer');
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            const errorMessage = document.getElementById('errorMessage');
+            const noQuestionsMessage = document.getElementById('noQuestionsMessage');
+        
+            // Event Listeners
+            fetchQuestionsBtn.addEventListener('click', () => fetchQuestions(accessCodeInput.value));
+            loadDemoBtn.addEventListener('click', () => fetchQuestions('demo'));
+            
+            // Allow pressing Enter in the input field to submit
+            accessCodeInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    fetchQuestions(accessCodeInput.value);
+                }
+            });
+            
+            // Check if there's an access code in URL or localStorage
+            const urlParams = new URLSearchParams(window.location.search);
+            const codeFromUrl = urlParams.get('code');
+            const codeFromStorage = localStorage.getItem('accessCode');
+            
+            if (codeFromUrl) {
+                accessCodeInput.value = codeFromUrl;
+                fetchQuestions(codeFromUrl);
+            } else if (codeFromStorage) {
+                accessCodeInput.value = codeFromStorage;
+                fetchQuestions(codeFromStorage);
+            }
+        
+            /**
+             * Fetch questions based on the provided access code
+             */
+            function fetchQuestions(accessCode) {
+                if (!accessCode) {
+                    showError(window.i18n ? window.i18n.t('pleaseEnterAccessCode') : 'Please enter an access code to view your post');
+                    return;
+                }
+                
+                // Save the access code to localStorage for persistence
+                localStorage.setItem('accessCode', accessCode);
+        
+                // Show loading indicator
+                resetMessages();
+                loadingIndicator.style.display = 'flex';
+        
+                // For demo, simulate API call
+                setTimeout(() => {
+                    if (accessCode === 'demo' || accessCode === 'test123') {
+                        showSuccess(accessCode);
+                    } else {
+                        showError();
+                    }
+                    loadingIndicator.style.display = 'none';
+                }, 1500);
+            }
+        
+            function showSuccess(accessCode) {
+                // Retrieve the submission data if available
+                let userData = {};
+                
+                // For demo purposes, create some mock data
+                if (accessCode === 'demo') {
+                    userData = {
+                        userId: "3842",
+                        accessCode: "DEMO-CODE-1234",
+                        confessionText: "I've been feeling very stressed about my upcoming job interview. I'm worried I won't be able to answer the technical questions correctly. Has anyone been through something similar?",
+                        selectedTags: ["Anxiety", "Work"],
+                        timestamp: "2 hours ago",
+                        replies: [
+                            {
+                                replyText: "It's completely normal to feel nervous before an interview. I'd recommend practicing common interview questions and doing some mock interviews with friends. Remember that it's okay to say 'I don't know' if you're not sure about an answer. Being honest and showing your willingness to learn can be more valuable than pretending to know everything.",
+                                replierName: "Helper #5678",
+                                replyTime: "1 hour ago"
+                            }
+                        ]
+                    };
+                } else if (accessCode === 'test123') {
+                    userData = {
+                        userId: "5678",
+                        accessCode: "TEST-123-TEST",
+                        confessionText: "I'm struggling to find motivation to complete my thesis. Every time I sit down to work on it, I feel overwhelmed and end up procrastinating. I'm afraid I might not graduate on time.",
+                        selectedTags: ["Study", "Pressure"],
+                        timestamp: "1 day ago",
+                        replies: []
+                    };
+                }
+                
+                // Display the user's post and any replies
+                let html = `
+                    <div class="question-card" style="padding: 20px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                            <h3 style="margin: 0; font-size: 18px;"><span data-i18n="yourAnonymousId">Anonymous #</span>${userData.userId}</h3>
+                            <span style="color: #6b7280; font-size: 14px;">${userData.timestamp}</span>
+                        </div>
+                        <p style="margin-bottom: 15px;">${userData.confessionText}</p>
+                        <div style="display: flex; gap: 8px; margin-bottom: 20px;">
+                            ${userData.selectedTags.map(tag => `<span style="background-color: #e5e7eb; padding: 4px 10px; border-radius: 15px; font-size: 12px;">${tag}</span>`).join('')}
+                        </div>
+                `;
+                
+                // Add replies section
+                if (userData.replies && userData.replies.length > 0) {
+                    html += `<div style="border-top: 1px solid #e5e7eb; padding-top: 15px;">
+                        <h4 style="margin-top: 0;"><span data-i18n="replies">Replies</span> (${userData.replies.length})</h4>`;
+                    
+                    userData.replies.forEach(reply => {
+                        html += `
+                            <div style="background-color: #f9fafb; padding: 15px; border-radius: 8px; margin-bottom: 10px;">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                    <span style="font-weight: 500;">${reply.replierName}</span>
+                                    <span style="color: #6b7280; font-size: 12px;">${reply.replyTime}</span>
+                                </div>
+                                <p style="margin: 0;">${reply.replyText}</p>
+                            </div>
+                        `;
+                    });
+                    
+                    html += `</div>`;
+                } else {
+                    html += `<div style="border-top: 1px solid #e5e7eb; padding-top: 15px;">
+                        <p style="color: #6b7280;"><span data-i18n="noRepliesYet">No replies yet</span>. <span data-i18n="checkBackLater">Check back later</span>.</p>
+                    </div>`;
+                }
+                
+                html += `</div>`;
+                
+                questionsContainer.innerHTML = html;
+                
+                // Update translations if i18n is available
+                if (window.i18n) {
+                    window.i18n.translatePage();
+                    updatePlaceholders();
+                }
+            }
+        
+            function showError(message) {
+                if (!message) {
+                    message = window.i18n ? window.i18n.t('errorMessage') : 'We couldn\'t find a post with this access code. Please check your access code and try again.';
+                }
+                errorMessage.textContent = message;
+                errorMessage.style.display = 'block';
+            }
+        
+            function showNoQuestions() {
+                noQuestionsMessage.style.display = 'block';
+            }
+        
+            function resetMessages() {
+                errorMessage.style.display = 'none';
+                noQuestionsMessage.style.display = 'none';
+                questionsContainer.innerHTML = '';
+            }
+            
+            // Function to update placeholders based on current language
+            function updatePlaceholders() {
+                const elementsWithPlaceholder = document.querySelectorAll('[data-i18n-placeholder]');
+                elementsWithPlaceholder.forEach(element => {
+                    const key = element.getAttribute('data-i18n-placeholder');
+                    if (window.i18n && window.i18n.t) {
+                        element.placeholder = window.i18n.t(key);
+                    }
+                });
+            }
+            
+            function setupLanguageSelector() {
+                const languageButton = document.getElementById('languageButton');
+                const languageSelector = document.getElementById('languageSelector');
+                const languageOptions = document.querySelectorAll('.language-option');
+                
+                // Toggle dropdown
+                languageButton.addEventListener('click', () => {
+                    languageSelector.classList.toggle('active');
+                });
+                
+                // Handle language selection
+                languageOptions.forEach(option => {
+                    option.addEventListener('click', () => {
+                        const lang = option.getAttribute('data-lang');
+                        
+                        // Save language preference
+                        localStorage.setItem('language', lang);
+                        
+                        // Update document lang attribute
+                        document.documentElement.lang = lang;
+                        
+                        // Update current language and translate
+                        window.currentLanguage = lang;
+                        if (window.i18n) {
+                            window.i18n.changeLanguage(lang);
+                            // Update placeholders after language change
+                            updatePlaceholders();
+                        }
+                        
+                        // Close dropdown
+                        languageSelector.classList.remove('active');
+                    });
+                });
+                
+                // Close dropdown when clicking outside
+                document.addEventListener('click', (e) => {
+                    if (!languageSelector.contains(e.target)) {
+                        languageSelector.classList.remove('active');
+                    }
+                });
+            }
+        });
+    </script>
 </body>
 </html> 
