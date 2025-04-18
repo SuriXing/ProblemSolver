@@ -117,8 +117,9 @@
         </div>
     </footer>
 
-    <script src="i18n.js"></script>
-    <script src="script.js"></script>
+    <script src="src/i18n.js"></script>
+    <script src="src/js/storage-system.js"></script>
+    <script src="src/script.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Set up current language variable
@@ -132,11 +133,93 @@
             // Set up language selector
             setupLanguageSelector();
             
-            // Add copy access code functionality
-            const copyCodeBtn = document.getElementById('copy-code-btn');
+            // Get DOM elements
             const accessCodeSpan = document.getElementById('access-code');
+            const copyCodeBtn = document.getElementById('copy-code-btn');
             const viewPostBtn = document.getElementById('view-post-btn');
+            const userIdSpan = document.getElementById('user-id');
+            const confessionPreview = document.getElementById('confession-preview');
+            const confessionTags = document.getElementById('confession-tags');
             
+            // Get submission data from localStorage or URL parameters
+            const submissionData = getSubmissionData();
+            
+            // If we have submission data, process it
+            if (submissionData) {
+                // Generate a unique access code if needed
+                if (!submissionData.accessCode && window.StorageSystem) {
+                    submissionData.accessCode = window.StorageSystem.generateAccessCode();
+                    
+                    // Store the submission data with the access code
+                    window.StorageSystem.storeData(submissionData.accessCode, submissionData);
+                }
+                
+                // Display the data on the page
+                displaySubmissionData(submissionData);
+            } else {
+                // Use a default access code if no submission data
+                if (accessCodeSpan) {
+                    // Initialize the storage with our hardcoded access codes if they don't exist
+                    if (window.StorageSystem) {
+                        // Add the J23B-F42A-LCRZ access code if it doesn't exist
+                        if (!window.StorageSystem.checkAccessCode('J23B-F42A-LCRZ')) {
+                            const userData = {
+                                userId: "7291",
+                                accessCode: "J23B-F42A-LCRZ",
+                                confessionText: "I have been struggling with my coursework lately. The assignments are getting harder and I'm falling behind. I'm afraid I might fail this semester.",
+                                selectedTags: ["Study", "Stress", "Academic"],
+                                timestamp: new Date().toISOString(),
+                                replies: []
+                            };
+                            
+                            window.StorageSystem.storeData('J23B-F42A-LCRZ', userData);
+                        }
+                        
+                        // Add the TSZT-VVSM-8F8Y access code if it doesn't exist
+                        if (!window.StorageSystem.checkAccessCode('TSZT-VVSM-8F8Y')) {
+                            const userData = {
+                                userId: "9524",
+                                accessCode: "TSZT-VVSM-8F8Y",
+                                confessionText: "我最近在社交场合感到焦虑，尤其是与新同事交流时。我担心自己说错话或给人留下不好的印象。有谁能给我一些建议如何克服这种社交焦虑？",
+                                selectedTags: ["焦虑", "社交", "人际关系"],
+                                timestamp: new Date().toISOString(),
+                                replies: [
+                                    {
+                                        replyText: "社交焦虑是非常常见的。试着从小的交流开始，比如先与一两个同事简短交谈。准备一些可以讨论的话题也会有帮助。记住，大多数人都在关注自己的表现，而不是评判你。深呼吸和正念练习也可以帮助缓解焦虑。",
+                                        replierName: "Helper #6378",
+                                        replyTime: "刚刚"
+                                    },
+                                    {
+                                        replyText: "作为一个曾经有社交焦虑的人，我理解你的感受。一个有用的技巧是提前练习对话，甚至可以在镜子前练习。另外，不要给自己太大压力，与人交流是需要时间和实践的技能。如果焦虑严重，也可以考虑寻求专业心理咨询。",
+                                        replierName: "Helper #2935",
+                                        replyTime: "5分钟前"
+                                    }
+                                ]
+                            };
+                            
+                            window.StorageSystem.storeData('TSZT-VVSM-8F8Y', userData);
+                        }
+                    }
+                    
+                    // Show your specific access code on the success page
+                    accessCodeSpan.textContent = 'TSZT-VVSM-8F8Y';
+                }
+                
+                // Display demo content for this specific access code
+                if (userIdSpan) userIdSpan.textContent = '9524';
+                if (confessionPreview) confessionPreview.textContent = "我最近在社交场合感到焦虑，尤其是与新同事交流时。我担心自己说错话或给人留下不好的印象。有谁能给我一些建议如何克服这种社交焦虑？";
+                if (confessionTags) {
+                    confessionTags.innerHTML = '';
+                    ['焦虑', '社交', '人际关系'].forEach(tag => {
+                        const tagSpan = document.createElement('span');
+                        tagSpan.className = 'tag';
+                        tagSpan.textContent = tag;
+                        confessionTags.appendChild(tagSpan);
+                    });
+                }
+            }
+            
+            // Add copy access code functionality
             if (copyCodeBtn && accessCodeSpan) {
                 copyCodeBtn.addEventListener('click', function() {
                     // Create a temporary textarea to copy the text
@@ -169,6 +252,58 @@
                     // Redirect to past-questions page with the access code
                     window.location.href = `past-questions.html?code=${accessCode}`;
                 });
+            }
+            
+            /**
+             * Get submission data from localStorage or URL parameters
+             * @returns {Object|null} Submission data or null if not found
+             */
+            function getSubmissionData() {
+                // Try to get from localStorage first
+                const storedData = localStorage.getItem('submissionData');
+                if (storedData) {
+                    try {
+                        const data = JSON.parse(storedData);
+                        // Clear from localStorage to prevent reuse
+                        localStorage.removeItem('submissionData');
+                        return data;
+                    } catch (e) {
+                        console.error('Error parsing submission data', e);
+                    }
+                }
+                
+                // Try to get from URL parameters
+                const urlParams = new URLSearchParams(window.location.search);
+                const dataParam = urlParams.get('data');
+                if (dataParam) {
+                    try {
+                        return JSON.parse(atob(dataParam));
+                    } catch (e) {
+                        console.error('Error parsing URL data parameter', e);
+                    }
+                }
+                
+                return null;
+            }
+            
+            /**
+             * Display submission data on the page
+             * @param {Object} data - The submission data to display
+             */
+            function displaySubmissionData(data) {
+                if (accessCodeSpan) accessCodeSpan.textContent = data.accessCode;
+                if (userIdSpan) userIdSpan.textContent = data.userId;
+                if (confessionPreview) confessionPreview.textContent = data.confessionText;
+                
+                if (confessionTags && data.selectedTags) {
+                    confessionTags.innerHTML = '';
+                    data.selectedTags.forEach(tag => {
+                        const tagSpan = document.createElement('span');
+                        tagSpan.className = 'tag';
+                        tagSpan.textContent = tag;
+                        confessionTags.appendChild(tagSpan);
+                    });
+                }
             }
             
             // Function to set up language selector

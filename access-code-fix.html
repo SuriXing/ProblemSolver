@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Access Code Fix Utility</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+            color: #333;
+        }
+        h1, h2, h3 {
+            color: #2563eb;
+        }
+        .card {
+            background: #f9fafb;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-left: 4px solid #3b82f6;
+        }
+        button {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+            transition: background 0.2s;
+        }
+        button:hover {
+            background: #1d4ed8;
+        }
+        pre {
+            background: #f1f3f5;
+            padding: 15px;
+            border-radius: 6px;
+            overflow: auto;
+            font-family: monospace;
+            max-height: 300px;
+            white-space: pre-wrap;
+        }
+        .success {
+            color: #16a34a;
+            font-weight: bold;
+        }
+        .error {
+            color: #dc2626;
+            font-weight: bold;
+        }
+        .log {
+            margin: 10px 0;
+            padding: 10px;
+            background: #f8fafc;
+            border-radius: 4px;
+            border-left: 3px solid #94a3b8;
+        }
+        .actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        .status-icon {
+            display: inline-block;
+            width: 20px;
+            text-align: center;
+            margin-right: 5px;
+        }
+        #fix-log {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .input-group {
+            margin: 20px 0;
+        }
+        input[type="text"] {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 16px;
+            width: 250px;
+            margin-right: 10px;
+        }
+        .template-buttons {
+            margin: 10px 0;
+        }
+        .example-button {
+            background: #f3f4f6;
+            color: #4b5563;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            margin-right: 5px;
+        }
+        .example-button:hover {
+            background: #e5e7eb;
+        }
+        .warning {
+            color: #d97706;
+            font-weight: bold;
+        }
+        .note {
+            padding: 10px;
+            background: #f0f9ff;
+            border-left: 3px solid #0ea5e9;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Access Code Fix Utility</h1>
+    <p>This utility helps troubleshoot and fix access code issues by directly manipulating browser storage.</p>
+    
+    <div class="card">
+        <h2>Step 1: Enter Access Code</h2>
+        <p>Enter the access code you want to check or fix:</p>
+        <div class="input-group">
+            <input type="text" id="access-code-input" placeholder="e.g., TSZT-VVSM-8F8Y" value="TSZT-VVSM-8F8Y">
+            <button id="update-code-btn">Update</button>
+        </div>
+        <div class="template-buttons">
+            <span>Examples: </span>
+            <button class="example-button" data-code="TSZT-VVSM-8F8Y">TSZT-VVSM-8F8Y</button>
+            <button class="example-button" data-code="J23B-F42A-LCRZ">J23B-F42A-LCRZ</button>
+            <button class="example-button" data-code="demo">demo</button>
+        </div>
+        <div id="current-code" class="note">
+            Currently working with access code: <strong id="active-code">TSZT-VVSM-8F8Y</strong>
+        </div>
+    </div>
+    
+    <div class="card">
+        <h2>Step 2: Check Current Status</h2>
+        <p>First, check if the access code currently exists in your browser's storage:</p>
+        <button id="check-status-btn">Check Status</button>
+        <div id="status-result"></div>
+    </div>
+    
+    <div class="card">
+        <h2>Step 3: Apply the Fix</h2>
+        <p>This will add the access code and sample data directly to localStorage:</p>
+        <button id="apply-fix-btn">Apply Fix</button>
+        <div id="fix-log"></div>
+    </div>
+    
+    <div class="card">
+        <h2>Step 4: Verify Fix</h2>
+        <p>Let's verify that the access code is now properly stored:</p>
+        <button id="verify-fix-btn">Verify Fix</button>
+        <div id="verify-result"></div>
+    </div>
+    
+    <div class="card">
+        <h2>Advanced Options</h2>
+        <div class="actions">
+            <button id="view-storage-btn">View All Storage</button>
+            <button id="clear-storage-btn">Clear All Storage</button>
+            <button id="delete-code-btn">Delete Current Code</button>
+            <button id="reload-page-btn">Reload Page</button>
+        </div>
+        <pre id="advanced-result"></pre>
+    </div>
+    
+    <div class="card">
+        <h2>Go to Past Questions</h2>
+        <p>After applying the fix, you can go directly to the past questions page with the access code:</p>
+        <button id="go-to-past-btn">Go to Past Questions Page</button>
+    </div>
+    
+    <!-- Order matters - load storage-system.js first, then fix-tszt.js -->
+    <script src="src/js/storage-system.js"></script>
+    <script src="src/js/fix-tszt.js"></script>
+    <script>
+        // Constants
+        let ACCESS_CODE = 'TSZT-VVSM-8F8Y'; // Default access code
+        const STORAGE_KEY = 'problemSolver_userData';
+        
+        // DOM Elements
+        const accessCodeInput = document.getElementById('access-code-input');
+        const updateCodeBtn = document.getElementById('update-code-btn');
+        const activeCodeSpan = document.getElementById('active-code');
+        const exampleButtons = document.querySelectorAll('.example-button');
+        
+        const checkStatusBtn = document.getElementById('check-status-btn');
+        const applyFixBtn = document.getElementById('apply-fix-btn');
+        const verifyFixBtn = document.getElementById('verify-fix-btn');
+        const viewStorageBtn = document.getElementById('view-storage-btn');
+        const clearStorageBtn = document.getElementById('clear-storage-btn');
+        const deleteCodeBtn = document.getElementById('delete-code-btn');
+        const reloadPageBtn = document.getElementById('reload-page-btn');
+        const goToPastBtn = document.getElementById('go-to-past-btn');
+        
+        const statusResult = document.getElementById('status-result');
+        const fixLog = document.getElementById('fix-log');
+        const verifyResult = document.getElementById('verify-result');
+        const advancedResult = document.getElementById('advanced-result');
+        
+        // Update the active access code
+        function updateAccessCode() {
+            const newCode = accessCodeInput.value.trim();
+            if (newCode) {
+                ACCESS_CODE = newCode;
+                activeCodeSpan.textContent = ACCESS_CODE;
+                
+                // Update the default code in AccessCodeFixer
+                if (window.AccessCodeFixer) {
+                    window.AccessCodeFixer.defaultAccessCode = ACCESS_CODE;
+                }
+                
+                // Clear previous results
+                statusResult.innerHTML = '';
+                fixLog.innerHTML = '';
+                verifyResult.innerHTML = '';
+                advancedResult.textContent = '';
+                
+                return true;
+            } else {
+                alert('Please enter a valid access code');
+                return false;
+            }
+        }
+        
+        // Helper Functions
+        function checkAccessCode() {
+            try {
+                let exists = false;
+                let usingStorageSystem = false;
+                let fromDirect = false;
+                let details = [];
+                
+                // Try using the AccessCodeFixer if available
+                if (window.AccessCodeFixer) {
+                    exists = window.AccessCodeFixer.check(ACCESS_CODE);
+                    details.push(`AccessCodeFixer check: ${exists ? 'Found' : 'Not found'}`);
+                } else {
+                    details.push('AccessCodeFixer is not available');
+                }
+                
+                // Also check using StorageSystem if available
+                if (window.StorageSystem) {
+                    usingStorageSystem = true;
+                    const systemExists = window.StorageSystem.checkAccessCode(ACCESS_CODE);
+                    exists = exists || systemExists;
+                    details.push(`StorageSystem.checkAccessCode: ${systemExists ? 'Found' : 'Not found'}`);
+                } else {
+                    details.push('StorageSystem is not available');
+                }
+                
+                // Also check directly in localStorage
+                try {
+                    const storage = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+                    fromDirect = !!storage[ACCESS_CODE];
+                    exists = exists || fromDirect;
+                    details.push(`Direct localStorage check: ${fromDirect ? 'Found' : 'Not found'}`);
+                    
+                    if (fromDirect) {
+                        const userData = storage[ACCESS_CODE];
+                        details.push(`User ID: ${userData.userId || 'missing'}`);
+                        details.push(`Tags: ${userData.selectedTags ? userData.selectedTags.join(', ') : 'missing'}`);
+                        details.push(`Replies: ${userData.replies ? userData.replies.length : 'missing'}`);
+                    }
+                } catch (e) {
+                    details.push(`Error checking directly: ${e.message}`);
+                }
+                
+                // Check accessCode key
+                const savedAccessCode = localStorage.getItem('accessCode');
+                details.push(`localStorage 'accessCode' key: ${savedAccessCode || 'not set'}`);
+                
+                return {
+                    exists: exists,
+                    usingStorageSystem,
+                    fromDirect,
+                    details
+                };
+            } catch (error) {
+                return {
+                    exists: false,
+                    usingStorageSystem: false,
+                    fromDirect: false,
+                    details: [`Error: ${error.message}`]
+                };
+            }
+        }
+        
+        function displayStatus(status) {
+            let html = '';
+            
+            if (status.exists) {
+                html += '<div class="success"><span class="status-icon">✅</span> Access code exists in storage!</div>';
+            } else {
+                html += '<div class="error"><span class="status-icon">❌</span> Access code NOT found in storage</div>';
+            }
+            
+            html += '<h3>Details:</h3>';
+            html += '<ul>';
+            status.details.forEach(detail => {
+                html += `<li>${detail}</li>`;
+            });
+            html += '</ul>';
+            
+            return html;
+        }
+        
+        // Event Handlers
+        updateCodeBtn.addEventListener('click', updateAccessCode);
+        
+        // Allow pressing Enter in the input field
+        accessCodeInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                updateAccessCode();
+            }
+        });
+        
+        // Example button handlers
+        exampleButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const code = this.getAttribute('data-code');
+                accessCodeInput.value = code;
+                updateAccessCode();
+            });
+        });
+        
+        checkStatusBtn.addEventListener('click', function() {
+            const status = checkAccessCode();
+            statusResult.innerHTML = displayStatus(status);
+        });
+        
+        applyFixBtn.addEventListener('click', function() {
+            // Capture console logs
+            const originalConsoleLog = console.log;
+            const originalConsoleError = console.error;
+            const originalConsoleWarn = console.warn;
+            const originalConsoleInfo = console.info;
+            
+            let logs = [];
+            
+            console.log = function() {
+                logs.push({type: 'log', message: Array.from(arguments).join(' ')});
+                originalConsoleLog.apply(console, arguments);
+            };
+            
+            console.error = function() {
+                logs.push({type: 'error', message: Array.from(arguments).join(' ')});
+                originalConsoleError.apply(console, arguments);
+            };
+            
+            console.warn = function() {
+                logs.push({type: 'warn', message: Array.from(arguments).join(' ')});
+                originalConsoleWarn.apply(console, arguments);
+            };
+            
+            console.info = function() {
+                logs.push({type: 'info', message: Array.from(arguments).join(' ')});
+                originalConsoleInfo.apply(console, arguments);
+            };
+            
+            try {
+                // Use AccessCodeFixer if available
+                if (window.AccessCodeFixer) {
+                    logs.push({type: 'log', message: `Using AccessCodeFixer for code: ${ACCESS_CODE}`});
+                    const result = window.AccessCodeFixer.fix(ACCESS_CODE);
+                    logs.push({type: 'log', message: `AccessCodeFixer result: ${result ? 'Success' : 'Failed'}`});
+                } else {
+                    logs.push({type: 'error', message: 'AccessCodeFixer not available, using fallback method'});
+                    
+                    // Fallback method - direct localStorage manipulation
+                    // Get or create storage
+                    let storage = {};
+                    try {
+                        const existingData = localStorage.getItem(STORAGE_KEY);
+                        if (existingData && existingData !== 'undefined' && existingData !== 'null') {
+                            storage = JSON.parse(existingData);
+                            logs.push({type: 'log', message: '✅ Found existing storage'});
+                        } else {
+                            logs.push({type: 'log', message: '⚠️ No existing storage found, creating new'});
+                        }
+                    } catch (e) {
+                        logs.push({type: 'error', message: `❌ Error parsing storage: ${e.message}`});
+                    }
+                    
+                    // Create template data
+                    const userData = {
+                        userId: Math.floor(1000 + Math.random() * 9000).toString(),
+                        accessCode: ACCESS_CODE,
+                        confessionText: "Sample confession for " + ACCESS_CODE,
+                        selectedTags: ["Sample", "Test"],
+                        timestamp: new Date().toISOString(),
+                        replies: []
+                    };
+                    
+                    // Add data and save
+                    storage[ACCESS_CODE] = userData;
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(storage));
+                    logs.push({type: 'log', message: '✅ Saved data to localStorage'});
+                    
+                    localStorage.setItem('accessCode', ACCESS_CODE);
+                    logs.push({type: 'log', message: `✅ Set 'accessCode' key to ${ACCESS_CODE}`});
+                    
+                    // Try using StorageSystem if available
+                    if (window.StorageSystem) {
+                        const result = window.StorageSystem.storeData(ACCESS_CODE, userData);
+                        logs.push({type: 'log', message: `${result ? '✅' : '❌'} Used StorageSystem to store data: ${result}`});
+                    } else {
+                        logs.push({type: 'warning', message: '⚠️ StorageSystem not available, using direct localStorage only'});
+                    }
+                }
+                
+                logs.push({type: 'log', message: '🎉 Fix applied successfully!'});
+            } catch (error) {
+                logs.push({type: 'error', message: `❌ Critical error: ${error.message}`});
+            } finally {
+                // Restore console functions
+                console.log = originalConsoleLog;
+                console.error = originalConsoleError;
+                console.warn = originalConsoleWarn;
+                console.info = originalConsoleInfo;
+                
+                // Display logs
+                fixLog.innerHTML = '';
+                logs.forEach(log => {
+                    const logDiv = document.createElement('div');
+                    logDiv.className = `log ${log.type}`;
+                    logDiv.textContent = log.message;
+                    fixLog.appendChild(logDiv);
+                });
+            }
+        });
+        
+        verifyFixBtn.addEventListener('click', function() {
+            const status = checkAccessCode();
+            verifyResult.innerHTML = displayStatus(status);
+        });
+        
+        viewStorageBtn.addEventListener('click', function() {
+            try {
+                const storage = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+                advancedResult.textContent = JSON.stringify(storage, null, 2);
+            } catch (error) {
+                advancedResult.textContent = `Error: ${error.message}`;
+            }
+        });
+        
+        clearStorageBtn.addEventListener('click', function() {
+            if (confirm('Are you sure you want to clear all storage? This will remove all access codes.')) {
+                try {
+                    localStorage.removeItem(STORAGE_KEY);
+                    localStorage.removeItem('accessCode');
+                    if (window.StorageSystem && window.StorageSystem.clearAllData) {
+                        window.StorageSystem.clearAllData();
+                    }
+                    advancedResult.textContent = 'All storage cleared successfully.';
+                } catch (error) {
+                    advancedResult.textContent = `Error: ${error.message}`;
+                }
+            }
+        });
+        
+        deleteCodeBtn.addEventListener('click', function() {
+            try {
+                const storage = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+                if (storage[ACCESS_CODE]) {
+                    delete storage[ACCESS_CODE];
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(storage));
+                    
+                    if (localStorage.getItem('accessCode') === ACCESS_CODE) {
+                        localStorage.removeItem('accessCode');
+                    }
+                    
+                    advancedResult.textContent = `Access code ${ACCESS_CODE} removed successfully.`;
+                } else {
+                    advancedResult.textContent = `Access code ${ACCESS_CODE} not found in storage.`;
+                }
+            } catch (error) {
+                advancedResult.textContent = `Error: ${error.message}`;
+            }
+        });
+        
+        reloadPageBtn.addEventListener('click', function() {
+            window.location.reload();
+        });
+        
+        goToPastBtn.addEventListener('click', function() {
+            localStorage.setItem('accessCode', ACCESS_CODE);
+            window.location.href = `past-questions.html?code=${ACCESS_CODE}`;
+        });
+        
+        // Initial check on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const status = checkAccessCode();
+            statusResult.innerHTML = displayStatus(status);
+        });
+    </script>
+</body>
+</html> 
