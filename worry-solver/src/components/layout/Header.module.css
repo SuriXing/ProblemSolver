@@ -1,0 +1,125 @@
+.header {
+    background-color: white;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    padding: 15px 0;
+}
+
+.container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+.logoIcon {
+    color: var(--primary-color);
+    margin-right: 8px;
+    font-size: 1.8rem;
+}
+
+.navActions {
+    display: flex;
+    gap: 20px;
+}
+
+.navLink {
+    display: flex;
+    align-items: center;
+    color: var(--light-gray);
+    font-size: 0.95rem;
+    transition: var(--transition);
+}
+
+.navLink:hover {
+    color: var(--primary-color);
+}
+
+.navLink.active {
+    color: var(--primary-color);
+    font-weight: 500;
+}
+
+.navIcon {
+    margin-right: 5px;
+}
+
+.languageSelector {
+    position: relative;
+}
+
+.languageBtn {
+    background: none;
+    border: none;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    color: var(--light-gray);
+    font-size: 0.95rem;
+    padding: 5px;
+    transition: var(--transition);
+}
+
+.languageBtn:hover {
+    color: var(--primary-color);
+}
+
+.languageIcon {
+    margin-left: 5px;
+}
+
+.languageDropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    padding: 10px 0;
+    min-width: 120px;
+    z-index: 10;
+    display: none;
+}
+
+.languageDropdown.show {
+    display: block;
+}
+
+.languageOption {
+    padding: 8px 15px;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.languageOption:hover {
+    background-color: var(--lighter-gray);
+}
+
+.languageOption.active {
+    color: var(--primary-color);
+    font-weight: 500;
+}
+
+@media (max-width: 768px) {
+    .header {
+        padding: 10px 0;
+    }
+    
+    .logo {
+        font-size: 1.3rem;
+    }
+    
+    .logoIcon {
+        font-size: 1.5rem;
+    }
+    
+    .navActions {
+        gap: 15px;
+    }
+}
