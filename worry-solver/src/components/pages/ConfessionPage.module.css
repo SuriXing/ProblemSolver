@@ -1,0 +1,265 @@
+.container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.mainContent {
+  margin: 0 auto;
+  max-width: 750px;
+}
+
+.pageTitle {
+  font-size: 2rem;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 8px;
+  color: #1f2937;
+}
+
+.pageSubtitle {
+  text-align: center;
+  color: #6b7280;
+  margin-bottom: 24px;
+  font-size: 1rem;
+}
+
+.storeImage {
+  width: 100%;
+  border-radius: 12px;
+  margin-bottom: 24px;
+  overflow: hidden;
+}
+
+.storeImage img {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+}
+
+.queryForm {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  padding: 24px;
+  margin-bottom: 40px;
+}
+
+.formTextarea {
+  width: 100%;
+  min-height: 180px;
+  padding: 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 1rem;
+  color: #4b5563;
+  margin-bottom: 20px;
+  resize: vertical;
+}
+
+.formTextarea:focus {
+  outline: none;
+  border-color: #4f7cff;
+  box-shadow: 0 0 0 3px rgba(79, 124, 255, 0.1);
+}
+
+.checkboxGroup {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.checkboxGroup input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  margin-right: 8px;
+  accent-color: #4f7cff;
+}
+
+.checkboxLabel {
+  font-size: 0.95rem;
+  color: #4b5563;
+}
+
+.emailInput {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 0.95rem;
+  margin-bottom: 24px;
+  margin-top: 16px;
+}
+
+.emailInput:focus {
+  outline: none;
+  border-color: #4f7cff;
+  box-shadow: 0 0 0 3px rgba(79, 124, 255, 0.1);
+}
+
+.submitButton {
+  background-color: #4f7cff;
+  color: white;
+  border: none;
+  border-radius: 50px;
+  padding: 12px 24px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 220px;
+  margin: 0 auto;
+}
+
+.submitButton i, .submitButton svg {
+  margin-left: 8px;
+}
+
+.submitButton:hover {
+  background-color: #4069e5;
+}
+
+.submitButton:disabled {
+  background-color: #a0aec0;
+  cursor: not-allowed;
+}
+
+/* Tag selector styles */
+.tagSelector {
+  margin-bottom: 20px;
+}
+
+.tagSelector p {
+  font-size: 0.95rem;
+  color: #4b5563;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+}
+
+.tagSelector p svg {
+  margin-right: 8px;
+  color: #4f7cff;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tag {
+  display: inline-block;
+  padding: 6px 12px;
+  background-color: #f3f4f6;
+  color: #6b7280;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tag:hover {
+  background-color: #e5e7eb;
+}
+
+.tag.selected {
+  background-color: #4f7cff;
+  color: white;
+}
+
+.tag svg {
+  margin-right: 5px;
+}
+
+/* Privacy options styles */
+.confessionOptions {
+  margin-bottom: 20px;
+}
+
+.privacyOptions {
+  margin-bottom: 20px;
+}
+
+.privacyOptions p {
+  font-size: 0.95rem;
+  color: #4b5563;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+}
+
+.privacyOptions p svg {
+  margin-right: 8px;
+  color: #4f7cff;
+}
+
+.radioOptions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.radioLabel {
+  display: flex;
+  align-items: center;
+  font-size: 0.95rem;
+  color: #4b5563;
+  cursor: pointer;
+}
+
+.radioLabel input[type="radio"] {
+  width: 18px;
+  height: 18px;
+  margin-right: 8px;
+  accent-color: #4f7cff;
+}
+
+.notificationOption {
+  margin-bottom: 20px;
+}
+
+.notificationOption .checkboxLabel {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.emailInputContainer {
+  margin-top: 10px;
+  margin-left: 26px;
+}
+
+.formActions {
+  display: flex;
+  justify-content: center;
+  margin-top: 24px;
+}
+
+/* Secondary links below the form */
+.linksContainer {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  margin-top: 16px;
+  margin-bottom: 40px;
+}
+
+.secondaryLink {
+  color: #6b7280;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.95rem;
+  transition: color 0.2s ease;
+}
+
+.secondaryLink:hover {
+  color: #4f7cff;
+} 

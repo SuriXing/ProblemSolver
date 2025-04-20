@@ -1,0 +1,187 @@
+/* HomePage Styles
+ * This stylesheet implements the visual design for the HomePage component
+ * to match the original Problem_solver design.
+ */
+
+/* CSS variables from theme constants */
+:root {
+  /* Colors */
+  --primary: #5B7BFA;
+  --primary-dark: #4360D3;
+  --primary-light: #8A9FFC;
+  --secondary: #FF6B6B;
+  --secondary-dark: #E95252;
+  --secondary-light: #FF9E9E;
+  --white: #FFFFFF;
+  --black: #000000;
+  --gray-100: #F8F9FA;
+  --gray-200: #E9ECEF;
+  --gray-300: #DEE2E6;
+  --gray-400: #CED4DA;
+  --gray-500: #ADB5BD;
+  --gray-600: #6C757D;
+  --gray-700: #495057;
+  --gray-800: #343A40;
+  --gray-900: #212529;
+  
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  
+  /* Spacing */
+  --space-2: 0.5rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+}
+
+/* Hero Section */
+.hero {
+  text-align: center;
+  margin-bottom: var(--space-12);
+  padding: var(--space-12) var(--space-4);
+}
+
+.hero-title {
+  font-size: 2.25rem;
+  font-weight: 700;
+  color: var(--gray-900);
+  margin-bottom: var(--space-4);
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.hero-title.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.hero-subtitle {
+  font-size: 1.25rem;
+  color: var(--gray-600);
+  max-width: 700px;
+  margin: 0 auto;
+  line-height: 1.625;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+  transition-delay: 0.2s;
+}
+
+.hero-subtitle.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Options Container */
+.options-container {
+  margin-top: var(--space-12);
+}
+
+.option-cards {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-gap: var(--space-8);
+  margin-top: var(--space-8);
+}
+
+@media (min-width: 768px) {
+  .hero-title {
+    font-size: 3rem;
+  }
+
+  .option-cards {
+    grid-template-columns: 1fr 1fr;
+    grid-gap: var(--space-10);
+  }
+}
+
+/* Option Cards */
+.option-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--space-8);
+  background-color: var(--white);
+  border-radius: 0.5rem;
+  box-shadow: var(--shadow-md);
+  text-decoration: none;
+  transition: all 0.3s ease-in-out;
+  border: 1px solid var(--gray-200);
+  text-align: center;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.5s ease, transform 0.5s ease, box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+.option-card.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.option-card:hover {
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-4px);
+}
+
+.option-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  margin-bottom: var(--space-4);
+  color: var(--white);
+  font-size: 1.875rem;
+}
+
+.option-card:nth-child(1) .option-icon {
+  background-color: var(--secondary); /* Secondary color (confession) */
+}
+
+.option-card:nth-child(2) .option-icon {
+  background-color: var(--primary); /* Primary color (help) */
+}
+
+.option-card h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--gray-800);
+  margin-bottom: var(--space-2);
+}
+
+.option-card p {
+  font-size: 1.125rem;
+  color: var(--gray-600);
+  line-height: 1.625;
+  margin-bottom: 1.5rem;
+}
+
+.option-card .btn-primary {
+  margin-top: auto;
+}
+
+/* Button styles */
+.btn-primary {
+  display: inline-block;
+  background-color: var(--primary);
+  color: var(--white);
+  padding: 0.5rem 1rem;
+  border-radius: 50px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+  background-color: var(--primary-dark);
+}
+
+/* Home View */
+#home-view {
+  padding-bottom: var(--space-12);
+} 

@@ -1,21 +1,25 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-// Import i18n configuration before anything else to ensure correct type initialization
-import './utils/i18n';
+// Import CSS files
+import './styles/reset.css'; // Import reset CSS first
+import './index.css';
+import './assets/css/global.css';
+import './assets/css/index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
+import './utils/i18n'; // Import i18n configuration
 
-// Create a document load handler to add the 'loaded' class to body
-document.addEventListener('DOMContentLoaded', () => {
-  setTimeout(() => {
-    document.body.classList.add('loaded');
-  }, 100);
-});
-
+// Create React root
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
 );
 
+// Add loaded class to body once DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+  document.body.classList.add('loaded');
+});
+
+// Render App
 root.render(
   <React.StrictMode>
     <App />

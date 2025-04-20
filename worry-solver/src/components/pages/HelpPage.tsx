@@ -4,16 +4,17 @@ import { useTypeSafeTranslation } from '../../utils/translationHelper';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
   faSearch, 
-  faUser, 
-  faClock, 
-  faTag, 
+  faEye,
+  faComments,
   faChevronRight,
   faArrowLeft,
   faChevronLeft,
-  faHandsHelping,
-  faHome
+  faStepBackward,
+  faStepForward
 } from '@fortawesome/free-solid-svg-icons';
 import StorageSystem, { UserData } from '../../utils/StorageSystem';
+import Layout from '../layout/Layout';
+import '../../styles/HelpPage.css'; // Import CSS file instead of CSS modules
 
 // Helper function to get time ago
 const getTimeAgo = (timestamp: string): string => {
@@ -50,6 +51,8 @@ const HelpPage: React.FC = () => {
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState('全部');
+  const [currentPage, setCurrentPage] = useState(1);
+  const postsPerPage = 10;
   
   // Get all available tags
   const availableTags = {
@@ -73,6 +76,12 @@ const HelpPage: React.FC = () => {
     
     return matchesSearch && matchesTag;
   });
+  
+  // Calculate pagination
+  const indexOfLastPost = currentPage * postsPerPage;
+  const indexOfFirstPost = indexOfLastPost - postsPerPage;
+  const currentPosts = filteredPosts.slice(indexOfFirstPost, indexOfLastPost);
+  const totalPages = Math.ceil(filteredPosts.length / postsPerPage);
   
   // Load all posts from storage
   useEffect(() => {
@@ -100,54 +109,37 @@ const HelpPage: React.FC = () => {
   // Handle tag filter click
   const handleTagClick = (tag: string) => {
     setSelectedTag(selectedTag === tag ? null : tag);
+    setCurrentPage(1); // Reset to first page when filter changes
   };
   
   // Handle filter button click
   const handleFilterClick = (filter: string) => {
     setActiveFilter(filter);
+    setCurrentPage(1); // Reset to first page when filter changes
     // TODO: Implement filter logic
+  };
+  
+  // Handle pagination
+  const paginate = (pageNumber: number) => {
+    setCurrentPage(pageNumber);
+    // Scroll to top when changing page
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (
-    <main>
-      <div className="hero hero-small" style={{
-        padding: '60px 0',
-        background: 'linear-gradient(135deg, #4f7cff 0%, #6a5acd 100%)',
-        color: 'white',
-        textAlign: 'center'
-      }}>
+    <Layout>
+      <div className="hero hero-small">
         <div className="container">
-          <h1 className="hero-title" style={{
-            fontSize: '2.5rem',
-            marginBottom: '10px'
-          }}>{t('helpTitle')}</h1>
-          <p className="hero-subtitle" style={{
-            fontSize: '1.1rem',
-            opacity: 0.9
-          }}>{t('helpSubtitle')}</p>
+          <h1 className="hero-title">{t('helpTitle')}</h1>
+          <p className="hero-subtitle">{t('helpSubtitle')}</p>
         </div>
       </div>
 
-      <div className="container" style={{
-        maxWidth: '900px',
-        margin: '0 auto',
-        marginTop: '-50px',
-        marginBottom: '60px',
-        position: 'relative',
-        zIndex: 2
-      }}>
-        <Link to="/" className="back-link" style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: '5px',
-          color: 'var(--light-gray)',
-          marginBottom: '20px',
-          fontSize: '0.9rem'
-        }}>
-          <FontAwesomeIcon icon={faArrowLeft} /> {t('backToHome')}
+      <div className="container help-container">
+        <Link to="/" className="back-link">
+          <FontAwesomeIcon icon={faArrowLeft} /> {t('returnHome')}
         </Link>
       
-      <div className="help-filters">
         <div className="tag-filters">
           {getTags().map(tag => (
             <span
@@ -159,212 +151,89 @@ const HelpPage: React.FC = () => {
             </span>
           ))}
         </div>
-      </div>
       
-      <div className="filter-bar" style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          backgroundColor: 'white',
-          borderRadius: 'var(--border-radius)',
-          padding: '15px 20px',
-          marginBottom: '20px',
-          boxShadow: 'var(--card-shadow)'
-        }}>
-          <div className="filter-options" style={{
-            display: 'flex',
-            gap: '10px'
-          }}>
+        <div className="filter-bar">
+          <div className="filter-options">
             {['全部', '最新提问', '等待回答', '热门话题'].map(filter => (
               <button
                 key={filter}
-                style={{
-                  background: activeFilter === filter ? 'rgba(79, 124, 255, 0.1)' : 'none',
-                  border: 'none',
-                  fontSize: '0.9rem',
-                  color: activeFilter === filter ? 'var(--primary-color)' : 'var(--light-gray)',
-                  padding: '5px 10px',
-                  borderRadius: '20px',
-                  cursor: 'pointer',
-                  transition: 'var(--transition)',
-                  fontWeight: activeFilter === filter ? '500' : 'normal'
-                }}
+                className={`filter-button ${activeFilter === filter ? 'active' : ''}`}
                 onClick={() => handleFilterClick(filter)}
               >
                 {filter}
               </button>
             ))}
           </div>
-          <div className="search-bar" style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '10px'
-          }}>
+          <div className="search-bar">
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder={t('searchPlaceholder')}
-              style={{
-                padding: '8px 12px',
-                border: '1px solid var(--lighter-gray)',
-                borderRadius: '20px',
-                fontSize: '0.9rem',
-                width: '200px',
-                transition: 'var(--transition)'
-              }}
+              className="search-input"
             />
-            <button style={{
-              background: 'none',
-              border: 'none',
-              color: 'var(--light-gray)',
-              cursor: 'pointer',
-              fontSize: '1rem'
-            }}>
+            <button className="search-button">
               <FontAwesomeIcon icon={faSearch} />
             </button>
           </div>
         </div>
 
-        <div className="topics-list" style={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '15px'
-        }}>
+        <div className="topics-list">
           {loading ? (
             <div className="loading-message">{t('loading')}</div>
-          ) : filteredPosts.length === 0 ? (
+          ) : currentPosts.length === 0 ? (
             <div className="no-posts-message">{t('noPostsFound')}</div>
           ) : (
-            filteredPosts.map((post) => (
-              <div className="topic-card" key={post.accessCode} style={{
-                backgroundColor: 'white',
-                borderRadius: 'var(--border-radius)',
-                padding: '20px',
-                boxShadow: 'var(--card-shadow)',
-                display: 'flex',
-                gap: '15px',
-                transition: 'var(--transition)'
-              }}>
-                <div className="topic-stats" style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  minWidth: '70px',
-                  paddingRight: '15px',
-                  borderRight: '1px solid var(--lighter-gray)'
-                }}>
-                  <div className="stat-replies" style={{
-                    textAlign: 'center',
-                    padding: '5px 0'
-                  }}>
-                    <span className="stat-number" style={{
-                      fontSize: '1.2rem',
-                      fontWeight: '600',
-                      color: 'var(--text-color)',
-                      display: 'block'
-                    }}>0</span>
-                    <span className="stat-label" style={{
-                      fontSize: '0.8rem',
-                      color: 'var(--light-gray)'
-                    }}>{t('replies')}</span>
+            currentPosts.map((post) => (
+              <div className="topic-card" key={post.accessCode}>
+                <div className="topic-stats">
+                  <div className="stat-replies">
+                    <span className="stat-number">0</span>
+                    <span className="stat-label">
+                      <FontAwesomeIcon icon={faComments} style={{ marginRight: '4px' }} />
+                      {t('replies')}
+                    </span>
                   </div>
-                  <div className="stat-views" style={{
-                    textAlign: 'center',
-                    padding: '5px 0'
-                  }}>
-                    <span className="stat-number" style={{
-                      fontSize: '1.2rem',
-                      fontWeight: '600',
-                      color: 'var(--text-color)',
-                      display: 'block'
-                    }}>0</span>
-                    <span className="stat-label" style={{
-                      fontSize: '0.8rem',
-                      color: 'var(--light-gray)'
-                    }}>{t('views')}</span>
+                  <div className="stat-views">
+                    <span className="stat-number">0</span>
+                    <span className="stat-label">
+                      <FontAwesomeIcon icon={faEye} style={{ marginRight: '4px' }} />
+                      {t('views')}
+                    </span>
                   </div>
                 </div>
                 
-                <div className="topic-content" style={{ flex: 1 }}>
-                  <div className="topic-header" style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    marginBottom: '10px'
-                  }}>
-                    <span className="topic-category" style={{
-                      backgroundColor: 'rgba(79, 124, 255, 0.1)',
-                      color: 'var(--primary-color)',
-                      padding: '3px 10px',
-                      borderRadius: '20px',
-                      fontSize: '0.8rem',
-                      fontWeight: '500'
-                    }}>
+                <div className="topic-content">
+                  <div className="topic-header">
+                    <span className="topic-category">
                       {post.selectedTags[0] || '其他'}
                     </span>
-                    <span className="topic-time" style={{
-                      color: 'var(--light-gray)',
-                      fontSize: '0.85rem'
-                    }}>
+                    <span className="topic-time">
                       {getTimeAgo(post.timestamp)}
                     </span>
                   </div>
                   
-                  <h3 className="topic-title" style={{
-                    fontSize: '1.2rem',
-                    marginBottom: '10px',
-                    color: 'var(--text-color)'
-                  }}>
-                    <Link to={`/help/${post.accessCode}`} style={{
-                      color: 'inherit',
-                      textDecoration: 'none'
-                    }}>
+                  <h3 className="topic-title">
+                    <Link to={`/help/${post.accessCode}`} className="topic-title-link">
                       {post.confessionText.substring(0, 50)}...
                     </Link>
                   </h3>
                   
-                  <p className="topic-excerpt" style={{
-                    color: 'var(--light-gray)',
-                    fontSize: '0.95rem',
-                    marginBottom: '15px',
-                    display: '-webkit-box',
-                    WebkitLineClamp: '2',
-                    WebkitBoxOrient: 'vertical',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis'
-                  }}>
+                  <p className="topic-excerpt">
                     {post.confessionText.length > 200 
                       ? `${post.confessionText.substring(0, 200)}...` 
                       : post.confessionText}
                   </p>
                   
-                  <div className="topic-footer" style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center'
-                  }}>
-                    <div className="topic-tags" style={{
-                      display: 'flex',
-                      gap: '5px'
-                    }}>
-                      {post.selectedTags.map((tag, index) => (
-                        <span key={index} className="topic-tag" style={{
-                          padding: '2px 8px',
-                          backgroundColor: 'var(--lighter-gray)',
-                          borderRadius: '20px',
-                          fontSize: '0.75rem',
-                          color: 'var(--light-gray)'
-                        }}>
+                  <div className="topic-footer">
+                    <div className="topic-tags">
+                      {post.selectedTags.slice(0, 3).map(tag => (
+                        <span key={tag} className="topic-tag">
                           {tag}
                         </span>
                       ))}
                     </div>
-                    
-                    <Link to={`/help/${post.accessCode}`} className="topic-action" style={{
-                      color: 'var(--primary-color)',
-                      fontSize: '0.9rem',
-                      fontWeight: '500'
-                    }}>
+                    <Link to={`/help/${post.accessCode}`} className="topic-action">
                       {t('viewDetail')} <FontAwesomeIcon icon={faChevronRight} />
                     </Link>
                   </div>
@@ -373,8 +242,65 @@ const HelpPage: React.FC = () => {
             ))
           )}
         </div>
+        
+        {filteredPosts.length > postsPerPage && (
+          <div className="pagination">
+            <button 
+              onClick={() => paginate(1)} 
+              disabled={currentPage === 1}
+              className={`pagination-button ${currentPage === 1 ? 'disabled' : ''}`}
+            >
+              <FontAwesomeIcon icon={faStepBackward} />
+            </button>
+            <button 
+              onClick={() => paginate(currentPage - 1)} 
+              disabled={currentPage === 1}
+              className={`pagination-button ${currentPage === 1 ? 'disabled' : ''}`}
+            >
+              <FontAwesomeIcon icon={faChevronLeft} />
+            </button>
+            
+            {Array.from({ length: Math.min(5, totalPages) }).map((_, index) => {
+              let pageNumber;
+              if (totalPages <= 5) {
+                pageNumber = index + 1;
+              } else if (currentPage <= 3) {
+                pageNumber = index + 1;
+              } else if (currentPage >= totalPages - 2) {
+                pageNumber = totalPages - 4 + index;
+              } else {
+                pageNumber = currentPage - 2 + index;
+              }
+              
+              return (
+                <button 
+                  key={pageNumber}
+                  onClick={() => paginate(pageNumber)}
+                  className={`pagination-button ${currentPage === pageNumber ? 'active' : ''}`}
+                >
+                  {pageNumber}
+                </button>
+              );
+            })}
+            
+            <button 
+              onClick={() => paginate(currentPage + 1)} 
+              disabled={currentPage === totalPages}
+              className={`pagination-button ${currentPage === totalPages ? 'disabled' : ''}`}
+            >
+              <FontAwesomeIcon icon={faChevronRight} />
+            </button>
+            <button 
+              onClick={() => paginate(totalPages)} 
+              disabled={currentPage === totalPages}
+              className={`pagination-button ${currentPage === totalPages ? 'disabled' : ''}`}
+            >
+              <FontAwesomeIcon icon={faStepForward} />
+            </button>
+          </div>
+        )}
       </div>
-    </main>
+    </Layout>
   );
 };
 

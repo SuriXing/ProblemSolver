@@ -4,6 +4,7 @@ import { useTypeSafeTranslation } from '../../utils/translationHelper';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCircleCheck, faEye, faCopy, faHome, faHandsHelping, faCircleInfo } from '@fortawesome/free-solid-svg-icons';
 import StorageSystem, { UserData } from '../../utils/StorageSystem';
+import styles from './SuccessPage.module.css';
 
 const SuccessPage: React.FC = () => {
   const { t } = useTypeSafeTranslation();
@@ -40,51 +41,51 @@ const SuccessPage: React.FC = () => {
   };
   
   return (
-    <section className="success-view container">
-      <div className="success-header">
-        <div className="success-icon">
+    <section className={styles.successView}>
+      <div className={styles.successHeader}>
+        <div className={styles.successIcon}>
           <FontAwesomeIcon icon={faCircleCheck} />
         </div>
-        <h1 className="success-title">{t('thankYouTitle')}</h1>
-        <p className="success-subtitle">{t('thankYouSubtitle')}</p>
+        <h1 className={styles.successTitle}>{t('thankYouTitle')}</h1>
+        <p className={styles.successSubtitle}>{t('thankYouSubtitle')}</p>
       </div>
       
-      <div className="access-code-container">
-        <h2 className="access-code-title">{t('yourAccessCode')}</h2>
-        <div className="access-code-display">
+      <div className={styles.accessCodeContainer}>
+        <h2 className={styles.accessCodeTitle}>{t('yourAccessCode')}</h2>
+        <div className={styles.accessCodeDisplay}>
           <span id="access-code">{accessCode}</span>
           <button 
-            className={`copy-code-btn ${copied ? 'copied' : ''}`} 
+            className={`${styles.copyCodeBtn} ${copied ? styles.copied : ''}`} 
             onClick={copyAccessCode}
             title={copied ? t('copied') : t('copyAccessCode')}
           >
             <FontAwesomeIcon icon={faCopy} />
           </button>
         </div>
-        <p className="access-code-desc">{t('saveAccessCode')}</p>
-        <button id="view-post-btn" className="view-post-btn" onClick={viewPost}>
+        <p className={styles.accessCodeDesc}>{t('saveAccessCode')}</p>
+        <button id="view-post-btn" className={styles.viewPostBtn} onClick={viewPost}>
           <FontAwesomeIcon icon={faEye} /> <span>{t('viewMyPost')}</span>
         </button>
       </div>
       
       {userData && (
-        <div className="success-message">
-          <div className="message-card">
-            <div className="message-info">
-              <div className="message-meta">
-                <span className="message-author">
+        <div className={styles.successMessage}>
+          <div className={styles.messageCard}>
+            <div className={styles.messageInfo}>
+              <div className={styles.messageMeta}>
+                <span className={styles.messageAuthor}>
                   <FontAwesomeIcon icon={faCircleCheck} /> 
                   <span>{t('yourAnonymousId')}</span>
                   <span id="user-id">{userData.userId}</span>
                 </span>
-                <span className="message-time">{t('justPosted')}</span>
+                <span className={styles.messageTime}>{t('justPosted')}</span>
               </div>
-              <div className="message-content">
+              <div className={styles.messageContent}>
                 <p id="confession-preview">{userData.confessionText}</p>
               </div>
-              <div className="message-tags" id="confession-tags">
+              <div className={styles.messageTags} id="confession-tags">
                 {userData.selectedTags.map((tag, index) => (
-                  <span key={index} className="tag">{tag}</span>
+                  <span key={index} className={styles.tag}>{tag}</span>
                 ))}
               </div>
             </div>
@@ -92,19 +93,19 @@ const SuccessPage: React.FC = () => {
         </div>
       )}
       
-      <div className="success-actions">
-        <p className="notification-info">{t('notifyMessage')}</p>
-        <div className="action-buttons">
-          <Link to="/" className="btn-primary return-home-btn">
+      <div className={styles.successActions}>
+        <p className={styles.notificationInfo}>{t('notifyMessage')}</p>
+        <div className={styles.actionButtons}>
+          <Link to="/" className={`${styles.returnHomeBtn}`}>
             <FontAwesomeIcon icon={faHome} /> <span>{t('returnHome')}</span>
           </Link>
-          <Link to="/help" className="btn-primary help-btn">
+          <Link to="/help" className={`${styles.helpBtn}`}>
             <FontAwesomeIcon icon={faHandsHelping} /> <span>{t('helpOthers')}</span>
           </Link>
         </div>
       </div>
       
-      <div className="success-info-box">
+      <div className={styles.successInfoBox}>
         <h3><FontAwesomeIcon icon={faCircleInfo} /> <span>{t('whatHappensNext')}</span></h3>
         <ul>
           <li>{t('communityWillSee')}</li>

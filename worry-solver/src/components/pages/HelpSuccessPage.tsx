@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useTypeSafeTranslation } from '../../utils/translationHelper';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCircleCheck, faHome, faHandsHelping } from '@fortawesome/free-solid-svg-icons';
+import styles from './HelpSuccessPage.module.css';
 
 const HelpSuccessPage: React.FC = () => {
   const { t } = useTypeSafeTranslation();
@@ -15,36 +16,36 @@ const HelpSuccessPage: React.FC = () => {
   };
 
   return (
-    <section className="help-success-view container">
-      <div className="success-header">
-        <div className="success-icon">
+    <section className={styles.helpSuccessView}>
+      <div className={styles.successHeader}>
+        <div className={styles.successIcon}>
           <FontAwesomeIcon icon={faCircleCheck} />
         </div>
-        <h1 className="success-title">{t('thankHelperTitle')}</h1>
-        <p className="success-subtitle">{t('thankHelperSubtitle')}</p>
+        <h1 className={styles.successTitle}>{t('thankHelperTitle')}</h1>
+        <p className={styles.successSubtitle}>{t('thankHelperSubtitle')}</p>
       </div>
       
-      <div className="helper-stats-container">
+      <div className={styles.helperStatsContainer}>
         <h2>{t('helperStats')}</h2>
         
-        <div className="stats-grid">
-          <div className="stat-item">
-            <div className="stat-number">{helperStats.todayHelped}</div>
-            <div className="stat-label">{t('todayHelped')}</div>
+        <div className={styles.statsGrid}>
+          <div className={styles.statItem}>
+            <div className={styles.statNumber}>{helperStats.todayHelped}</div>
+            <div className={styles.statLabel}>{t('todayHelped')}</div>
           </div>
           
-          <div className="stat-item">
-            <div className="stat-number">{helperStats.totalHelped}</div>
-            <div className="stat-label">{t('totalHelped')}</div>
+          <div className={styles.statItem}>
+            <div className={styles.statNumber}>{helperStats.totalHelped}</div>
+            <div className={styles.statLabel}>{t('totalHelped')}</div>
           </div>
           
-          <div className="stat-item">
-            <div className="stat-number">{helperStats.receivedThanks}</div>
-            <div className="stat-label">{t('receivedThanks')}</div>
+          <div className={styles.statItem}>
+            <div className={styles.statNumber}>{helperStats.receivedThanks}</div>
+            <div className={styles.statLabel}>{t('receivedThanks')}</div>
           </div>
         </div>
         
-        <div className="success-message">
+        <div className={styles.successMessage}>
           <p>{t('kindnessMatters')}</p>
           <p>{t('replyDelivered')}</p>
           <p>{t('mightThankYou')}</p>
@@ -53,8 +54,8 @@ const HelpSuccessPage: React.FC = () => {
         </div>
       </div>
       
-      <div className="success-actions">
-        <div className="action-buttons">
+      <div className={styles.successActions}>
+        <div className={styles.actionButtons}>
           <Link to="/" className="btn-primary">
             <FontAwesomeIcon icon={faHome} /> <span>{t('returnHome')}</span>
           </Link>

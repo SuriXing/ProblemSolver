@@ -1,0 +1,263 @@
+/* SuccessPage.module.css */
+.successView {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+  text-align: center;
+}
+
+.successHeader {
+  margin-bottom: 2.5rem;
+}
+
+.successIcon {
+  font-size: 4rem;
+  color: #4caf50;
+  margin-bottom: 1rem;
+}
+
+.successTitle {
+  font-size: 2rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #333;
+}
+
+.successSubtitle {
+  font-size: 1.1rem;
+  color: #666;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.accessCodeContainer {
+  background-color: #f5f7fa;
+  border-radius: 10px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+.accessCodeTitle {
+  font-size: 1.3rem;
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+.accessCodeDisplay {
+  background-color: white;
+  border-radius: 8px;
+  padding: 1rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0 auto 1rem;
+  max-width: 300px;
+  font-size: 1.2rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.copyCodeBtn {
+  background: none;
+  border: none;
+  color: #4a6fa5;
+  cursor: pointer;
+  margin-left: 10px;
+  padding: 5px;
+  transition: color 0.2s;
+}
+
+.copyCodeBtn:hover {
+  color: #3a5a8c;
+}
+
+.copyCodeBtn.copied {
+  color: #4caf50;
+}
+
+.accessCodeDesc {
+  font-size: 0.9rem;
+  color: #666;
+  margin-bottom: 1.5rem;
+}
+
+.viewPostBtn {
+  background-color: white;
+  color: #4a6fa5;
+  border: 1px solid #4a6fa5;
+  border-radius: 4px;
+  padding: 0.7rem 1.5rem;
+  font-size: 1rem;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.viewPostBtn:hover {
+  background-color: #f0f4f9;
+}
+
+.viewPostBtn svg {
+  margin-right: 0.5rem;
+}
+
+.successMessage {
+  margin-bottom: 2rem;
+}
+
+.messageCard {
+  background-color: white;
+  border-radius: 10px;
+  padding: 1.5rem;
+  margin: 0 auto;
+  max-width: 700px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  text-align: left;
+}
+
+.messageInfo {
+  margin-bottom: 1rem;
+}
+
+.messageMeta {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.messageAuthor {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.messageAuthor svg {
+  color: #4caf50;
+}
+
+.messageTime {
+  font-style: italic;
+}
+
+.messageContent {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: #333;
+  margin-bottom: 1.5rem;
+}
+
+.messageTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.tag {
+  background-color: #edf2f7;
+  color: #4a6fa5;
+  border-radius: 50px;
+  padding: 0.3rem 0.8rem;
+  font-size: 0.8rem;
+}
+
+.successActions {
+  margin-bottom: 2rem;
+}
+
+.notificationInfo {
+  font-size: 0.9rem;
+  color: #666;
+  margin-bottom: 1rem;
+}
+
+.actionButtons {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.actionButtons a {
+  padding: 0.8rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 500;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.returnHomeBtn {
+  background-color: #4a6fa5;
+  color: white;
+}
+
+.returnHomeBtn:hover {
+  background-color: #3a5a8c;
+}
+
+.helpBtn {
+  background-color: #4caf50;
+  color: white;
+}
+
+.helpBtn:hover {
+  background-color: #3d9140;
+}
+
+.actionButtons a svg {
+  margin-right: 0.5rem;
+}
+
+.successInfoBox {
+  background-color: #f0f4f9;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin: 0 auto;
+  max-width: 700px;
+  text-align: left;
+}
+
+.successInfoBox h3 {
+  display: flex;
+  align-items: center;
+  font-size: 1.1rem;
+  color: #4a6fa5;
+  margin-bottom: 1rem;
+}
+
+.successInfoBox h3 svg {
+  margin-right: 0.5rem;
+}
+
+.successInfoBox ul {
+  list-style-type: disc;
+  padding-left: 1.5rem;
+  color: #555;
+  line-height: 1.6;
+}
+
+.successInfoBox li {
+  margin-bottom: 0.5rem;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+  .successIcon {
+    font-size: 3rem;
+  }
+  
+  .successTitle {
+    font-size: 1.8rem;
+  }
+  
+  .accessCodeDisplay {
+    font-size: 1rem;
+  }
+} 

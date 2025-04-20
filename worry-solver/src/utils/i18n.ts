@@ -14,6 +14,14 @@ const translations = {
         continueHelping: '继续帮助他人',
         copyright: '© 2024 解忧杂货铺 - 一个温暖的心灵港湾',
 
+        // Footer links
+        footer: {
+            about: '关于我们',
+            privacy: '隐私政策',
+            terms: '使用条款',
+            contact: '联系我们'
+        },
+
         // Home page
         homeTitle: '在这里，你的故事有人倾听',
         homeSubtitle: '匿名、安全、温暖的社区',
@@ -141,6 +149,14 @@ const translations = {
         helpOthers: 'Help Others',
         continueHelping: 'Continue Helping',
         copyright: '© 2024 Worry-Solving Shop - A warm harbor for your soul',
+
+        // Footer links
+        footer: {
+            about: 'About Us',
+            privacy: 'Privacy Policy',
+            terms: 'Terms of Use',
+            contact: 'Contact Us'
+        },
 
         // Home page
         homeTitle: 'Here, your story will be heard',
@@ -270,6 +286,14 @@ const translations = {
         continueHelping: 'Continuar Ayudando',
         copyright: '© 2024 Tienda Sin Preocupaciones - Un cálido refugio para tu alma',
 
+        // Footer links
+        footer: {
+            about: 'Sobre Nosotros',
+            privacy: 'Política de Privacidad',
+            terms: 'Términos de Uso',
+            contact: 'Contáctenos'
+        },
+
         // Home page
         homeTitle: 'Aquí, tu historia será escuchada',
         homeSubtitle: 'Comunidad anónima, segura y cálida',
@@ -398,6 +422,14 @@ const translations = {
         continueHelping: '助け続ける',
         copyright: '© 2024 悩み解決ショップ - 心の安らぎ場所',
 
+        // Footer links
+        footer: {
+            about: '会社情報',
+            privacy: 'プライバシーポリシー',
+            terms: '利用規約',
+            contact: 'お問い合わせ'
+        },
+
         // Home page
         homeTitle: 'ここでは、あなたの話に耳を傾けます',
         homeSubtitle: '匿名、安全、温かいコミュニティ',
@@ -525,6 +557,14 @@ const translations = {
         helpOthers: '다른 사람 돕기',
         continueHelping: '계속 돕기',
         copyright: '© 2024 고민 해결 상점 - 마음의 따뜻한 안식처',
+
+        // Footer links
+        footer: {
+            about: '회사 정보',
+            privacy: '개인정보 보호정책',
+            terms: '이용약관',
+            contact: '문의하기'
+        },
 
         // Home page
         homeTitle: '여기서 당신의 이야기를 들어드립니다',
@@ -681,7 +721,7 @@ const getSavedLanguage = (): string => {
 };
 
 // Initialize i18next with proper typings
-const i18n = i18next
+i18next
   .use(initReactI18next)
   .init({
     resources,
@@ -696,7 +736,7 @@ const i18n = i18next
     }
   });
 
-// Add type declarations for the window object extensions
+// Add type declarations for the window object extensions and also fix the typing of the t function
 declare global {
   interface Window {
     currentLanguage: string;
@@ -709,6 +749,7 @@ declare global {
     };
   }
 }
+
 
 // Add legacy compatibility for old code
 if (typeof window !== 'undefined') {
@@ -727,12 +768,11 @@ if (typeof window !== 'undefined') {
         translatePage: () => {
             console.log('Legacy translatePage called, no action needed in React implementation');
         },
-        t: (key: string, options?: TOptions) => {
-            // @ts-ignore - This works at runtime
-            return i18next.t(key, options);
+        t: (key: string) => {
+            return i18next.t(key);
         },
         currentLanguage: getSavedLanguage()
     };
 }
 
-export default i18n;
+export default i18next;

@@ -1,25 +1,19 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import Header from './Header';
 import Footer from './Footer';
+import '../../styles/Layout.css';
 
 interface LayoutProps {
   children: React.ReactNode;
 }
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
-  // Add loaded class to body for fade-in effect
-  useEffect(() => {
-    document.body.classList.add('loaded');
-    
-    return () => {
-      document.body.classList.remove('loaded');
-    };
-  }, []);
-  
   return (
-    <div className="app">
+    <div className="layout">
       <Header />
-      <main>{children}</main>
+      <main className="main-content">
+        {children}
+      </main>
       <Footer />
     </div>
   );
