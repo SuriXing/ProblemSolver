@@ -1,13 +1,22 @@
 import React from 'react';
-import { useTypeSafeTranslation } from '../../utils/translationHelper';
+import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import '../../styles/Footer.css';
 
 const Footer: React.FC = () => {
-  const { t } = useTypeSafeTranslation();
-  
+  const { t } = useTranslation();
+  const currentYear = new Date().getFullYear();
+
   return (
-    <footer>
+    <footer className="footer">
       <div className="container">
-        <p>{t('copyright')}</p>
+        <div className="footer-links">
+          <Link to="/about">{t('footer.about')}</Link>
+          <Link to="/privacy">{t('footer.privacy')}</Link>
+          <Link to="/terms">{t('footer.terms')}</Link>
+          <Link to="/contact">{t('footer.contact')}</Link>
+        </div>
+        <p className="copyright">&copy; {currentYear} worry-solver</p>
       </div>
     </footer>
   );

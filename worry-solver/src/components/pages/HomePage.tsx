@@ -1,12 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useTypeSafeTranslation } from '../../utils/translationHelper';
+import { useTranslation } from 'react-i18next';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHandsHelping } from '@fortawesome/free-solid-svg-icons';
-import { faCommentDots } from '@fortawesome/free-regular-svg-icons';
+import { faHeart } from '@fortawesome/free-solid-svg-icons';
+import Layout from '../layout/Layout';
+// Import our new CSS file
+import '../../styles/HomePage.css';
 
 const HomePage: React.FC = () => {
-  const { t } = useTypeSafeTranslation();
+  const { t } = useTranslation();
   const [visibleElements, setVisibleElements] = useState({
     heroTitle: false,
     heroSubtitle: false,
@@ -29,7 +32,7 @@ const HomePage: React.FC = () => {
   }, []);
 
   return (
-    <>
+    <Layout>
       <section id="home-view">
         <div className="hero">
           <div className="container">
@@ -44,31 +47,31 @@ const HomePage: React.FC = () => {
 
         <div className="container options-container">
           <div className="option-cards">
-            <div className={`option-card ${visibleElements.optionCard1 ? 'visible' : ''}`}>
+            <Link to="/confession" className={`option-card ${visibleElements.optionCard1 ? 'visible' : ''}`}>
               <div className="option-icon">
-                <FontAwesomeIcon icon={faCommentDots} />
+                <FontAwesomeIcon icon={faHeart} />
               </div>
               <h2>{t('confessCardTitle')}</h2>
               <p>{t('confessCardDesc')}</p>
-              <Link to="/confession" className="btn-primary">
+              <div className="btn-primary">
                 {t('startConfession')}
-              </Link>
-            </div>
+              </div>
+            </Link>
 
-            <div className={`option-card ${visibleElements.optionCard2 ? 'visible' : ''}`}>
+            <Link to="/help" className={`option-card ${visibleElements.optionCard2 ? 'visible' : ''}`}>
               <div className="option-icon">
                 <FontAwesomeIcon icon={faHandsHelping} />
               </div>
               <h2>{t('helpCardTitle')}</h2>
               <p>{t('helpCardDesc')}</p>
-              <Link to="/help" className="btn-primary">
+              <div className="btn-primary">
                 {t('goHelp')}
-              </Link>
-            </div>
+              </div>
+            </Link>
           </div>
         </div>
       </section>
-    </>
+    </Layout>
   );
 };
 

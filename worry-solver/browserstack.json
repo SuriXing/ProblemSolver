@@ -1,0 +1,93 @@
+{
+  "auth": {
+    "username": "${BROWSERSTACK_USERNAME}",
+    "access_key": "${BROWSERSTACK_ACCESS_KEY}"
+  },
+  "browsers": [
+    {
+      "browser": "chrome",
+      "os": "Windows 10",
+      "versions": ["latest", "latest-1"]
+    },
+    {
+      "browser": "firefox",
+      "os": "Windows 10",
+      "versions": ["latest", "latest-1"]
+    },
+    {
+      "browser": "edge",
+      "os": "Windows 10",
+      "versions": ["latest"]
+    },
+    {
+      "browser": "safari",
+      "os": "OS X Monterey",
+      "versions": ["15.3"]
+    },
+    {
+      "browser": "safari",
+      "os": "OS X Big Sur",
+      "versions": ["14.1"]
+    }
+  ],
+  "run_settings": {
+    "cypress_config_file": "./cypress.config.ts",
+    "project_name": "worry-solver",
+    "build_name": "worry-solver-cross-browser-${BUILD_NUMBER}",
+    "parallels": 5,
+    "npm_dependencies": {
+      "cypress": "12.5.1"
+    }
+  },
+  "connection_settings": {
+    "local": true,
+    "local_identifier": "worry-solver-local",
+    "local_logs": "./browserstack-local.log"
+  },
+  "disable_usage_reporting": false,
+  "cypress_spec_pattern": "cypress/e2e/**/*.cy.ts",
+  "browsers_list": [
+    {
+      "browser": "chrome",
+      "os": "Windows 10",
+      "browser_version": "latest",
+      "device": null,
+      "os_version": null
+    },
+    {
+      "browser": "firefox",
+      "os": "Windows 10",
+      "browser_version": "latest",
+      "device": null,
+      "os_version": null
+    },
+    {
+      "browser": "edge",
+      "os": "Windows 10",
+      "browser_version": "latest",
+      "device": null,
+      "os_version": null
+    },
+    {
+      "browser": "safari",
+      "os": "OS X",
+      "browser_version": "15.3",
+      "device": null,
+      "os_version": "Monterey"
+    },
+    {
+      "device": "iPhone 13",
+      "os": "ios",
+      "os_version": "15",
+      "browser": null,
+      "browser_version": null
+    },
+    {
+      "device": "Samsung Galaxy S21",
+      "os": "android",
+      "os_version": "11.0",
+      "browser": null,
+      "browser_version": null
+    }
+  ]
+} 

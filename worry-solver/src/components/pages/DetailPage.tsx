@@ -3,16 +3,23 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useTypeSafeTranslation } from '../../utils/translationHelper';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
-  faUser, 
-  faClock, 
+  faUser,
+  faClock,
   faArrowLeft,
   faExclamationCircle,
   faPaperPlane,
-  faCheckCircle
+  faCheckCircle,
+  faHandsHelping,
+  faHistory,
+  faSmile,
+  faHeart,
+  faThumbsUp
 } from '@fortawesome/free-solid-svg-icons';
 import { retrievePostData, checkAccessCode, storePostData } from '../../utils/storage-system';
 import { getTimeAgo } from '../../utils/helpers';
 import { Post, Reply } from '../../types/post';
+import styles from './DetailPage.module.css';
+import Layout from '../layout/Layout';
 
 const DetailPage: React.FC = () => {
   const { t } = useTypeSafeTranslation();
@@ -25,6 +32,7 @@ const DetailPage: React.FC = () => {
   const [replyText, setReplyText] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [replySuccess, setReplySuccess] = useState(false);
+  const [selectedReaction, setSelectedReaction] = useState<string | null>(null);
   
   useEffect(() => {
     if (accessCode) {
@@ -73,7 +81,8 @@ const DetailPage: React.FC = () => {
         author: `Helper #${helperId.substring(0, 4)}`,
         content: replyText,
         createdAt: Date.now(),
-        isHelper: true
+        isHelper: true,
+        reaction: selectedReaction
       };
       
       // Get current post data
@@ -95,6 +104,7 @@ const DetailPage: React.FC = () => {
       setPost(updatedData);
       setReplySuccess(true);
       setReplyText('');
+      setSelectedReaction(null);
       
       // Reset success message after a few seconds
       setTimeout(() => {
@@ -108,150 +118,184 @@ const DetailPage: React.FC = () => {
     }
   };
   
+  const handleReactionSelect = (reaction: string) => {
+    setSelectedReaction(selectedReaction === reaction ? null : reaction);
+  };
+  
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="spinner"></div>
-        <p className="ml-3">Loading...</p>
+      <div className={styles.loading}>
+        <div className={styles.spinner}></div>
+        <p>{t('loading')}</p>
       </div>
     );
   }
   
   if (error || !post) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="bg-red-50 border border-red-200 rounded-lg p-6 mb-6">
-          <div className="flex items-start">
-            <FontAwesomeIcon icon={faExclamationCircle} className="text-red-500 mt-1" />
-            <div className="ml-3">
-              <p className="text-red-700">{error || 'No question found'}</p>
-              <p className="text-red-500 text-sm">Please try again or contact support</p>
-            </div>
-          </div>
-        </div>
-        
-        <div className="flex justify-center">
-          <Link to="/" className="btn-primary">
-            Return Home
-          </Link>
-        </div>
+      <div className={styles.error}>
+        <FontAwesomeIcon icon={faExclamationCircle} />
+        <p>{error || t('noQuestionFound')}</p>
+        <Link to="/" className={styles.backLink}>
+          <FontAwesomeIcon icon={faArrowLeft} />
+          {t('returnHome')}
+        </Link>
       </div>
     );
   }
   
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-6">
-        <button onClick={() => navigate(-1)} className="flex items-center text-primary hover:underline">
-          <FontAwesomeIcon icon={faArrowLeft} className="mr-2" />
-          Return Home
-        </button>
-      </div>
-      
-      <div className="bg-white rounded-lg shadow-md overflow-hidden mb-6">
-        <div className="p-6">
-          <div className="flex justify-between items-center mb-4">
-            <div className="flex items-center">
-              <FontAwesomeIcon icon={faUser} className="text-gray-500 mr-2" />
-              <span className="text-gray-700">
-                Anonymous User #{post.id?.substring(0, 6) || 'Unknown'}
-              </span>
-            </div>
-            <div className="flex items-center text-sm text-gray-500">
-              <FontAwesomeIcon icon={faClock} className="mr-2" />
-              <span>{getTimeAgo(post.createdAt)}</span>
-            </div>
-          </div>
-          
-          <h1 className="text-2xl font-semibold mb-4">{post.title || 'Untitled Post'}</h1>
-          
-          <div className="mb-4 text-gray-700">
-            {post.content}
-          </div>
-          
-          <div className="flex flex-wrap gap-2 mb-2">
-            {post.tags?.map((tag, index) => (
-              <span key={index} className="bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-sm">
-                {tag}
-              </span>
-            ))}
-          </div>
+    <Layout>
+      <div className={styles.container}>
+        <div className={styles.pageHeader}>
+          <Link to="/" className={styles.logo}>
+            <FontAwesomeIcon icon={faHandsHelping} />
+            <span>{t('siteName')}</span>
+          </Link>
+          <Link to="/help" className={styles.navLink}>
+            <FontAwesomeIcon icon={faHistory} />
+            <span>{t('backToQuestions')}</span>
+          </Link>
         </div>
-      </div>
-      
-      <div className="mb-8">
-        <h2 className="text-xl font-semibold mb-4">Replies</h2>
         
-        {!post.replies || post.replies.length === 0 ? (
-          <div className="bg-gray-50 rounded-lg p-6 text-center">
-            <p className="text-gray-600 mb-2">No replies yet</p>
-            <p className="text-sm text-gray-500">Check back later</p>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {post.replies.map((reply, index) => (
-              <div key={index} className="bg-gray-50 rounded-lg p-4">
-                <div className="flex justify-between items-center mb-2">
-                  <div className="flex items-center">
-                    <FontAwesomeIcon icon={faUser} className="text-blue-500 mr-2" />
-                    <span className="text-blue-600">
-                      {reply.author || `Anonymous Helper #${index}`}
-                    </span>
-                  </div>
-                  <div className="text-sm text-gray-500">
-                    {getTimeAgo(reply.createdAt)}
-                  </div>
-                </div>
-                <p className="text-gray-700">{reply.content}</p>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-      
-      <div className="bg-white rounded-lg shadow-md overflow-hidden mb-6">
-        <div className="p-6">
-          <h3 className="text-lg font-semibold mb-3">Reply to Post</h3>
-          <div className="mb-4">
+        <div className={styles.mainContent}>
+          <h1 className={styles.pageTitle}>{t('helpDetailTitle')}</h1>
+          <p className={styles.pageSubtitle}>{t('helpDetailSubtitle')}</p>
+          
+          <Link to="/help" className={styles.backLink}>
+            <FontAwesomeIcon icon={faArrowLeft} />
+            {t('backToQuestions')}
+          </Link>
+          
+          <div className={styles.questionCard}>
+            {post.imageUrl && (
+              <img 
+                src={post.imageUrl} 
+                alt="Question visual" 
+                className={styles.messageImage}
+              />
+            )}
+            
+            <div className={styles.messageHeader}>
+              <FontAwesomeIcon icon={faUser} />
+              <span className={styles.messageId}>
+                {t('anonymousUser')} #{post.userId?.substring(0, 4) || 'Unknown'}
+              </span>
+            </div>
+            
+            <div className={styles.messageContent}>
+              {post.confessionText || post.content}
+            </div>
+            
+            <div className={styles.messageTags}>
+              {(post.selectedTags || post.tags || []).map((tag: string, index: number) => (
+                <span key={index} className={styles.tag}>
+                  {tag}
+                </span>
+              ))}
+            </div>
+            
+            <div className={styles.messageTime}>
+              <FontAwesomeIcon icon={faClock} style={{ marginRight: '6px' }} />
+              {getTimeAgo(typeof post.timestamp === 'string' ? new Date(post.timestamp).getTime() : post.createdAt as number)}
+            </div>
+            
             <textarea
+              className={styles.responseInput}
               value={replyText}
               onChange={(e) => setReplyText(e.target.value)}
-              placeholder="Share your advice, experience or encouraging words..."
-              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-              rows={4}
+              placeholder={t('writeYourResponse')}
+              rows={5}
             ></textarea>
-          </div>
-          
-          <div className="flex justify-end">
-            <button
-              className="btn-primary"
-              onClick={handleSubmitReply}
-              disabled={!replyText.trim() || isSubmitting}
-            >
-              {isSubmitting ? (
-                <>
-                  <div className="spinner-sm mr-2"></div>
-                  Submitting...
-                </>
-              ) : (
-                <>
-                  <FontAwesomeIcon icon={faPaperPlane} className="mr-2" />
-                  Send Reply
-                </>
-              )}
-            </button>
-          </div>
-          
-          {replySuccess && (
-            <div className="mt-4 bg-green-50 text-green-700 p-3 rounded-lg flex items-center">
-              <FontAwesomeIcon icon={faCheckCircle} className="mr-2" />
-              <span>Reply sent! Thank you for helping.</span>
+            
+            <div className={styles.reactionBar}>
+              <div 
+                className={`${styles.reaction} ${selectedReaction === 'smile' ? styles.selected : ''}`}
+                onClick={() => handleReactionSelect('smile')}
+              >
+                <FontAwesomeIcon icon={faSmile} />
+              </div>
+              <div 
+                className={`${styles.reaction} ${selectedReaction === 'heart' ? styles.selected : ''}`}
+                onClick={() => handleReactionSelect('heart')}
+              >
+                <FontAwesomeIcon icon={faHeart} />
+              </div>
+              <div 
+                className={`${styles.reaction} ${selectedReaction === 'thumbsUp' ? styles.selected : ''}`}
+                onClick={() => handleReactionSelect('thumbsUp')}
+              >
+                <FontAwesomeIcon icon={faThumbsUp} />
+              </div>
             </div>
-          )}
+            
+            <div className={styles.actionBar}>
+              <button 
+                className={styles.submitBtn} 
+                onClick={handleSubmitReply}
+                disabled={!replyText.trim() || isSubmitting}
+              >
+                <FontAwesomeIcon icon={faPaperPlane} />
+                {isSubmitting ? t('sending') : t('sendResponse')}
+              </button>
+              
+              <button className={styles.changeBtn} onClick={() => navigate('/help')}>
+                <FontAwesomeIcon icon={faHistory} />
+                {t('helpAnotherPerson')}
+              </button>
+            </div>
+            
+            {replySuccess && (
+              <div className={styles.successMessage}>
+                <FontAwesomeIcon icon={faCheckCircle} />
+                <span>{t('replySuccess')}</span>
+              </div>
+            )}
+            
+            <div className={styles.statsBar}>
+              <div className={styles.statsItem}>
+                <FontAwesomeIcon icon={faUser} />
+                <span>{t('helpedPeople')}: 0</span>
+              </div>
+              <div className={styles.statsItem}>
+                <FontAwesomeIcon icon={faHeart} />
+                <span>{t('receivedThanks')}: 0</span>
+              </div>
+            </div>
+          </div>
           
+          <div className={styles.replySection}>
+            <h2 className={styles.replyTitle}>{t('previousReplies')}</h2>
+            
+            <div className={styles.replyList}>
+              {!post.replies || post.replies.length === 0 ? (
+                <div className={styles.noReplies}>
+                  <p>{t('noRepliesYet')}</p>
+                  <p>{t('beTheFirstToReply')}</p>
+                </div>
+              ) : (
+                post.replies.map((reply, index) => (
+                  <div key={index} className={styles.replyItem}>
+                    <div className={styles.replyHeader}>
+                      <div className={styles.replyAuthor}>
+                        <FontAwesomeIcon icon={faUser} />
+                        <span>{reply.author || `${t('helper')} #${index + 1}`}</span>
+                      </div>
+                      <div className={styles.replyTime}>
+                        {getTimeAgo(reply.createdAt)}
+                      </div>
+                    </div>
+                    <div className={styles.replyContent}>
+                      {reply.content}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
         </div>
       </div>
-    </div>
+    </Layout>
   );
 };
 
