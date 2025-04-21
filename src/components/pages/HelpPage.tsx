@@ -12,7 +12,7 @@ import {
   faStepBackward,
   faStepForward
 } from '@fortawesome/free-solid-svg-icons';
-import StorageSystem, { UserData } from '../../utils/StorageSystem';
+import { UserData } from '../../utils/StorageSystem';
 import Layout from '../layout/Layout';
 import '../../styles/HelpPage.css'; // Import CSS file instead of CSS modules
 
@@ -261,7 +261,7 @@ const HelpPage: React.FC = () => {
             </button>
             
             {Array.from({ length: Math.min(5, totalPages) }).map((_, index) => {
-              let pageNumber;
+              let pageNumber: number;
               if (totalPages <= 5) {
                 pageNumber = index + 1;
               } else if (currentPage <= 3) {
