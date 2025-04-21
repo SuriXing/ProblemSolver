@@ -5,17 +5,28 @@
   margin-bottom: 60px;
   position: relative;
   z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .filterBar {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
   background-color: white;
   border-radius: var(--border-radius);
   padding: 15px 20px;
-  margin-bottom: 20px;
+  margin-bottom: 10px;
   box-shadow: var(--card-shadow);
+  width: 100%;
+  gap: 20px;
+}
+
+.filterOptions {
+  display: flex;
+  gap: 10px;
+  margin-right: auto;
 }
 
 .filterOptions {
@@ -76,7 +87,8 @@
 .topicsList {
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 8px;
+  width: 100%;
 }
 
 .topicCard {
