@@ -184,4 +184,91 @@
 /* Home View */
 #home-view {
   padding-bottom: var(--space-12);
+}
+
+/* Add these new styles at the end of the file */
+.landing-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem;
+  min-height: 100vh;
+  background-color: #f5f7fa;
+}
+
+.landing-header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.landing-header h1 {
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+  color: #333;
+}
+
+.landing-header p {
+  font-size: 1.2rem;
+  color: #666;
+}
+
+.options-container {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  width: 100%;
+  max-width: 1200px;
+  margin-bottom: 3rem;
+}
+
+.option-card {
+  flex: 1;
+  max-width: 500px;
+  text-align: center;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.icon-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 1.5rem;
+  background-color: #f0f5ff;
+  border-radius: 50%;
+}
+
+.option-icon {
+  font-size: 2rem;
+}
+
+.action-button {
+  min-width: 150px;
+  height: 40px;
+  font-size: 1rem;
+}
+
+.action-button.outlined {
+  border-color: #4285F4;
+  color: #4285F4;
+}
+
+.footer {
+  margin-top: auto;
+  color: #999;
+  font-size: 0.9rem;
+}
+
+@media (max-width: 768px) {
+  .options-container {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .option-card {
+    width: 100%;
+  }
 } 

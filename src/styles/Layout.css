@@ -8,4 +8,38 @@
 .main-content {
   flex: 1 0 auto;
   padding-bottom: 2rem;
+}
+
+/* Add this to your Layout.css file */
+.language-selector {
+  position: relative;
+  display: inline-block;
+}
+
+.language-options {
+  display: none;
+  position: absolute;
+  background-color: white;
+  min-width: 120px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  z-index: 1;
+  border-radius: 4px;
+  right: 0;
+}
+
+.language-selector:hover .language-options {
+  display: block;
+}
+
+.language-option {
+  color: black;
+  padding: 12px 16px;
+  text-decoration: none;
+  display: block;
+  text-align: left;
+  cursor: pointer;
+}
+
+.language-option:hover {
+  background-color: #f1f1f1;
 } 
