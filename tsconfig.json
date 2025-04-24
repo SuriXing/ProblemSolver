@@ -19,7 +19,12 @@
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "react-jsx",
-    "noImplicitAny": true
+    "noImplicitAny": true,
+    "typeRoots": [
+      "./node_modules/@types",
+      "./node_modules/antd/types",
+      "./node_modules/@ant-design/icons/lib/types"
+    ]
   },
   "include": [
     "src"
