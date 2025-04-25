@@ -7,7 +7,6 @@ import '../../styles/Header.css';
 
 const Header: React.FC = () => {
   const { t, i18n } = useTranslation();
-  const [showLanguageMenu, setShowLanguageMenu] = React.useState(false);
 
   const languages = [
     { code: 'en', name: 'English' },
@@ -19,7 +18,6 @@ const Header: React.FC = () => {
 
   const changeLanguage = (languageCode: string) => {
     i18n.changeLanguage(languageCode);
-    setShowLanguageMenu(false);
   };
 
   return (
@@ -37,13 +35,10 @@ const Header: React.FC = () => {
             <span>{t('pastQuestions', '过往问题')}</span>
           </Link>
           <div className="language-selector">
-            <div 
-              className="language-button" 
-              onClick={() => setShowLanguageMenu(!showLanguageMenu)}
-            >
+            <div className="language-button">
               <FontAwesomeIcon icon={faGlobe} /> {languages.find(lang => lang.code === i18n.language)?.name || 'English'}
             </div>
-            <div className={`language-dropdown ${showLanguageMenu ? 'show' : ''}`}>
+            <div className="language-dropdown">
               {languages.map(language => (
                 <div 
                   key={language.code}
