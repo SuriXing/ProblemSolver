@@ -9,7 +9,7 @@ import Layout from '../layout/Layout';
 import '../../styles/HomePage.css';
 
 const HomePage: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [visibleElements, setVisibleElements] = useState({
     heroTitle: false,
@@ -47,10 +47,10 @@ const HomePage: React.FC = () => {
         <div className="hero">
           <div className="container">
             <h1 className={`hero-title ${visibleElements.heroTitle ? 'visible' : ''}`}>
-              在这里，你的故事有人倾听
+              {t('homeTitle', '在这里，你的故事有人倾听')}
             </h1>
             <p className={`hero-subtitle ${visibleElements.heroSubtitle ? 'visible' : ''}`}>
-              匿名、安全、温暖的社区
+              {t('homeSubtitle', '匿名、安全、温暖的社区')}
             </p>
           </div>
         </div>
@@ -66,10 +66,10 @@ const HomePage: React.FC = () => {
               <div className="option-icon" style={{ backgroundColor: '#f0f5ff' }}>
                 <FontAwesomeIcon icon={faCommentDots} style={{ color: '#4285F4' }} />
               </div>
-              <h2>我有话想说</h2>
-              <p>在这里安全地分享你的困扰，收获温暖回应</p>
+              <h2>{t('confessCardTitle', '我有话想说')}</h2>
+              <p>{t('confessCardDesc', '在这里安全地分享你的困扰，收获温暖回应')}</p>
               <div className="btn-primary">
-                开始倾诉
+                {t('startConfession', '开始倾诉')}
               </div>
             </div>
 
@@ -82,17 +82,17 @@ const HomePage: React.FC = () => {
               <div className="option-icon" style={{ backgroundColor: '#f0f5ff' }}>
                 <FontAwesomeIcon icon={faHandsHelping} style={{ color: '#4285F4' }} />
               </div>
-              <h2>我想帮助别人</h2>
-              <p>给予他人温暖的建议，成为某人的光</p>
+              <h2>{t('helpCardTitle', '我想帮助别人')}</h2>
+              <p>{t('helpCardDesc', '给予他人温暖的建议，成为某人的光')}</p>
               <div className="btn-primary" style={{ backgroundColor: 'white', color: '#4285F4', border: '1px solid #4285F4' }}>
-                去帮助他人
+                {t('goHelp', '去帮助他人')}
               </div>
             </div>
           </div>
         </div>
         
         <div className="footer text-center" style={{ color: '#999', fontSize: '0.9rem', marginTop: '2rem' }}>
-          © 2024 解忧杂货铺 - 一个温暖的心灵港湾
+          {t('footerText', '© 2024 解忧杂货铺 - 一个温暖的心灵港湾')}
         </div>
       </section>
     </Layout>
