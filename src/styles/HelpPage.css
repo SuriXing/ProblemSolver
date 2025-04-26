@@ -164,34 +164,23 @@
   box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
 }
 
+/* Topic stats */
 .topic-stats {
   display: flex;
-  flex-direction: column;
+  gap: 15px;
+  margin-top: 10px;
+  color: var(--gray-600);
+  font-size: 0.9rem;
+}
+
+.topic-stat {
+  display: flex;
   align-items: center;
-  min-width: 70px;
-  padding-right: 15px;
-  border-right: 1px solid var(--lighter-gray);
+  gap: 5px;
 }
 
-.stat-replies, .stat-views {
-  text-align: center;
-  padding: 5px 0;
-}
-
-.stat-number {
-  font-size: 1.2rem;
-  font-weight: 600;
-  color: var(--text-color);
-  display: block;
-}
-
-.stat-label {
-  font-size: 0.8rem;
-  color: var(--light-gray);
-}
-
-.topic-content {
-  flex: 1;
+.topic-stat .anticon {
+  color: var(--primary);
 }
 
 .topic-header {
