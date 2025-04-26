@@ -13,6 +13,7 @@ export interface UserData {
   email: string;
   timestamp: string;
   replies: Reply[];
+  views?: number;
 }
 
 export interface Reply {
