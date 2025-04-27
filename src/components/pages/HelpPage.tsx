@@ -245,11 +245,12 @@ const HelpPage: React.FC = () => {
                           {getTimeAgo(post.timestamp)}
                         </span>
                       </div>
-                      <p className="topic-excerpt">
+                      {/* Remove this paragraph to eliminate the duplicate text */}
+                      {/* <p className="topic-excerpt">
                         {post.confessionText.length > 200 
                           ? `${post.confessionText.substring(0, 200)}...` 
                           : post.confessionText}
-                      </p>
+                      </p> */}
                       <div className="topic-tags">
                         {post.selectedTags.slice(0, 3).map(tag => (
                           <span key={tag} className="topic-tag">
