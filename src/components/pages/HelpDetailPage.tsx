@@ -72,19 +72,39 @@ const HelpDetailPage: React.FC = () => {
     
     setLoading(true);
     
-    // Get post data from storage
-    const postData = StorageSystem.retrieveData(accessCode);
-    
-    if (postData) {
-      // Increment view count
-      const updatedPost = { 
-        ...postData,
-        views: (postData.views || 0) + 1
-      };
+    try {
+      // Get post data from storage
+      const storage = JSON.parse(localStorage.getItem('problemSolver_userData') || '{}');
+      const postData = storage[accessCode];
       
-      // Update storage
-      StorageSystem.storeData(accessCode, updatedPost);
-      setPost(updatedPost);
+      if (postData) {
+        // Check if this is a new page load or a refresh
+        const isNewVisit = sessionStorage.getItem(`visited_${accessCode}`) !== 'true';
+        
+        let updatedPost = { ...postData };
+        
+        // Only increment view count if this is a new visit
+        if (isNewVisit) {
+          const currentViews = postData.views || 0;
+          const newViews = currentViews + 1;
+          
+          updatedPost = { 
+            ...postData,
+            views: newViews
+          };
+          
+          // Update storage
+          storage[accessCode] = updatedPost;
+          localStorage.setItem('problemSolver_userData', JSON.stringify(storage));
+          
+          // Mark this post as visited in this session
+          sessionStorage.setItem(`visited_${accessCode}`, 'true');
+        }
+        
+        setPost(updatedPost);
+      }
+    } catch (error) {
+      console.error('Error loading post data:', error);
     }
     
     setLoading(false);
