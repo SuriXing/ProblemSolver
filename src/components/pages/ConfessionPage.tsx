@@ -79,7 +79,8 @@ const ConfessionPage: React.FC = () => {
       emailNotification,
       email: emailNotification ? email : '',
       timestamp: new Date().toISOString(),
-      replies: []
+      replies: [],
+      views: 0 // Explicitly set views to 0
     };
     
     // Store the data

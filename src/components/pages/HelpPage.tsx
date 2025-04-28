@@ -94,13 +94,13 @@ const HelpPage: React.FC = () => {
       const storage = JSON.parse(localStorage.getItem('problemSolver_userData') || '{}');
       const allPosts = Object.values(storage) as UserData[];
       
-      // Initialize view counts if they don't exist
+      // Initialize view counts to 0 if they don't exist
       const postsWithCounts = allPosts.map(post => {
         const updatedPost = { ...post };
         
-        // Initialize views if not present
-        if (!updatedPost.views) {
-          updatedPost.views = Math.floor(Math.random() * 90) + 10;
+        // Initialize views to 0 if not present
+        if (updatedPost.views === undefined) {
+          updatedPost.views = 0;
         }
         
         return updatedPost;
@@ -150,19 +150,54 @@ const HelpPage: React.FC = () => {
   
   // Handle post click to increment view count
   const handlePostClick = (post: UserData) => {
-    // Increment view count
-    const updatedPost = { ...post, views: (post.views || 0) + 1 };
+    // We'll let the detail page handle the view increment
+    // Just navigate to the detail page
+    console.log('Post clicked, navigating to detail page');
     
-    // Update storage
-    const storage = JSON.parse(localStorage.getItem('problemSolver_userData') || '{}');
-    storage[post.accessCode] = updatedPost;
-    localStorage.setItem('problemSolver_userData', JSON.stringify(storage));
-    
-    // Update state
-    setPosts(prevPosts => 
-      prevPosts.map(p => p.accessCode === post.accessCode ? updatedPost : p)
-    );
+    // No need to update view count here
+    // The HelpDetailPage component will handle that
   };
+
+  // Utility function to reset all view counts to 0 (for testing)
+  const resetAllViewCounts = () => {
+    try {
+      console.log('Resetting all view counts to 0...');
+      
+      // Get all data from storage
+      const storage = JSON.parse(localStorage.getItem('problemSolver_userData') || '{}');
+      
+      // Reset view counts to 0
+      Object.keys(storage).forEach(key => {
+        storage[key].views = 0;
+      });
+      
+      // Save back to storage
+      localStorage.setItem('problemSolver_userData', JSON.stringify(storage));
+      
+      // Clear session storage to allow new views
+      Object.keys(sessionStorage).forEach(key => {
+        if (key.startsWith('visited_')) {
+          sessionStorage.removeItem(key);
+        }
+      });
+      
+      // Reload posts
+      const allPosts = Object.values(storage) as UserData[];
+      const sortedPosts = allPosts.sort((a, b) => {
+        return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
+      });
+      
+      setPosts(sortedPosts);
+      
+      console.log('All view counts reset to 0');
+      console.log('Please refresh the page to see the changes');
+    } catch (error) {
+      console.error('Error resetting view counts:', error);
+    }
+  };
+
+  // Make the function available in the global scope for testing
+  (window as any).resetAllViewCounts = resetAllViewCounts;
 
   return (
     <Layout>
