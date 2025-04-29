@@ -267,7 +267,9 @@ const HelpPage: React.FC = () => {
                       to={`/help/${post.accessCode}`} 
                       onClick={() => handlePostClick(post)}
                     >
-                      {post.confessionText.substring(0, 50)}...
+                      {post.confessionText.length > 50 
+                        ? `${post.confessionText.substring(0, 50)}...` 
+                        : post.confessionText}
                     </Link>
                   }
                   description={
