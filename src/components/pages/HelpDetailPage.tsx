@@ -72,54 +72,61 @@ const HelpDetailPage: React.FC = () => {
     
     setLoading(true);
     
-    try {
-      // Get post data from storage
-      const storage = JSON.parse(localStorage.getItem('problemSolver_userData') || '{}');
-      const postData = storage[accessCode];
-      
-      if (postData) {
-        // Don't increment view count here, it's already incremented in HelpPage
-        setPost(postData);
+    const fetchData = async () => {
+      try {
+        // Get post data from Supabase
+        const postData = await StorageSystem.retrieveData(accessCode);
+        
+        if (postData) {
+          // Increment view count
+          await StorageSystem.incrementViewCount(accessCode);
+          
+          // Get updated post data
+          const updatedPostData = await StorageSystem.retrieveData(accessCode);
+          setPost(updatedPostData);
+        }
+      } catch (error) {
+        console.error('Error loading post data:', error);
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error('Error loading post data:', error);
-    }
+    };
     
-    setLoading(false);
+    fetchData();
   }, [accessCode]);
   
   // Handle reply submission
-  const handleSubmitReply = (values: { replyText: string }) => {
+  const handleSubmitReply = async (values: { replyText: string }) => {
     if (!post || !values.replyText.trim()) return;
     
     setSubmitting(true);
     
-    // Create new reply
-    const newReply: Reply = {
-      replyText: values.replyText,
-      replierName: helperId,
-      replyTime: new Date().toISOString()
-    };
-    
-    // Add reply to post
-    const updatedPost = {
-      ...post,
-      replies: [...(post.replies || []), newReply]
-    };
-    
-    // Update storage
-    StorageSystem.storeData(accessCode!, updatedPost);
-    
-    // Update state
-    setPost(updatedPost);
-    
-    // Reset form
-    form.resetFields();
-    
-    // Show success message
-    message.success(t('replySubmitted'));
-    
-    setSubmitting(false);
+    try {
+      // Create new reply
+      const newReply: Reply = {
+        replyText: values.replyText,
+        replierName: helperId,
+        replyTime: new Date().toISOString()
+      };
+      
+      // Add reply to post in Supabase
+      await StorageSystem.addReply(accessCode!, newReply);
+      
+      // Get updated post data
+      const updatedPostData = await StorageSystem.retrieveData(accessCode!);
+      setPost(updatedPostData);
+      
+      // Reset form
+      form.resetFields();
+      
+      // Show success message
+      message.success(t('replySubmitted'));
+    } catch (error) {
+      console.error('Error submitting reply:', error);
+      message.error(t('errorSubmittingReply'));
+    } finally {
+      setSubmitting(false);
+    }
   };
   
   if (loading) {

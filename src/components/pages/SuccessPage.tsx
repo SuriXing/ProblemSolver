@@ -22,7 +22,11 @@ const SuccessPage: React.FC = () => {
       // Try to get user data
       const data = StorageSystem.retrieveData(storedAccessCode);
       if (data) {
-        setUserData(data);
+        data.then((result: UserData | null) => {
+          if (result) {
+            setUserData(result);
+          }
+        });
       }
     }
   }, []);

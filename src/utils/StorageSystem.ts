@@ -3,6 +3,8 @@
  * Handles storing and retrieving user data by access code
  */
 
+import { supabase } from './supabaseClient';
+
 export interface UserData {
   userId: string;
   accessCode: string;
@@ -13,7 +15,7 @@ export interface UserData {
   email: string;
   timestamp: string;
   replies: Reply[];
-  views?: number;
+  views: number;
 }
 
 export interface Reply {
@@ -85,33 +87,36 @@ function storeData(accessCode: string, userData: UserData): boolean {
 /**
  * Retrieve user data by access code
  * @param accessCode - Access code to look up
- * @returns User data or null if not found
+ * @returns Promise with User data or null if not found
  */
-function retrieveData(accessCode: string): UserData | null {
+function retrieveData(accessCode: string): Promise<UserData | null> {
   console.log('StorageSystem: Attempting to retrieve data for access code:', accessCode);
-  try {
-    if (!accessCode) {
-      console.error('StorageSystem: Access code is required');
-      return null;
+  return new Promise((resolve) => {
+    try {
+      if (!accessCode) {
+        console.error('StorageSystem: Access code is required');
+        resolve(null);
+        return;
+      }
+      
+      // Get current data
+      const storage = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+      console.log('StorageSystem: Available access codes:', Object.keys(storage));
+      
+      // Return data for the access code or null
+      const userData = storage[accessCode] || null;
+      if (userData) {
+        console.log('StorageSystem: Found data for access code:', accessCode);
+      } else {
+        console.log('StorageSystem: No data found for access code:', accessCode);
+      }
+      
+      resolve(userData);
+    } catch (error) {
+      console.error('StorageSystem: Error retrieving data:', error);
+      resolve(null);
     }
-    
-    // Get current data
-    const storage = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-    console.log('StorageSystem: Available access codes:', Object.keys(storage));
-    
-    // Return data for the access code or null
-    const userData = storage[accessCode] || null;
-    if (userData) {
-      console.log('StorageSystem: Found data for access code:', accessCode);
-    } else {
-      console.log('StorageSystem: No data found for access code:', accessCode);
-    }
-    
-    return userData;
-  } catch (error) {
-    console.error('StorageSystem: Error retrieving data:', error);
-    return null;
-  }
+  });
 }
 
 /**
@@ -182,7 +187,141 @@ const StorageSystem = {
   retrieveData,
   checkAccessCode,
   generateAccessCode,
-  clearAllData
+  clearAllData,
+  
+  storeDataSupabase: async (accessCode: string, userData: UserData) => {
+    const { data, error } = await supabase
+      .from('problems')
+      .upsert({ 
+        access_code: accessCode,
+        user_id: userData.userId,
+        confession_text: userData.confessionText,
+        selected_tags: userData.selectedTags,
+        privacy_option: userData.privacyOption,
+        email_notification: userData.emailNotification,
+        email: userData.email,
+        timestamp: userData.timestamp,
+        replies: userData.replies,
+        views: userData.views
+      });
+      
+    if (error) {
+      console.error('Error storing data:', error);
+      return false;
+    }
+    
+    return true;
+  },
+  
+  retrieveDataSupabase: async (accessCode: string) => {
+    const { data, error } = await supabase
+      .from('problems')
+      .select('*')
+      .eq('access_code', accessCode)
+      .single();
+      
+    if (error) {
+      console.error('Error retrieving data:', error);
+      return null;
+    }
+    
+    // Convert from database format to UserData format
+    return {
+      userId: data.user_id,
+      accessCode: data.access_code,
+      confessionText: data.confession_text,
+      selectedTags: data.selected_tags,
+      privacyOption: data.privacy_option,
+      emailNotification: data.email_notification,
+      email: data.email,
+      timestamp: data.timestamp,
+      replies: data.replies,
+      views: data.views
+    };
+  },
+  
+  getAllData: async () => {
+    const { data, error } = await supabase
+      .from('problems')
+      .select('*')
+      .order('timestamp', { ascending: false });
+      
+    if (error) {
+      console.error('Error retrieving all data:', error);
+      return [];
+    }
+    
+    // Convert from database format to UserData format
+    return data.map((item: any) => ({
+      userId: item.user_id,
+      accessCode: item.access_code,
+      confessionText: item.confession_text,
+      selectedTags: item.selected_tags,
+      privacyOption: item.privacy_option,
+      emailNotification: item.email_notification,
+      email: item.email,
+      timestamp: item.timestamp,
+      replies: item.replies,
+      views: item.views
+    }));
+  },
+  
+  incrementViewCount: async (accessCode: string) => {
+    // First get the current data
+    const { data: currentData, error: fetchError } = await supabase
+      .from('problems')
+      .select('views')
+      .eq('access_code', accessCode)
+      .single();
+      
+    if (fetchError) {
+      console.error('Error fetching view count:', fetchError);
+      return false;
+    }
+    
+    // Increment the view count
+    const { data, error } = await supabase
+      .from('problems')
+      .update({ views: (currentData.views || 0) + 1 })
+      .eq('access_code', accessCode);
+      
+    if (error) {
+      console.error('Error incrementing view count:', error);
+      return false;
+    }
+    
+    return true;
+  },
+  
+  addReply: async (accessCode: string, reply: Reply) => {
+    // First get the current data
+    const { data: currentData, error: fetchError } = await supabase
+      .from('problems')
+      .select('replies')
+      .eq('access_code', accessCode)
+      .single();
+      
+    if (fetchError) {
+      console.error('Error fetching replies:', fetchError);
+      return false;
+    }
+    
+    // Add the new reply
+    const updatedReplies = [...(currentData.replies || []), reply];
+    
+    // Update the data
+    const { data, error } = await supabase
+      .from('problems')
+      .update({ replies: updatedReplies })
+      .eq('access_code', accessCode);
+      
+    if (error) {
+      console.error('Error adding reply:', error);
+      return false;
+    }
+    
+    return true;
+  }
 };
 
 export default StorageSystem;

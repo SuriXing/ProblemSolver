@@ -50,7 +50,7 @@ const ConfessionPage: React.FC = () => {
   };
   
   // Handle form submission
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!confessionText.trim()) {
@@ -65,40 +65,44 @@ const ConfessionPage: React.FC = () => {
     
     setIsSubmitting(true);
     
-    // Generate a unique user ID and access code
-    const userId = Math.floor(1000 + Math.random() * 9000).toString();
-    const accessCode = StorageSystem.generateAccessCode();
-    
-    // Create user data object
-    const userData: UserData = {
-      userId,
-      accessCode,
-      confessionText,
-      selectedTags,
-      privacyOption,
-      emailNotification,
-      email: emailNotification ? email : '',
-      timestamp: new Date().toISOString(),
-      replies: [],
-      views: 0 // Explicitly set views to 0
-    };
-    
-    // Store the data
-    StorageSystem.storeData(accessCode, userData);
-    
-    // Also store the access code for easy retrieval
-    localStorage.setItem('accessCode', accessCode);
-    
-    // Store additional data like email if needed
-    if (emailNotification && email) {
-      localStorage.setItem('userEmail', email);
-    }
-    
-    // Simulate API call delay
-    setTimeout(() => {
-      setIsSubmitting(false);
+    try {
+      // Generate a unique user ID and access code
+      const userId = Math.floor(1000 + Math.random() * 9000).toString();
+      const accessCode = StorageSystem.generateAccessCode();
+      
+      // Create user data object
+      const userData: UserData = {
+        userId,
+        accessCode,
+        confessionText,
+        selectedTags,
+        privacyOption,
+        emailNotification,
+        email: emailNotification ? email : '',
+        timestamp: new Date().toISOString(),
+        replies: [],
+        views: 0 // Explicitly set views to 0
+      };
+      
+      // Store the data in Supabase
+      await StorageSystem.storeData(accessCode, userData);
+      
+      // Store the access code in localStorage for easy retrieval
+      localStorage.setItem('accessCode', accessCode);
+      
+      // Store additional data like email if needed
+      if (emailNotification && email) {
+        localStorage.setItem('userEmail', email);
+      }
+      
+      // Navigate to success page
       navigate('/success');
-    }, 1500);
+    } catch (error) {
+      console.error('Error submitting confession:', error);
+      alert(t('errorSubmittingConfession'));
+    } finally {
+      setIsSubmitting(false);
+    }
   };
   
   return (
