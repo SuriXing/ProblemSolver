@@ -313,97 +313,19 @@
         </div>
     </div>
 
+    <!-- Add i18n.js before script.js -->
+    <script src="i18n.js"></script>
+    <script src="script.js"></script>
     <script>
+        // Initialize i18n after DOM is loaded
         document.addEventListener('DOMContentLoaded', function() {
-            const submitBtn = document.getElementById('submitBtn');
-            const changeBtn = document.getElementById('changeBtn');
-            const responseInput = document.querySelector('.response-input');
-            const reactions = document.querySelectorAll('.reaction');
+            // Set up current language variable
+            window.currentLanguage = localStorage.getItem('language') || 'zh-CN';
             
-            // 添加表情反应选择效果
-            reactions.forEach(reaction => {
-                reaction.addEventListener('click', function() {
-                    // 移除其他选中
-                    reactions.forEach(r => r.classList.remove('selected'));
-                    // 选中当前反应
-                    this.classList.add('selected');
-                });
-            });
-            
-            // 回应提交处理
-            submitBtn.addEventListener('click', function() {
-                if (responseInput.value.trim() === '') {
-                    alert('请先输入你的回应内容');
-                    return;
-                }
-                
-                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>发送中...</span>';
-                submitBtn.disabled = true;
-                
-                // 模拟提交延迟
-                setTimeout(() => {
-                    alert('回应已成功发送！感谢你的温暖帮助。');
-                    responseInput.value = '';
-                    submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i><span>发送回应</span>';
-                    submitBtn.disabled = false;
-                    
-                    // 可以在这里添加统计数据更新代码
-                    const helpedToday = document.querySelector('.stats-bar .stats-item:first-child span');
-                    const currentCount = parseInt(helpedToday.textContent.match(/\d+/)[0]);
-                    helpedToday.textContent = `今日已帮助: ${currentCount + 1}人`;
-                }, 1500);
-            });
-            
-            // 换一个问题
-            changeBtn.addEventListener('click', function() {
-                changeBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>加载中...</span>';
-                changeBtn.disabled = true;
-                
-                // 模拟加载新问题
-                setTimeout(() => {
-                    // 这里模拟加载新问题，实际应用中应从服务器获取
-                    const questions = [
-                        {
-                            id: 2832,
-                            content: "我和女朋友异地恋已经两年了，最近感觉越来越难维持，不知道该怎么办...",
-                            tags: ["异地恋", "感情", "沟通"],
-                            time: "1小时前"
-                        },
-                        {
-                            id: 2833,
-                            content: "最近在考虑要不要换工作，现在的环境不太好，但又担心换了会更糟糕，很纠结。",
-                            tags: ["职场", "选择", "纠结"],
-                            time: "30分钟前"
-                        }
-                    ];
-                    
-                    // 随机选择一个新问题
-                    const newQuestion = questions[Math.floor(Math.random() * questions.length)];
-                    
-                    // 更新问题内容
-                    document.querySelector('.message-id').textContent = `来信编号信 #${newQuestion.id}`;
-                    document.querySelector('.message-content').textContent = newQuestion.content;
-                    
-                    // 更新标签
-                    const tagsContainer = document.querySelector('.message-tags');
-                    tagsContainer.innerHTML = '';
-                    newQuestion.tags.forEach(tag => {
-                        const tagElem = document.createElement('span');
-                        tagElem.className = 'tag';
-                        tagElem.textContent = tag;
-                        tagsContainer.appendChild(tagElem);
-                    });
-                    
-                    // 更新时间
-                    document.querySelector('.message-time').textContent = newQuestion.time;
-                    
-                    // 重置表单和按钮
-                    responseInput.value = '';
-                    reactions.forEach(r => r.classList.remove('selected'));
-                    changeBtn.innerHTML = '<i class="fas fa-random"></i><span>换一个问题</span>';
-                    changeBtn.disabled = false;
-                }, 1000);
-            });
+            // Initialize i18n
+            if (window.i18n && typeof window.i18n.init === 'function') {
+                window.i18n.init();
+            }
         });
     </script>
 </body>
