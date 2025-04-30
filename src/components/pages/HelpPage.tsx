@@ -113,7 +113,7 @@ const HelpPage: React.FC = () => {
       
       setPosts(sortedPosts);
       
-      // Update the storage with the new counts
+      // Update the storage with the initialized counts
       const updatedStorage: Record<string, UserData> = {};
       postsWithCounts.forEach(post => {
         updatedStorage[post.accessCode] = post;
@@ -150,12 +150,34 @@ const HelpPage: React.FC = () => {
   
   // Handle post click to increment view count
   const handlePostClick = (post: UserData) => {
-    // We'll let the detail page handle the view increment
-    // Just navigate to the detail page
-    console.log('Post clicked, navigating to detail page');
-    
-    // No need to update view count here
-    // The HelpDetailPage component will handle that
+    try {
+      // Get the latest data from storage
+      const storage = JSON.parse(localStorage.getItem('problemSolver_userData') || '{}');
+      const currentPost = storage[post.accessCode];
+      
+      if (currentPost) {
+        // Increment view count
+        const currentViews = currentPost.views || 0;
+        const newViews = currentViews + 1;
+        
+        // Update the post with the new view count
+        const updatedPost = { 
+          ...currentPost, 
+          views: newViews 
+        };
+        
+        // Update storage
+        storage[post.accessCode] = updatedPost;
+        localStorage.setItem('problemSolver_userData', JSON.stringify(storage));
+        
+        // Update state
+        setPosts(prevPosts => 
+          prevPosts.map(p => p.accessCode === post.accessCode ? updatedPost : p)
+        );
+      }
+    } catch (error) {
+      console.error('Error updating view count:', error);
+    }
   };
 
   // Utility function to reset all view counts to 0 (for testing)
