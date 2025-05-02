@@ -36,34 +36,40 @@
     </header>
 
     <main>
-        <div class="hero">
-            <div class="container">
-                <h1 class="hero-title" data-i18n="homeTitle">在这里，你的故事有人倾听</h1>
-                <p class="hero-subtitle" data-i18n="homeSubtitle">匿名、安全、温暖的社区</p>
-            </div>
-        </div>
-
-        <div class="container options-container">
-            <div class="option-cards">
-                <div class="option-card">
-                    <div class="option-icon">
-                        <i class="far fa-comment-dots"></i>
-                    </div>
-                    <h2 data-i18n="confessCardTitle">我有话想说</h2>
-                    <p data-i18n="confessCardDesc">在这里安全地分享你的困扰，收获温暖回应</p>
-                    <a href="submit-query.html" class="btn-primary" data-i18n="startConfession">开始倾诉</a>
-                </div>
-
-                <div class="option-card">
-                    <div class="option-icon">
-                        <i class="fas fa-hands-helping"></i>
-                    </div>
-                    <h2 data-i18n="helpCardTitle">我想帮助别人</h2>
-                    <p data-i18n="helpCardDesc">给予他人温暖的建议，成为某人的光</p>
-                    <a href="help-detail.html" class="btn-primary" data-i18n="goHelp">去帮助他人</a>
+        <section id="home-view">
+            <div class="hero">
+                <div class="container">
+                    <h1 class="hero-title" data-i18n="homeTitle">在这里，你的故事有人倾听</h1>
+                    <p class="hero-subtitle" data-i18n="homeSubtitle">匿名、安全、温暖的社区</p>
                 </div>
             </div>
-        </div>
+
+            <div class="container options-container">
+                <div class="option-cards">
+                    <div class="option-card">
+                        <div class="option-icon">
+                            <i class="far fa-comment-dots"></i>
+                        </div>
+                        <h2 data-i18n="confessCardTitle">我有话想说</h2>
+                        <p data-i18n="confessCardDesc">在这里安全地分享你的困扰，收获温暖回应</p>
+                        <a href="#" class="btn-primary" id="start-confession-btn" data-i18n="startConfession">开始倾诉</a>
+                    </div>
+
+                    <div class="option-card">
+                        <div class="option-icon">
+                            <i class="fas fa-hands-helping"></i>
+                        </div>
+                        <h2 data-i18n="helpCardTitle">我想帮助别人</h2>
+                        <p data-i18n="helpCardDesc">给予他人温暖的建议，成为某人的光</p>
+                        <a href="help-detail.html" class="btn-primary" data-i18n="goHelp">去帮助他人</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <section id="help-view" class="hidden">
+            <!-- Help view content will be added here when needed -->
+        </section>
     </main>
 
     <footer>

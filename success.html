@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <base href="./">
+    <title>感谢分享 - 解忧杂货铺</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="logo">
+                <a href="index.html">
+                    <i class="fas fa-hands-helping"></i>
+                    <span data-i18n="siteName">解忧杂货铺</span>
+                </a>
+            </div>
+            <div class="nav-actions">
+                <a href="#" class="history-link">
+                    <i class="fas fa-history"></i>
+                    <span data-i18n="pastQuestions">过往问题</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="success-view">
+            <div class="success-header">
+                <div class="success-icon">
+                    <i class="fa-solid fa-circle-check"></i>
+                </div>
+                <h1 class="success-title" data-i18n="thankYouTitle">感谢你的分享</h1>
+                <p class="success-subtitle" data-i18n="thankYouSubtitle">你的心声已经被记录，我们会尽快回应</p>
+            </div>
+
+            <div class="access-code-container">
+                <h2 class="access-code-title" data-i18n="yourAccessCode">你的访问码</h2>
+                <div class="access-code-display">
+                    <span id="access-code">XXXX-XXXX-XXXX</span>
+                    <button id="copy-code-btn" class="copy-code-btn" title="复制访问码">
+                        <i class="fa-regular fa-copy"></i>
+                    </button>
+                </div>
+                <p class="access-code-desc" data-i18n="saveAccessCode">请保存这个访问码，以便稍后查看回复</p>
+            </div>
+
+            <div class="success-message">
+                <div class="message-card">
+                    <div class="message-image">
+                        <img src="https://images.unsplash.com/photo-1588345921523-c2dcdb7f1dcd?ixlib=rb-1.2.1&auto=format&fit=crop&w=1050&q=80" alt="信件">
+                    </div>
+                    <div class="message-info">
+                        <div class="message-meta">
+                            <span class="message-author"><i class="fa-solid fa-circle-user"></i> <span data-i18n="yourAnonymousId">你的匿名ID: #</span><span id="user-id">3842</span></span>
+                        </div>
+                        <div class="message-content">
+                            <p id="confession-preview">你的内容将显示在这里...</p>
+                        </div>
+                        <div class="message-tags" id="confession-tags">
+                            <!-- Tags will be inserted by JavaScript -->
+                        </div>
+                        <div class="message-time" data-i18n="justPosted">刚刚发布</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="success-actions">
+                <p class="notification-info" data-i18n="notifyMessage">我们将在有回复时通知你</p>
+                <div class="action-buttons">
+                    <a href="index.html" class="btn-primary return-home-btn">
+                        <i class="fa-solid fa-home"></i> <span data-i18n="returnHome">返回首页</span>
+                    </a>
+                    <a href="help.html" class="btn-primary help-btn">
+                        <i class="fa-solid fa-hands-helping"></i> <span data-i18n="helpOthers">帮助他人</span>
+                    </a>
+                </div>
+            </div>
+
+            <div class="success-info-box">
+                <h3><i class="fa-solid fa-circle-info"></i> <span data-i18n="whatHappensNext">接下来会发生什么？</span></h3>
+                <ul>
+                    <li data-i18n="communityWillSee">我们的社区成员将会看到你的问题并提供帮助</li>
+                    <li data-i18n="replyIn24h">通常在24小时内你会收到回复</li>
+                    <li data-i18n="emailNotification">如果你提供了邮箱，我们会在有回复时通知你</li>
+                    <li data-i18n="checkWithCode">你可以使用访问码通过"过往问题"查看你的问题状态和回复</li>
+                </ul>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p data-i18n="copyright">© 2024 解忧杂货铺 - 一个温暖的心灵港湾</p>
+        </div>
+    </footer>
+
+    <script src="i18n.js"></script>
+    <script src="script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set up current language variable
+            window.currentLanguage = localStorage.getItem('language') || 'zh-CN';
+            
+            // Initialize i18n after DOM is loaded
+            if (window.i18n) {
+                window.i18n.init();
+            }
+        });
+    </script>
+</body>
+</html> 
