@@ -237,6 +237,81 @@ const HelpPage: React.FC = () => {
             >
               Clear All Posts
             </button>
+            <button 
+              onClick={() => {
+                const data = localStorage.getItem('problemSolver_userData');
+                console.log('Current localStorage data:', data);
+                try {
+                  const parsed = JSON.parse(data || '{}');
+                  console.log('Parsed data:', parsed);
+                } catch (e) {
+                  console.error('Error parsing data:', e);
+                }
+              }}
+              style={{
+                marginLeft: '10px',
+                padding: '5px 10px',
+                background: '#1890ff',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer'
+              }}
+            >
+              Debug Data
+            </button>
+            <button 
+              onClick={() => {
+                // Create a test post
+                const testPost = {
+                  userId: "1234",
+                  accessCode: "test" + Date.now(),
+                  confessionText: "This is a test post created at " + new Date().toLocaleString(),
+                  selectedTags: ["焦虑", "学习"],
+                  privacyOption: "public",
+                  emailNotification: false,
+                  email: "",
+                  timestamp: new Date().toISOString(),
+                  replies: [],
+                  views: 0
+                };
+                
+                // Get current data
+                let storage = [];
+                try {
+                  const existingData = localStorage.getItem('problemSolver_userData');
+                  if (existingData) {
+                    const parsed = JSON.parse(existingData);
+                    storage = Array.isArray(parsed) ? parsed : [];
+                  }
+                } catch (e) {
+                  console.error('Error parsing existing data, starting fresh', e);
+                  storage = [];
+                }
+                
+                // Add test post
+                storage.push(testPost);
+                
+                // Save back to localStorage
+                localStorage.setItem('problemSolver_userData', JSON.stringify(storage));
+                console.log('Test post created:', testPost);
+                console.log('Current localStorage after test post:', localStorage.getItem('problemSolver_userData'));
+                
+                // Reload the page
+                window.location.reload();
+              }}
+              style={{
+                marginLeft: '10px',
+                padding: '5px 10px',
+                background: '#52c41a',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer'
+              }}
+            >
+              Create Test Post
+            </button>
           </div>
         
           <div className="tag-filters">

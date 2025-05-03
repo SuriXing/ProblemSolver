@@ -97,6 +97,10 @@ const ConfessionPage: React.FC = () => {
       
       // Navigate to success page
       navigate('/success');
+      
+      // In the handleSubmit function, add this after saving the data
+      console.log('Saved confession data:', userData);
+      console.log('Current localStorage after save:', localStorage.getItem('problemSolver_userData'));
     } catch (error) {
       console.error('Error submitting confession:', error);
       alert(t('errorSubmittingConfession'));
