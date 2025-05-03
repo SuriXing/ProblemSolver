@@ -62,20 +62,29 @@ function storeData(accessCode: string, userData: UserData): boolean {
     }
     
     // Get current data
-    const storage = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+    let storage = [];
+    try {
+      const existingData = localStorage.getItem(STORAGE_KEY);
+      if (existingData) {
+        const parsed = JSON.parse(existingData);
+        storage = Array.isArray(parsed) ? parsed : [];
+      }
+    } catch (e) {
+      console.error('Error parsing existing data, starting fresh', e);
+      storage = [];
+    }
     
     // Add timestamp if not present
     if (!userData.timestamp) {
       userData.timestamp = new Date().toISOString();
     }
     
-    // Store data with access code as key
-    storage[accessCode] = userData;
+    // Add to array of posts
+    storage.push(userData);
     
     // Save back to localStorage
     localStorage.setItem(STORAGE_KEY, JSON.stringify(storage));
-    console.log('StorageSystem: Successfully stored data for access code:', accessCode);
-    console.log('StorageSystem: Current access codes:', Object.keys(storage));
+    console.log('StorageSystem: Successfully stored data, total posts:', storage.length);
     
     return true;
   } catch (error) {
@@ -99,12 +108,12 @@ function retrieveData(accessCode: string): Promise<UserData | null> {
         return;
       }
       
-      // Get current data
-      const storage = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-      console.log('StorageSystem: Available access codes:', Object.keys(storage));
+      // Get current data as an array
+      const storage = getLocalData();
       
-      // Return data for the access code or null
-      const userData = storage[accessCode] || null;
+      // Find the post with the matching access code
+      const userData = storage.find(post => post.accessCode === accessCode) || null;
+      
       if (userData) {
         console.log('StorageSystem: Found data for access code:', accessCode);
       } else {
@@ -129,10 +138,13 @@ function checkAccessCode(accessCode: string): boolean {
   try {
     if (!accessCode) return false;
     
-    const storage = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-    const exists = !!storage[accessCode];
+    // Get current data as an array
+    const storage = getLocalData();
+    
+    // Check if any post has the matching access code
+    const exists = storage.some(post => post.accessCode === accessCode);
+    
     console.log('StorageSystem: Access code', accessCode, exists ? 'exists' : 'does not exist');
-    console.log('StorageSystem: Available access codes:', Object.keys(storage));
     
     return exists;
   } catch (error) {
@@ -241,87 +253,178 @@ const StorageSystem = {
   },
   
   getAllData: async () => {
-    const { data, error } = await supabase
-      .from('problems')
-      .select('*')
-      .order('timestamp', { ascending: false });
+    try {
+      // First try to get data from Supabase
+      const { data, error } = await supabase
+        .from('problems')
+        .select('*');
       
-    if (error) {
-      console.error('Error retrieving all data:', error);
-      return [];
+      if (error) {
+        console.error('Error fetching data from Supabase:', error);
+        // Fall back to localStorage if Supabase fails
+        return getLocalData();
+      }
+      
+      if (data && data.length > 0) {
+        return data as UserData[];
+      }
+      
+      // If no data in Supabase, try localStorage
+      return getLocalData();
+    } catch (error) {
+      console.error('Error in getAllData:', error);
+      // Fall back to localStorage if there's an error
+      return getLocalData();
     }
-    
-    // Convert from database format to UserData format
-    return data.map((item: any) => ({
-      userId: item.user_id,
-      accessCode: item.access_code,
-      confessionText: item.confession_text,
-      selectedTags: item.selected_tags,
-      privacyOption: item.privacy_option,
-      emailNotification: item.email_notification,
-      email: item.email,
-      timestamp: item.timestamp,
-      replies: item.replies,
-      views: item.views
-    }));
   },
   
   incrementViewCount: async (accessCode: string) => {
-    // First get the current data
-    const { data: currentData, error: fetchError } = await supabase
-      .from('problems')
-      .select('views')
-      .eq('access_code', accessCode)
-      .single();
+    try {
+      // First try to update in Supabase
+      const { data: existingData, error: fetchError } = await supabase
+        .from('problems')
+        .select('*')
+        .eq('access_code', accessCode)
+        .single();
       
-    if (fetchError) {
-      console.error('Error fetching view count:', fetchError);
-      return false;
-    }
-    
-    // Increment the view count
-    const { data, error } = await supabase
-      .from('problems')
-      .update({ views: (currentData.views || 0) + 1 })
-      .eq('access_code', accessCode);
+      if (fetchError) {
+        console.error('Error fetching data for view count update:', fetchError);
+        // Fall back to localStorage
+        incrementLocalViewCount(accessCode);
+        return;
+      }
       
-    if (error) {
-      console.error('Error incrementing view count:', error);
-      return false;
+      if (existingData) {
+        const currentViews = existingData.views || 0;
+        const { error: updateError } = await supabase
+          .from('problems')
+          .update({ views: currentViews + 1 })
+          .eq('access_code', accessCode);
+        
+        if (updateError) {
+          console.error('Error updating view count in Supabase:', updateError);
+          // Fall back to localStorage
+          incrementLocalViewCount(accessCode);
+        }
+      } else {
+        // If not found in Supabase, try localStorage
+        incrementLocalViewCount(accessCode);
+      }
+    } catch (error) {
+      console.error('Error in incrementViewCount:', error);
+      // Fall back to localStorage
+      incrementLocalViewCount(accessCode);
     }
-    
-    return true;
   },
   
   addReply: async (accessCode: string, reply: Reply) => {
-    // First get the current data
-    const { data: currentData, error: fetchError } = await supabase
-      .from('problems')
-      .select('replies')
-      .eq('access_code', accessCode)
-      .single();
+    try {
+      // First try to update in Supabase
+      const { data: existingData, error: fetchError } = await supabase
+        .from('problems')
+        .select('*')
+        .eq('access_code', accessCode)
+        .single();
       
-    if (fetchError) {
-      console.error('Error fetching replies:', fetchError);
-      return false;
-    }
-    
-    // Add the new reply
-    const updatedReplies = [...(currentData.replies || []), reply];
-    
-    // Update the data
-    const { data, error } = await supabase
-      .from('problems')
-      .update({ replies: updatedReplies })
-      .eq('access_code', accessCode);
+      if (fetchError) {
+        console.error('Error fetching data for adding reply:', fetchError);
+        // Fall back to localStorage
+        addLocalReply(accessCode, reply);
+        return;
+      }
       
-    if (error) {
-      console.error('Error adding reply:', error);
-      return false;
+      if (existingData) {
+        const currentReplies = existingData.replies || [];
+        const updatedReplies = [...currentReplies, reply];
+        
+        const { error: updateError } = await supabase
+          .from('problems')
+          .update({ replies: updatedReplies })
+          .eq('access_code', accessCode);
+        
+        if (updateError) {
+          console.error('Error adding reply in Supabase:', updateError);
+          // Fall back to localStorage
+          addLocalReply(accessCode, reply);
+        }
+      } else {
+        // If not found in Supabase, try localStorage
+        addLocalReply(accessCode, reply);
+      }
+    } catch (error) {
+      console.error('Error in addReply:', error);
+      // Fall back to localStorage
+      addLocalReply(accessCode, reply);
     }
-    
-    return true;
   }
 };
+
+/**
+ * Get data from localStorage
+ * @returns Array of user data from localStorage
+ */
+function getLocalData(): UserData[] {
+  try {
+    const storedData = localStorage.getItem('problemSolver_userData');
+    if (storedData) {
+      const parsedData = JSON.parse(storedData);
+      if (Array.isArray(parsedData)) {
+        return parsedData;
+      }
+    }
+    return [];
+  } catch (error) {
+    console.error('Error getting local data:', error);
+    return [];
+  }
+}
+
+/**
+ * Increment view count in localStorage
+ * @param accessCode - Access code of the post
+ */
+function incrementLocalViewCount(accessCode: string): void {
+  try {
+    const existingData = getLocalData();
+    const updatedData = existingData.map(item => {
+      if (item.accessCode === accessCode) {
+        return {
+          ...item,
+          views: (item.views || 0) + 1
+        };
+      }
+      return item;
+    });
+    
+    localStorage.setItem('problemSolver_userData', JSON.stringify(updatedData));
+  } catch (error) {
+    console.error('Error incrementing local view count:', error);
+  }
+}
+
+/**
+ * Add a reply in localStorage
+ * @param accessCode - Access code of the post
+ * @param reply - Reply to add
+ */
+function addLocalReply(accessCode: string, reply: Reply): void {
+  try {
+    const existingData = getLocalData();
+    const updatedData = existingData.map(item => {
+      if (item.accessCode === accessCode) {
+        const currentReplies = item.replies || [];
+        return {
+          ...item,
+          replies: [...currentReplies, reply]
+        };
+      }
+      return item;
+    });
+    
+    localStorage.setItem('problemSolver_userData', JSON.stringify(updatedData));
+  } catch (error) {
+    console.error('Error adding local reply:', error);
+  }
+}
 
 export default StorageSystem;
