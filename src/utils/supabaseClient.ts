@@ -1,103 +1,53 @@
 import { createClient } from '@supabase/supabase-js';
+import type { Database } from '../types/database.types';
 
-// For local development without Supabase
-const isLocalDevelopment = !process.env.REACT_APP_SUPABASE_URL || 
-                          process.env.REACT_APP_SUPABASE_URL === 'your_supabase_url';
+// Hardcoded values as fallback - these should match your .env values
+const FALLBACK_SUPABASE_URL = 'https://liyladrzzmiqpfqwyceg.supabase.co';
+const FALLBACK_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxpeWxhZHJ6em1pcXBmcXd5Y2VnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYzNDQ4MjgsImV4cCI6MjA2MTkyMDgyOH0.GatvzQKLFA-3rShIwgHMRYr6UE3nC-QBTuXD_ubYlpo';
 
-// Create a mock client for local development
-const createMockClient = () => {
-  console.log('Using mock Supabase client for local development');
+export function getSupabaseConfig() {
+  // Try all possible ways to access environment variables
+  let supabaseUrl = '';
+  let supabaseAnonKey = '';
   
-  // This is a mock implementation that uses localStorage
-  return {
-    from: (table: string) => ({
-      select: (columns: string) => ({
-        eq: (column: string, value: any) => ({
-          single: () => {
-            try {
-              const storage = JSON.parse(localStorage.getItem('problemSolver_userData') || '{}');
-              if (column === 'access_code') {
-                const data = storage[value];
-                return { data, error: null };
-              }
-              return { data: null, error: null };
-            } catch (error) {
-              return { data: null, error };
-            }
-          },
-          order: () => {
-            try {
-              const storage = JSON.parse(localStorage.getItem('problemSolver_userData') || '{}');
-              const data = Object.values(storage);
-              return { data, error: null };
-            } catch (error) {
-              return { data: [], error };
-            }
-          }
-        }),
-        order: () => {
-          try {
-            const storage = JSON.parse(localStorage.getItem('problemSolver_userData') || '{}');
-            const data = Object.values(storage);
-            return { data, error: null };
-          } catch (error) {
-            return { data: [], error };
-          }
-        }
-      }),
-      upsert: (data: any) => {
-        try {
-          const storage = JSON.parse(localStorage.getItem('problemSolver_userData') || '{}');
-          storage[data.access_code] = {
-            userId: data.user_id,
-            accessCode: data.access_code,
-            confessionText: data.confession_text,
-            selectedTags: data.selected_tags,
-            privacyOption: data.privacy_option,
-            emailNotification: data.email_notification,
-            email: data.email,
-            timestamp: data.timestamp,
-            replies: data.replies,
-            views: data.views
-          };
-          localStorage.setItem('problemSolver_userData', JSON.stringify(storage));
-          return { data, error: null };
-        } catch (error) {
-          return { data: null, error };
-        }
-      },
-      update: (data: any) => ({
-        eq: (column: string, value: any) => {
-          try {
-            const storage = JSON.parse(localStorage.getItem('problemSolver_userData') || '{}');
-            if (column === 'access_code') {
-              const post = storage[value];
-              if (post) {
-                if (data.views !== undefined) {
-                  post.views = data.views;
-                }
-                if (data.replies !== undefined) {
-                  post.replies = data.replies;
-                }
-                storage[value] = post;
-                localStorage.setItem('problemSolver_userData', JSON.stringify(storage));
-              }
-            }
-            return { data, error: null };
-          } catch (error) {
-            return { data: null, error };
-          }
-        }
-      })
-    }),
-    rpc: () => ({ data: null, error: null })
-  };
-};
+  // 1. Try import.meta.env (Vite)
+  if (typeof import.meta !== 'undefined') {
+    console.log('import.meta exists:', import.meta);
+    
+    if (import.meta.env) {
+      console.log('import.meta.env exists:', import.meta.env);
+      supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+    } else {
+      console.log('import.meta.env is undefined');
+    }
+  }
+  
+  // 2. Try global __VITE_ENV__ (from vite.config.ts)
+  if (!supabaseUrl && typeof window !== 'undefined' && '__VITE_ENV__' in window) {
+    console.log('__VITE_ENV__ exists');
+    const viteEnv = (window as any).__VITE_ENV__;
+    supabaseUrl = viteEnv.VITE_SUPABASE_URL;
+    supabaseAnonKey = viteEnv.VITE_SUPABASE_ANON_KEY;
+  }
+  
+  // 3. Try process.env (Node.js)
+  if (!supabaseUrl && typeof process !== 'undefined' && process.env) {
+    console.log('Using process.env');
+    supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.REACT_APP_SUPABASE_URL;
+    supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY || process.env.REACT_APP_SUPABASE_ANON_KEY;
+  }
+  
+  // 4. Fallback to hardcoded values if nothing else worked
+  if (!supabaseUrl) {
+    console.log('Using fallback values');
+    supabaseUrl = FALLBACK_SUPABASE_URL;
+    supabaseAnonKey = FALLBACK_SUPABASE_ANON_KEY;
+  }
+  
+  return { supabaseUrl, supabaseAnonKey };
+}
 
-// Use the real client if we have valid credentials, otherwise use the mock
-export const supabase = isLocalDevelopment 
-  ? createMockClient() as any
-  : createClient(
-      process.env.REACT_APP_SUPABASE_URL!, 
-      process.env.REACT_APP_SUPABASE_ANON_KEY!
-    ); 
+// Create and export the Supabase client
+const { supabaseUrl, supabaseAnonKey } = getSupabaseConfig();
+export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey); 
