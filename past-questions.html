@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Past Questions - Problem Solver</title>
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="assets/favicon.png">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Base CSS -->
+    <link rel="stylesheet" href="css/base.css">
+    <!-- Page specific CSS -->
+    <link rel="stylesheet" href="css/past-questions.css">
+    <style>
+        body {
+            background-color: #f9fafb;
+            font-family: 'Poppins', sans-serif;
+            color: #374151;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            margin-bottom: 20px;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            color: #4f7cff;
+            text-decoration: none;
+        }
+        
+        .logo i, .logo img {
+            font-size: 1.2rem;
+            margin-right: 6px;
+        }
+        
+        .logo span {
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+        
+        .nav-link {
+            color: #6b7280;
+            text-decoration: none;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+        }
+        
+        .nav-link i {
+            margin-right: 4px;
+        }
+        
+        .main-content {
+            max-width: 700px;
+            margin: 0 auto;
+            padding-bottom: 60px;
+        }
+        
+        .page-title {
+            font-size: 2rem;
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 8px;
+            color: #1f2937;
+        }
+        
+        .page-subtitle {
+            text-align: center;
+            color: #6b7280;
+            margin-bottom: 28px;
+            font-size: 1rem;
+        }
+        
+        .access-form {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            padding: 24px;
+            margin-bottom: 40px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #4b5563;
+        }
+        
+        .access-code-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 1rem;
+            color: #4b5563;
+        }
+        
+        .access-code-input:focus {
+            outline: none;
+            border-color: #4f7cff;
+            box-shadow: 0 0 0 3px rgba(79, 124, 255, 0.1);
+        }
+        
+        .form-actions {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 20px;
+        }
+        
+        .primary-button, .secondary-button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .primary-button {
+            background-color: #4f7cff;
+            color: white;
+        }
+        
+        .primary-button:hover {
+            background-color: #4069e5;
+        }
+        
+        .secondary-button {
+            background-color: #e5e7eb;
+            color: #4b5563;
+        }
+        
+        .secondary-button:hover {
+            background-color: #d1d5db;
+        }
+        
+        .button i {
+            margin-right: 8px;
+        }
+        
+        /* Message styles */
+        .message {
+            padding: 16px;
+            border-radius: 8px;
+            margin-top: 20px;
+            text-align: center;
+        }
+        
+        .error-message {
+            background-color: #fee2e2;
+            color: #ef4444;
+            border: 1px solid #f87171;
+        }
+        
+        .no-questions-message {
+            background-color: #eff6ff;
+            color: #3b82f6;
+            border: 1px solid #93c5fd;
+        }
+        
+        /* Loading indicator */
+        .loading-indicator {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(79, 124, 255, 0.1);
+            border-radius: 50%;
+            border-top: 4px solid #4f7cff;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Questions display */
+        .questions-wrapper {
+            margin-top: 30px;
+        }
+        
+        .question-card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            margin-bottom: 16px;
+            overflow: hidden;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        .question-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .question-header {
+            padding: 16px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .question-title {
+            margin: 0 0 8px 0;
+            font-size: 1.1rem;
+            color: #1f2937;
+        }
+        
+        .question-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            color: #6b7280;
+        }
+        
+        .question-preview {
+            padding: 16px;
+            color: #4b5563;
+            margin: 0;
+        }
+        
+        .question-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            background-color: #f9fafb;
+            border-top: 1px solid #e5e7eb;
+        }
+        
+        .question-stats {
+            display: flex;
+            gap: 12px;
+            color: #6b7280;
+            font-size: 0.85rem;
+        }
+        
+        .view-question-btn {
+            color: #4f7cff;
+            font-size: 0.9rem;
+            font-weight: 500;
+            text-decoration: none;
+        }
+        
+        .view-question-btn:hover {
+            text-decoration: underline;
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+        
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 20px 0;
+            color: #6b7280;
+            font-size: 0.9rem;
+            border-top: 1px solid #e5e7eb;
+            margin-top: 60px;
+        }
+        
+        /* Responsive */
+        @media (max-width: 640px) {
+            .page-title {
+                font-size: 1.6rem;
+            }
+            
+            .form-actions {
+                flex-direction: column;
+                width: 100%;
+            }
+            
+            .primary-button, .secondary-button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <a href="index.html" class="logo">
+                <img src="assets/logo.png" alt="Problem Solver Logo" height="30">
+                <span>Problem Solver</span>
+            </a>
+            <a href="index.html" class="nav-link">
+                <i class="fas fa-home"></i>
+                <span>Home</span>
+            </a>
+        </div>
+        
+        <div class="main-content">
+            <h1 class="page-title">Past Questions</h1>
+            <p class="page-subtitle">Enter your access code to view your past questions and responses</p>
+            
+            <form class="access-form">
+                <div class="form-group">
+                    <label for="accessCodeInput">Access Code</label>
+                    <input type="text" id="accessCodeInput" class="access-code-input" placeholder="Enter your access code" autocomplete="off">
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" id="fetchQuestionsBtn" class="primary-button">
+                        <i class="fas fa-search"></i> Look Up Questions
+                    </button>
+                    <button type="button" id="loadDemoBtn" class="secondary-button">
+                        <i class="fas fa-flask"></i> Load Demo Data
+                    </button>
+                </div>
+            </form>
+            
+            <!-- Loading Indicator -->
+            <div id="loadingIndicator" class="loading-indicator hidden">
+                <div class="loading-spinner"></div>
+            </div>
+            
+            <!-- Error Message -->
+            <div id="errorMessage" class="message error-message hidden">
+                We couldn't find any questions associated with this access code. Please check and try again.
+            </div>
+            
+            <!-- No Questions Message -->
+            <div id="noQuestionsMessage" class="message no-questions-message hidden">
+                No questions found for this access code. If you recently submitted a question, it may take some time to appear in the system.
+            </div>
+            
+            <!-- Questions Container -->
+            <div id="questionsContainer" class="questions-wrapper">
+                <!-- Question cards will be dynamically inserted here by JavaScript -->
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>&copy; 2023 Problem Solver. All rights reserved.</p>
+        </div>
+    </div>
+
+    <!-- Base JavaScript -->
+    <script src="js/base.js"></script>
+    <!-- Page specific JavaScript -->
+    <script src="js/past-questions.js"></script>
+</body>
+</html> 
