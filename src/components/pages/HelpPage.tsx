@@ -18,6 +18,9 @@ import { UserData } from '../../utils/StorageSystem';
 import Layout from '../layout/Layout';
 import StorageSystem from '../../utils/StorageSystem';
 import '../../styles/HelpPage.css';
+import { supabase } from '../../lib/supabase';
+import { Post } from '../../types/database.types';
+import { DatabaseService } from '../../services/database.service';
 
 // Helper function to get time ago
 const getTimeAgo = (timestamp: string): string => {
@@ -58,6 +61,7 @@ const HelpPage: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const postsPerPage = 10;
   const [renderError, setRenderError] = useState<Error | null>(null);
+  const [helpItems, setHelpItems] = useState<Post[]>([]);
 
   // Get all available tags
   const availableTags = {
@@ -74,47 +78,20 @@ const HelpPage: React.FC = () => {
 
   // Load all posts from storage
   useEffect(() => {
-    setLoading(true);
-    
-    const fetchData = async () => {
+    async function fetchPosts() {
       try {
-        const allPosts = await StorageSystem.getAllData();
-        console.log("Fetched posts:", allPosts); // Debug log
-        
-        if (Array.isArray(allPosts)) {
-          // Initialize view counts to 0 if they don't exist
-          const postsWithCounts = allPosts.map((post: any) => {
-            const updatedPost = { ...post };
-            
-            // Initialize views to 0 if not present
-            if (updatedPost.views === undefined) {
-              updatedPost.views = 0;
-            }
-            
-            return updatedPost;
-          });
-          
-          // Sort by timestamp (newest first)
-          const sortedPosts = postsWithCounts.sort((a: any, b: any) => {
-            return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
-          });
-          
-          setPosts(sortedPosts);
-          console.log("Posts after sorting:", sortedPosts);
-        } else {
-          console.log("Posts is not an array, setting to empty array"); // Debug log
-          setPosts([]);
-        }
+        setLoading(true);
+        const posts = await DatabaseService.getPostsByPurpose('seeking_help');
+        setHelpItems(posts);
       } catch (error) {
-        console.error('Error loading posts:', error);
-        setError('Failed to load posts. Please try again later.');
-        setPosts([]);
+        console.error('Error fetching posts:', error);
+        setError('Failed to load posts');
       } finally {
         setLoading(false);
       }
-    };
+    }
     
-    fetchData();
+    fetchPosts();
   }, []);
 
   try {
@@ -136,12 +113,12 @@ const HelpPage: React.FC = () => {
     };
     
     // Filter posts by search term and tag
-    const filteredPosts = posts.filter(post => {
+    const filteredPosts = helpItems.filter(post => {
       const matchesSearch = !searchTerm || 
-        (post.confessionText && post.confessionText.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (post.userId && post.userId.includes(searchTerm));
+        (post.content && post.content.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (post.user_id && post.user_id.includes(searchTerm));
         
-      const matchesTag = !selectedTag || (post.selectedTags && post.selectedTags.includes(selectedTag));
+      const matchesTag = !selectedTag || (post.tags && post.tags.includes(selectedTag));
       
       return matchesSearch && matchesTag;
     });
@@ -159,14 +136,14 @@ const HelpPage: React.FC = () => {
     };
     
     // Handle post click - increment view count
-    const handlePostClick = async (post: UserData) => {
-      if (!post.accessCode) {
-        console.error("Post has no accessCode:", post);
+    const handlePostClick = async (post: Post) => {
+      if (!post.id) {
+        console.error("Post has no ID:", post);
         return;
       }
       
       try {
-        await StorageSystem.incrementViewCount(post.accessCode);
+        await DatabaseService.incrementViewCount(post.id);
       } catch (error) {
         console.error('Error incrementing view count:', error);
       }
@@ -358,26 +335,26 @@ const HelpPage: React.FC = () => {
                 
                 return (
                   <Card 
-                    key={post.accessCode || 'unknown'}
+                    key={post.access_code || post.id || 'unknown'}
                     className="topic-card"
                     actions={[]}
                   >
                     <Card.Meta
                       title={
-                        post.accessCode ? (
+                        post.access_code ? (
                           <Link 
-                            to={`/help/${post.accessCode}`} 
+                            to={`/help/${post.access_code}`} 
                             onClick={() => handlePostClick(post)}
                           >
-                            {post.confessionText && post.confessionText.length > 50 
-                              ? `${post.confessionText.substring(0, 50)}...` 
-                              : post.confessionText || 'No text'}
+                            {post.content && post.content.length > 50 
+                              ? `${post.content.substring(0, 50)}...` 
+                              : post.content || 'No text'}
                           </Link>
                         ) : (
                           <span>
-                            {post.confessionText && post.confessionText.length > 50 
-                              ? `${post.confessionText.substring(0, 50)}...` 
-                              : post.confessionText || 'No text'}
+                            {post.content && post.content.length > 50 
+                              ? `${post.content.substring(0, 50)}...` 
+                              : post.content || 'No text'}
                           </span>
                         )
                       }
@@ -385,14 +362,14 @@ const HelpPage: React.FC = () => {
                         <>
                           <div style={{ marginBottom: 8 }}>
                             <span className="topic-category">
-                              {post.selectedTags && post.selectedTags.length > 0 ? post.selectedTags[0] : '其他'}
+                              {post.tags && post.tags.length > 0 ? post.tags[0] : '其他'}
                             </span>
                             <span className="topic-time" style={{ float: 'right' }}>
-                              {post.timestamp ? getTimeAgo(post.timestamp) : 'Unknown time'}
+                              {post.created_at ? getTimeAgo(post.created_at) : 'Unknown time'}
                             </span>
                           </div>
                           <div className="topic-tags">
-                            {post.selectedTags && post.selectedTags.slice(0, 3).map(tag => (
+                            {post.tags && post.tags.slice(0, 3).map(tag => (
                               <span key={tag} className="topic-tag">
                                 {tag}
                               </span>

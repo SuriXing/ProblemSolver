@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTypeSafeTranslation } from '../../utils/translationHelper';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -15,6 +15,11 @@ import styles from './ConfessionPage.module.css';
 import Layout from '../layout/Layout';
 // Import the confession image
 import confessionImage from '../../assets/images/confession.avif';
+import { Post } from '../../types/database.types';
+import { supabase } from '../../lib/supabase';
+import { DatabaseService } from '../../services/database.service';
+import { InsertTables } from '../../types/database.types';
+import { getCurrentUserId } from '../../utils/authHelpers';
 
 const ConfessionPage: React.FC = () => {
   const { t } = useTypeSafeTranslation();
@@ -27,6 +32,8 @@ const ConfessionPage: React.FC = () => {
   const [privacyOption, setPrivacyOption] = useState('public');
   const [emailNotification, setEmailNotification] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [confessions, setConfessions] = useState<Post[]>([]);
+  const [loading, setLoading] = useState(true);
   
   // Available tags based on current language
   const availableTags = {
@@ -66,29 +73,34 @@ const ConfessionPage: React.FC = () => {
     setIsSubmitting(true);
     
     try {
-      // Generate a unique user ID and access code
-      const userId = Math.floor(1000 + Math.random() * 9000).toString();
-      const accessCode = StorageSystem.generateAccessCode();
+      // Get the current user ID
+      const userId = await getCurrentUserId();
+      console.log('Current user ID:', userId);
       
-      // Create user data object
-      const userData: UserData = {
-        userId,
-        accessCode,
-        confessionText,
-        selectedTags,
-        privacyOption,
-        emailNotification,
-        email: emailNotification ? email : '',
-        timestamp: new Date().toISOString(),
-        replies: [],
-        views: 0 // Explicitly set views to 0
+      // Create post data
+      const postData: Omit<InsertTables<'posts'>, 'id' | 'created_at' | 'updated_at' | 'views'> = {
+        title: confessionText.substring(0, 50) + (confessionText.length > 50 ? '...' : ''),
+        content: confessionText,
+        purpose: 'sharing_experience',
+        tags: selectedTags,
+        is_anonymous: privacyOption === 'private',
+        status: 'open',
+        user_id: userId
       };
       
-      // Store the data in Supabase
-      await StorageSystem.storeData(accessCode, userData);
+      console.log('Submitting post data:', postData);
+      
+      // Store in Supabase
+      const newPost = await DatabaseService.createPost(postData);
+      
+      if (!newPost) {
+        throw new Error('Failed to create post');
+      }
+      
+      console.log('Post created successfully:', newPost);
       
       // Store the access code in localStorage for easy retrieval
-      localStorage.setItem('accessCode', accessCode);
+      localStorage.setItem('accessCode', newPost.access_code || '');
       
       // Store additional data like email if needed
       if (emailNotification && email) {
@@ -98,16 +110,44 @@ const ConfessionPage: React.FC = () => {
       // Navigate to success page
       navigate('/success');
       
-      // In the handleSubmit function, add this after saving the data
-      console.log('Saved confession data:', userData);
-      console.log('Current localStorage after save:', localStorage.getItem('problemSolver_userData'));
     } catch (error) {
       console.error('Error submitting confession:', error);
-      alert(t('errorSubmittingConfession'));
+      // Show more detailed error message
+      if (error instanceof Error) {
+        alert(`${t('errorSubmittingConfession')}: ${error.message}`);
+      } else {
+        alert(t('errorSubmittingConfession'));
+      }
     } finally {
       setIsSubmitting(false);
     }
   };
+  
+  useEffect(() => {
+    async function fetchConfessions() {
+      try {
+        setLoading(true);
+        const { data, error } = await supabase
+          .from('posts')
+          .select('*')
+          .eq('purpose', 'sharing_experience'); // Only get confession posts
+          
+        if (error) {
+          throw error;
+        }
+        
+        if (data) {
+          setConfessions(data as Post[]);
+        }
+      } catch (error) {
+        console.error('Error fetching confessions:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    
+    fetchConfessions();
+  }, []);
   
   return (
     <Layout>
