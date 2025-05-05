@@ -14,7 +14,7 @@ export const EnvDebug: React.FC = () => {
     Object.keys(import.meta.env).forEach(key => {
       if (key.startsWith('VITE_')) {
         // Mask sensitive values
-        const value = import.meta.env[key] || '';
+        const value = typeof import.meta.env[key] === 'string' ? import.meta.env[key] as string : '';
         viteEnvVars[key] = key.includes('KEY') ? 
           (value ? value.substring(0, 10) + '...' : 'not set') : 
           value;
