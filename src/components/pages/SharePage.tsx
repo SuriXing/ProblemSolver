@@ -41,7 +41,7 @@ const SharePage: React.FC = () => {
     if (accessCode) {
       // 将访问码保存到 sessionStorage 中
       sessionStorage.setItem('temp_access_code', accessCode);
-      // 重定向到 past-questions 页面
+      // 重定向到 past-questions 页面 (not using query parameter)
       navigate('/past-questions', { replace: true });
     } else {
       setError('No access code provided');

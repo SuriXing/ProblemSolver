@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useTypeSafeTranslation } from '../../utils/translationHelper';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCircleCheck, faEye, faCopy, faHome, faHandsHelping, faCircleInfo } from '@fortawesome/free-solid-svg-icons';
+import { faCircleCheck, faEye, faCopy, faHome, faHandsHelping, faCircleInfo, faShare } from '@fortawesome/free-solid-svg-icons';
 import StorageSystem, { UserData } from '../../utils/StorageSystem';
 import styles from './SuccessPage.module.css';
 
@@ -41,14 +41,20 @@ const SuccessPage: React.FC = () => {
   
   // View post - redirects to past-questions page
   const viewPost = () => {
-    window.location.href = `/past-questions?code=${accessCode}`;
+    // Store the access code in session storage
+    sessionStorage.setItem('temp_access_code', accessCode);
+    // Navigate to the past questions page without exposing the code in URL
+    window.location.href = '/past-questions';
   };
   
-  // 在创建分享链接时
-  const shareLink = `${window.location.origin}/share/${accessCode}`;
-  
-  // 或者，更安全的方式是创建一个一次性的分享令牌
-  // 这需要在后端添加额外的功能
+  // Share function to use the proper share page URL
+  const sharePost = () => {
+    const shareUrl = `${window.location.origin}/share/${accessCode}`;
+    navigator.clipboard.writeText(shareUrl).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
   
   return (
     <section className={styles.successView}>
@@ -124,6 +130,10 @@ const SuccessPage: React.FC = () => {
           <li>{t('checkWithCode')}</li>
         </ul>
       </div>
+      
+      <button className={styles.sharePostBtn} onClick={sharePost}>
+        <FontAwesomeIcon icon={faShare} /> <span>{t('shareMyPost')}</span>
+      </button>
     </section>
   );
 };
