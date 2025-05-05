@@ -4,7 +4,7 @@ export type Post = {
   user_id?: string;
   title: string;
   content: string;
-  purpose: 'seeking_help' | 'sharing_experience';  // Distinguishes between help requests and confessions
+  purpose: 'need_help' | 'offer_help';  // Distinguishes between help requests and confessions
   tags: string[];
   is_anonymous: boolean;
   created_at: string;
@@ -141,4 +141,7 @@ export interface Database {
 // Helper type for Supabase client
 export type Tables<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Row'];
 export type InsertTables<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Insert'];
-export type UpdateTables<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Update']; 
+export type UpdateTables<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Update'];
+
+// Possible update: Add a new type for the purpose field
+export type PostPurpose = 'need_help' | 'offer_help'; 

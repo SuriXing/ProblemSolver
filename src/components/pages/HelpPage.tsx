@@ -81,7 +81,7 @@ const HelpPage: React.FC = () => {
     async function fetchPosts() {
       try {
         setLoading(true);
-        const posts = await DatabaseService.getPostsByPurpose('seeking_help');
+        const posts = await DatabaseService.getPostsByPurpose('need_help');
         setHelpItems(posts);
       } catch (error) {
         console.error('Error fetching posts:', error);

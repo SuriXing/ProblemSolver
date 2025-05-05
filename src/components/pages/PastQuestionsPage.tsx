@@ -5,6 +5,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faExclamationTriangle, faSpinner } from '@fortawesome/free-solid-svg-icons';
 import StorageSystem, { UserData } from '../../utils/StorageSystem';
 import Layout from '../layout/Layout';
+import { supabase } from '../../lib/supabase';
 
 // Helper function to get time ago
 const getTimeAgo = (timestamp: string): string => {
@@ -42,6 +43,7 @@ const PastQuestionsPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [userData, setUserData] = useState<UserData | null>(null);
+  const [activeTab, setActiveTab] = useState<'all' | 'help_needed' | 'help_offered'>('all');
   
   // Clear access code when component unmounts (user navigates away)
   useEffect(() => {
@@ -152,6 +154,21 @@ const PastQuestionsPage: React.FC = () => {
   
   const loadDemo = () => {
     fetchQuestions('demo');
+  };
+  
+  const fetchPosts = async () => {
+    let query = supabase
+      .from('posts')
+      .select('*')
+      .order('created_at', { ascending: false });
+    
+    if (activeTab === 'help_needed') {
+      query = query.eq('purpose', 'need_help');
+    } else if (activeTab === 'help_offered') {
+      query = query.eq('purpose', 'offer_help');
+    }
+    
+    // ... 现有代码 ...
   };
   
   return (
@@ -280,6 +297,27 @@ const PastQuestionsPage: React.FC = () => {
             </div>
           </div>
         )}
+        
+        <div className="tabs">
+          <button 
+            className={`tab ${activeTab === 'all' ? 'active' : ''}`}
+            onClick={() => setActiveTab('all')}
+          >
+            {t('allPosts')}
+          </button>
+          <button 
+            className={`tab ${activeTab === 'help_needed' ? 'active' : ''}`}
+            onClick={() => setActiveTab('help_needed')}
+          >
+            {t('helpNeeded')}
+          </button>
+          <button 
+            className={`tab ${activeTab === 'help_offered' ? 'active' : ''}`}
+            onClick={() => setActiveTab('help_offered')}
+          >
+            {t('helpOffered')}
+          </button>
+        </div>
       </section>
     </Layout>
   );

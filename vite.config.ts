@@ -22,6 +22,6 @@ export default defineConfig(({ mode }) => {
     },
     
     // Conditionally set the base path based on environment
-    base: mode === 'production' || simulateGithubPages ? '/your-repo-name/' : '/',
+    base: mode === 'production' || simulateGithubPages ? '/Problem_solver/' : '/',
   };
 });

@@ -81,7 +81,7 @@ const ConfessionPage: React.FC = () => {
       const postData: Omit<InsertTables<'posts'>, 'id' | 'created_at' | 'updated_at' | 'views'> = {
         title: confessionText.substring(0, 50) + (confessionText.length > 50 ? '...' : ''),
         content: confessionText,
-        purpose: 'sharing_experience',
+        purpose: 'need_help' as any,
         tags: selectedTags,
         is_anonymous: privacyOption === 'private',
         status: 'open',
@@ -130,7 +130,7 @@ const ConfessionPage: React.FC = () => {
         const { data, error } = await supabase
           .from('posts')
           .select('*')
-          .eq('purpose', 'sharing_experience'); // Only get confession posts
+          .eq('purpose', 'need_help'); // 从 'sharing_experience' 改为 'need_help'
           
         if (error) {
           throw error;
