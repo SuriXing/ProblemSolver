@@ -22,6 +22,7 @@ import { Button } from 'antd';
 import { supabaseDirect } from './lib/supabaseDirectClient';
 import EnvDebug from './components/EnvDebug';
 import { SUPABASE_URL, SUPABASE_ANON_KEY, getEnv, IS_PROD } from './utils/environment';
+import DebugMenu from './components/DebugMenu';
 
 const App: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -316,42 +317,47 @@ REACT_APP_SUPABASE_ANON_KEY=your-anon-key`}
       {isLoading ? (
         <LoadingPage />
       ) : (
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/help" element={<HelpPage />} />
-          <Route path="/help/:accessCode" element={<HelpDetailPage />} />
-          <Route path="/help-success" element={<HelpSuccessPage />} />
-          <Route path="/confession" element={<ConfessionPage />} />
-          <Route path="/success" element={<SuccessPage />} />
-          <Route path="/past-questions" element={<PastQuestionsPage />} />
-          <Route path="/topics/:topicId" element={<TopicDetailPage />} />
-          <Route path="/share/:accessCode" element={<SharePage />} />
-          <Route path="*" element={<NotFoundPage />} />
-        </Routes>
+        <>
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/help" element={<HelpPage />} />
+            <Route path="/help/:accessCode" element={<HelpDetailPage />} />
+            <Route path="/help-success" element={<HelpSuccessPage />} />
+            <Route path="/confession" element={<ConfessionPage />} />
+            <Route path="/success" element={<SuccessPage />} />
+            <Route 
+              path="/past-questions" 
+              element={
+                <PastQuestionsPage 
+                  showDebug={!IS_PROD} 
+                  debugProps={{
+                    showTest,
+                    setShowTest,
+                    useDirectClient,
+                    setUseDirectClient,
+                    showEnvDebug,
+                    setShowEnvDebug
+                  }} 
+                />
+              } 
+            />
+            <Route path="/topics/:topicId" element={<TopicDetailPage />} />
+            <Route path="/share/:accessCode" element={<SharePage />} />
+            <Route path="*" element={<NotFoundPage />} />
+          </Routes>
+          
+          {showTest && <SupabaseTest />}
+          <DebugMenu 
+            showTest={showTest}
+            setShowTest={setShowTest}
+            useDirectClient={useDirectClient}
+            setUseDirectClient={setUseDirectClient}
+            showEnvDebug={showEnvDebug}
+            setShowEnvDebug={setShowEnvDebug}
+          />
+          {showEnvDebug && <EnvDebug />}
+        </>
       )}
-      {showTest && <SupabaseTest />}
-      <Button 
-        style={{ position: 'fixed', bottom: 20, right: 20 }}
-        onClick={() => setShowTest(!showTest)}
-      >
-        {showTest ? 'Hide' : 'Show'} Supabase Test
-      </Button>
-      <Button 
-        style={{ position: 'fixed', bottom: 60, right: 20 }}
-        onClick={() => {
-          setUseDirectClient(!useDirectClient);
-          window.location.reload();
-        }}
-      >
-        {useDirectClient ? 'Use Normal Client' : 'Use Direct Client'}
-      </Button>
-      {showEnvDebug && <EnvDebug />}
-      <Button 
-        style={{ position: 'fixed', bottom: 100, right: 20 }}
-        onClick={() => setShowEnvDebug(!showEnvDebug)}
-      >
-        {showEnvDebug ? 'Hide' : 'Show'} Env Debug
-      </Button>
     </Router>
   );
 };

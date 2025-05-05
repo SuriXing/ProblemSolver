@@ -6,6 +6,10 @@ import { faExclamationTriangle, faSpinner } from '@fortawesome/free-solid-svg-ic
 import StorageSystem, { UserData } from '../../utils/StorageSystem';
 import Layout from '../layout/Layout';
 import { supabase } from '../../lib/supabase';
+import { IS_PROD } from '../../utils/environment';
+import DebugMenu from '../DebugMenu';
+import { DatabaseService } from '../../services/database.service';
+import { Input, Button, Form, Card, Alert } from 'antd';
 
 // Helper function to get time ago
 const getTimeAgo = (timestamp: string): string => {
@@ -35,7 +39,21 @@ const getTimeAgo = (timestamp: string): string => {
   }
 };
 
-const PastQuestionsPage: React.FC = () => {
+// 添加属性接口
+interface PastQuestionsPageProps {
+  showDebug?: boolean;
+  debugProps?: {
+    showTest: boolean;
+    setShowTest: (show: boolean) => void;
+    useDirectClient: boolean;
+    setUseDirectClient: (use: boolean) => void;
+    showEnvDebug: boolean;
+    setShowEnvDebug: (show: boolean) => void;
+  };
+}
+
+// 修改组件定义以接受属性
+const PastQuestionsPage: React.FC<PastQuestionsPageProps> = ({ showDebug, debugProps }) => {
   const { t } = useTypeSafeTranslation();
   const location = useLocation();
   
@@ -61,95 +79,69 @@ const PastQuestionsPage: React.FC = () => {
     }
   }, [userData]);
   
-  const fetchQuestions = (code: string) => {
-    if (!code) {
-      setError(t('errorAccessCode'));
-      return;
+  // 在组件内部添加这个 useEffect
+  useEffect(() => {
+    // 检查会话存储中是否有临时访问码
+    const tempAccessCode = sessionStorage.getItem('temp_access_code');
+    if (tempAccessCode) {
+      // 使用这个访问码
+      setAccessCode(tempAccessCode);
+      fetchQuestions(tempAccessCode);
+      // 使用后清除
+      sessionStorage.removeItem('temp_access_code');
     }
+  }, []);
+  
+  const fetchQuestions = async (code: string) => {
+    if (!code) return;
     
-    // Reset state
-    setError(null);
+    console.log('Fetching post with access code:', code);
     setLoading(true);
+    setError(null);
     
-    // Simulate loading delay as in the original code
-    setTimeout(() => {
-      // Check if we have data in the storage system
-      if (StorageSystem.checkAccessCode(code)) {
-        const data = StorageSystem.retrieveData(code);
-        if (data) {
-          data.then((result: UserData | null) => {
-            if (result) {
-              setUserData(result);
-              setLoading(false);
-            }
-          });
-          return;
-        }
-      }
+    try {
+      // 直接调用 DatabaseService 获取帖子
+      const post = await DatabaseService.getPostByAccessCode(code);
+      console.log('Fetch result:', post);
       
-      // Handle special access codes
-      if (code === 'TSZT-VVSM-8F8Y') {
-        // Create sample data for this access code
-        const data: UserData = {
-          userId: "9524",
-          accessCode: "TSZT-VVSM-8F8Y",
-          confessionText: "我最近在社交场合感到焦虑，尤其是与新同事交流时。我担心自己说错话或给人留下不好的印象。有谁能给我一些建议如何克服这种社交焦虑？",
-          selectedTags: ["焦虑", "社交", "人际关系"],
-          privacyOption: "public",
+      if (post) {
+        // 将数据转换为旧格式以便向后兼容，添加所有必需的字段
+        const fetchedData: UserData = {
+          userId: post.user_id || 'anonymous',
+          confessionText: post.content,
+          selectedTags: post.tags || [],
+          timestamp: post.created_at,
+          // 添加所有必需的字段并设置默认值
+          accessCode: post.access_code || code,
+          privacyOption: post.is_anonymous ? 'private' : 'public',
           emailNotification: false,
-          email: "",
-          timestamp: new Date().toISOString(),
-          replies: [
-            {
-              replyText: "社交焦虑是非常常见的。试着从小的交流开始，比如先与一两个同事简短交谈。准备一些可以讨论的话题也会有帮助。记住，大多数人都在关注自己的表现，而不是评判你。深呼吸和正念练习也可以帮助缓解焦虑。",
-              replierName: "Helper #6378",
-              replyTime: "刚刚"
-            },
-            {
-              replyText: "作为一个曾经有社交焦虑的人，我理解你的感受。一个有用的技巧是提前练习对话，甚至可以在镜子前练习。另外，不要给自己太大压力，与人交流是需要时间和实践的技能。如果焦虑严重，也可以考虑寻求专业心理咨询。",
-              replierName: "Helper #2935",
-              replyTime: "5分钟前"
-            }
-          ],
-          views: 0
+          email: '',
+          views: 0,
+          // 添加类型注解给 reply 参数
+          replies: post.replies?.map((reply: any) => ({
+            replierName: reply.user_id || 'anonymous',
+            replyText: reply.content,
+            replyTime: reply.created_at
+          })) || []
         };
         
-        // Store data for future retrieval
-        StorageSystem.storeData(code, data);
-        setUserData(data);
-        setLoading(false);
-        return;
+        setUserData(fetchedData);
+      } else {
+        setError('我们找不到与此访问码关联的帖子。请检查您的访问码并重试。');
       }
-      
-      // Handle demo access code here if needed
-      // For now, show error for non-special codes
-      setError(t('errorAccessCode'));
+    } catch (error) {
+      console.error('Error fetching post:', error);
+      setError('获取数据时出错。请稍后再试。');
+    } finally {
       setLoading(false);
-    }, 1500);
+    }
   };
 
-  // Check for access code in URL or localStorage
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const codeFromUrl = params.get('code');
-    const codeFromStorage = localStorage.getItem('accessCode');
-    
-    if (codeFromUrl) {
-      setAccessCode(codeFromUrl);
-      fetchQuestions(codeFromUrl);
-    } else if (codeFromStorage) {
-      setAccessCode(codeFromStorage);
-      fetchQuestions(codeFromStorage);
+  // 替换为表单提交处理函数
+  const handleSubmit = (values: { accessCode: string }) => {
+    if (values.accessCode.trim()) {
+      fetchQuestions(values.accessCode.trim());
     }
-  }, [location]);
-  
-  const handleAccessCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setAccessCode(e.target.value);
-  };
-  
-  const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    fetchQuestions(accessCode);
   };
   
   const loadDemo = () => {
@@ -174,48 +166,43 @@ const PastQuestionsPage: React.FC = () => {
   return (
     <Layout>
       <section className="past-questions-view">
-        <div className="access-code-section">
-          <h2>{t('accessCodeTitle')}</h2>
-          <p>{t('accessCodeDesc')}</p>
-          
-          <form className="access-code-form" onSubmit={handleFormSubmit}>
-            <div className="form-group">
-              <label htmlFor="accessCodeInput">{t('enterAccessCode')}</label>
-              <div className="access-code-input-container">
-                <input
-                  id="accessCodeInput"
-                  className="access-code-input"
-                  type="text"
-                  value={accessCode}
-                  onChange={handleAccessCodeChange}
-                  placeholder="XXXX-XXXX-XXXX"
-                />
-              </div>
-            </div>
+        <h2>{t('pastQuestions')}</h2>
+        
+        {/* 添加访问码表单 */}
+        <Card title={t('enterAccessCode')} style={{ marginBottom: 20 }}>
+          <Form
+            onFinish={handleSubmit}
+            initialValues={{ accessCode: '' }}
+            layout="vertical"
+          >
+            <Form.Item
+              name="accessCode"
+              label={t('accessCode')}
+              rules={[{ required: true, message: t('pleaseEnterAccessCode') }]}
+            >
+              <Input 
+                placeholder={t('enterAccessCode')}
+                value={accessCode}
+                onChange={(e) => setAccessCode(e.target.value)}
+              />
+            </Form.Item>
             
-            <div>
-              <button type="submit" className="btn-primary">
-                {t('fetchButton')}
-              </button>
-              <button 
-                type="button" 
-                className="btn-primary" 
-                style={{ marginLeft: '10px', background: '#6b7280' }}
-                onClick={loadDemo}
-              >
-                {t('loadDemo')}
-              </button>
-            </div>
-          </form>
+            <Form.Item>
+              <Button type="primary" htmlType="submit" loading={loading}>
+                {t('getQuestion')}
+              </Button>
+            </Form.Item>
+          </Form>
           
-          {/* Error message */}
           {error && (
-            <div className="error-message">
-              <FontAwesomeIcon icon={faExclamationTriangle} />
-              {error}
-            </div>
+            <Alert 
+              message={error} 
+              type="error" 
+              showIcon 
+              style={{ marginTop: 16 }} 
+            />
           )}
-        </div>
+        </Card>
         
         {/* Loading indicator */}
         {loading && (
@@ -319,6 +306,42 @@ const PastQuestionsPage: React.FC = () => {
           </button>
         </div>
       </section>
+      {/* 使用传入的 showDebug 属性控制调试菜单的显示 */}
+      {showDebug && debugProps && (
+        <DebugMenu 
+          showTest={debugProps.showTest}
+          setShowTest={debugProps.setShowTest}
+          useDirectClient={debugProps.useDirectClient}
+          setUseDirectClient={debugProps.setUseDirectClient}
+          showEnvDebug={debugProps.showEnvDebug}
+          setShowEnvDebug={debugProps.setShowEnvDebug}
+        />
+      )}
+      {IS_PROD ? null : (
+        <div style={{ 
+          background: '#f8f9fa', 
+          padding: '10px', 
+          margin: '10px 0', 
+          border: '1px solid #ddd',
+          borderRadius: '4px' 
+        }}>
+          <h4>当前访问码: {accessCode || '无'}</h4>
+          <div>
+            <Input 
+              value={accessCode}
+              onChange={(e) => setAccessCode(e.target.value)}
+              placeholder="输入访问码测试"
+              style={{ width: 200, marginRight: 10 }}
+            />
+            <Button 
+              onClick={() => fetchQuestions(accessCode)}
+              loading={loading}
+            >
+              测试
+            </Button>
+          </div>
+        </div>
+      )}
     </Layout>
   );
 };

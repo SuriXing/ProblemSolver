@@ -44,6 +44,12 @@ const SuccessPage: React.FC = () => {
     window.location.href = `/past-questions?code=${accessCode}`;
   };
   
+  // 在创建分享链接时
+  const shareLink = `${window.location.origin}/share/${accessCode}`;
+  
+  // 或者，更安全的方式是创建一个一次性的分享令牌
+  // 这需要在后端添加额外的功能
+  
   return (
     <section className={styles.successView}>
       <div className={styles.successHeader}>
