@@ -56,6 +56,17 @@
           );
         }
       }(window.location))
+
+      // Redirect to the correct base path on GitHub Pages
+      (function() {
+        // Only run this on GitHub Pages
+        if (window.location.hostname === 'surixing.github.io') {
+          // If we're at the root of the GitHub Pages site, redirect to the /Problem_solver/ path
+          if (window.location.pathname === '/' || window.location.pathname === '/index.html') {
+            window.location.href = '/Problem_solver/';
+          }
+        }
+      })();
     </script>
   </body>
 </html>

@@ -72,9 +72,16 @@ export function getEnvironment() {
 
 // Example of handling base paths for GitHub Pages
 export const getBasePath = () => {
-  return process.env.NODE_ENV === 'production' 
-    ? '/Problem_solver' 
-    : '';
+  // Check if we're on GitHub Pages
+  if (window.location.hostname === 'surixing.github.io') {
+    return '/Problem_solver';
+  }
+  // Check if we're simulating GitHub Pages locally
+  if (process.env.SIMULATE_GH_PAGES === 'true' || safeGetEnv('SIMULATE_GH_PAGES') === 'true') {
+    return '/Problem_solver';
+  }
+  // Otherwise, use root path
+  return '';
 };
 
 // Use this when constructing URLs in your app 
