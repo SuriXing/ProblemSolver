@@ -42,6 +42,24 @@ export async function verifyDatabaseSchema(): Promise<{ success: boolean; issues
       issues.push('Replies table does not exist');
     }
     
+    // 检查 purpose 约束
+    const { data: purposeConstraint, error: purposeError } = await supabase.rpc('get_column_constraints', {
+      table_name: 'posts',
+      column_name: 'purpose'
+    });
+    
+    // 安全地检查约束内容
+    if (purposeError || 
+        !purposeConstraint || 
+        !Array.isArray(purposeConstraint) || 
+        !purposeConstraint.some(constraint => 
+          typeof constraint === 'string' && 
+          constraint.includes('need_help') && 
+          constraint.includes('offer_help')
+        )) {
+      issues.push('Posts table missing proper purpose constraint (should allow "need_help" and "offer_help")');
+    }
+    
     return {
       success: issues.length === 0,
       issues

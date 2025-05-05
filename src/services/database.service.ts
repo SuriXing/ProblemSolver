@@ -14,8 +14,8 @@ export const DatabaseService = {
    */
   async createPost(postData: Omit<InsertTables<'posts'>, 'id' | 'created_at' | 'updated_at' | 'views'>): Promise<Post | null> {
     try {
-      // Generate a unique access code
-      const access_code = generateAccessCode();
+      // 异步生成唯一的访问码
+      const access_code = await generateAccessCode();
       
       // Log the request for debugging
       console.log('Creating post with data:', { ...postData, access_code, views: 0 });
@@ -111,24 +111,19 @@ export const DatabaseService = {
   /**
    * Get all posts of a specific purpose (help requests or confessions)
    */
-  async getPostsByPurpose(purpose: 'seeking_help' | 'sharing_experience'): Promise<Post[]> {
-    try {
-      const { data, error } = await supabase
-        .from('posts')
-        .select('*')
-        .eq('purpose', purpose)
-        .order('created_at', { ascending: false });
+  async getPostsByPurpose(purpose: 'need_help' | 'offer_help'): Promise<Post[]> {
+    const { data, error } = await supabase
+      .from('posts')
+      .select('*')
+      .eq('purpose', purpose)
+      .order('created_at', { ascending: false });
       
-      if (error) {
-        console.error(`Error fetching ${purpose} posts:`, error);
-        return [];
-      }
-      
-      return data as Post[];
-    } catch (error) {
-      console.error(`Exception fetching ${purpose} posts:`, error);
-      return [];
+    if (error) {
+      console.error('Error fetching posts by purpose:', error);
+      throw error;
     }
+    
+    return data || [];
   },
   
   /**
@@ -252,13 +247,34 @@ export const DatabaseService = {
 /**
  * Generate a unique access code for posts
  */
-function generateAccessCode(): string {
+async function generateAccessCode(): Promise<string> {
   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   const length = 8;
   let result = '';
+  let isUnique = false;
   
-  for (let i = 0; i < length; i++) {
-    result += characters.charAt(Math.floor(Math.random() * characters.length));
+  // 最多尝试10次，以避免无限循环
+  for (let attempts = 0; attempts < 10 && !isUnique; attempts++) {
+    // 生成一个新的随机代码
+    result = '';
+    for (let i = 0; i < length; i++) {
+      result += characters.charAt(Math.floor(Math.random() * characters.length));
+    }
+    
+    // 检查这个代码是否已经存在
+    const { data, error } = await supabase
+      .from('posts')
+      .select('access_code')
+      .eq('access_code', result)
+      .maybeSingle();
+    
+    // 如果没有结果，表示这个代码是唯一的
+    isUnique = !data && !error;
+  }
+  
+  if (!isUnique) {
+    // 如果10次尝试后都没有找到唯一的代码，使用时间戳来确保唯一性
+    result = `${result}-${Date.now()}`;
   }
   
   return result;

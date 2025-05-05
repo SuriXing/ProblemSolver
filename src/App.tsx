@@ -312,7 +312,7 @@ REACT_APP_SUPABASE_ANON_KEY=your-anon-key`}
   const activeSupabase = useDirectClient ? supabaseDirect : supabase;
   
   return (
-    <Router basename={IS_PROD ? "/your-repo-name" : "/"}>
+    <Router basename={IS_PROD ? "/Problem_solver" : "/"}>
       {isLoading ? (
         <LoadingPage />
       ) : (
