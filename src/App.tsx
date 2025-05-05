@@ -21,6 +21,7 @@ import SupabaseTest from './components/SupabaseTest';
 import { Button } from 'antd';
 import { supabaseDirect } from './lib/supabaseDirectClient';
 import EnvDebug from './components/EnvDebug';
+import { SUPABASE_URL, SUPABASE_ANON_KEY, getEnv, IS_PROD } from './utils/environment';
 
 const App: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -94,24 +95,19 @@ const App: React.FC = () => {
     // Check if environment variables are loaded
     const checkEnvVars = () => {
       try {
-        let url = '';
-        let key = '';
-        
-        // For Vite
-        if (typeof import.meta !== 'undefined' && import.meta.env) {
-          url = import.meta.env.VITE_SUPABASE_URL;
-          key = import.meta.env.VITE_SUPABASE_ANON_KEY;
-        } 
-        // For Create React App
-        else if (typeof process !== 'undefined' && process.env) {
-          url = process.env.REACT_APP_SUPABASE_URL || '';
-          key = process.env.REACT_APP_SUPABASE_ANON_KEY || '';
-        }
+        // Use our centralized environment utilities instead of direct access
+        const url = SUPABASE_URL;
+        const key = SUPABASE_ANON_KEY;
         
         setEnvVarsLoaded(!!url && !!key);
         
         if (!url || !key) {
           console.warn('Environment variables not loaded correctly');
+          // If we're in a development environment, use our fallbacks
+          if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+            console.log('Using development fallbacks');
+            setEnvVarsLoaded(true); // Allow the app to proceed with fallbacks in development
+          }
         } else {
           console.log('Environment variables loaded successfully');
         }
@@ -316,7 +312,7 @@ REACT_APP_SUPABASE_ANON_KEY=your-anon-key`}
   const activeSupabase = useDirectClient ? supabaseDirect : supabase;
   
   return (
-    <Router>
+    <Router basename={IS_PROD ? "/your-repo-name" : "/"}>
       {isLoading ? (
         <LoadingPage />
       ) : (
