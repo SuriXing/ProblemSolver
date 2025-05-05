@@ -38,10 +38,10 @@ const DetailPage: React.FC = () => {
     if (accessCode) {
       fetchPost(accessCode);
     } else {
-      setError('No access code provided');
+      setError(t('noAccessCodeProvided'));
       setIsLoading(false);
     }
-  }, [accessCode]);
+  }, [accessCode, t]);
   
   const fetchPost = (code: string) => {
     setIsLoading(true);
@@ -49,7 +49,7 @@ const DetailPage: React.FC = () => {
     
     setTimeout(() => {
       if (!checkAccessCode(code)) {
-        setError('Invalid access code');
+        setError(t('invalidAccessCode'));
         setIsLoading(false);
         return;
       }
@@ -57,7 +57,7 @@ const DetailPage: React.FC = () => {
       const userData = retrievePostData(code);
       
       if (!userData) {
-        setError('Error retrieving post data');
+        setError(t('errorRetrievingData'));
         setIsLoading(false);
         return;
       }
@@ -78,7 +78,7 @@ const DetailPage: React.FC = () => {
       
       const newReply: Reply = {
         id: `reply-${Date.now()}`,
-        author: `Helper #${helperId.substring(0, 4)}`,
+        author: `${t('helper')} #${helperId.substring(0, 4)}`,
         content: replyText,
         createdAt: Date.now(),
         isHelper: true,
@@ -88,7 +88,7 @@ const DetailPage: React.FC = () => {
       // Get current post data
       const currentData = retrievePostData(accessCode);
       if (!currentData) {
-        throw new Error('Could not retrieve post data');
+        throw new Error(t('couldNotRetrieveData'));
       }
       
       // Add new reply
@@ -111,8 +111,8 @@ const DetailPage: React.FC = () => {
         setReplySuccess(false);
       }, 5000);
     } catch (error) {
-      console.error('Error submitting reply:', error);
-      setError('Failed to submit reply');
+      console.error(t('errorSubmittingReply'), error);
+      setError(t('failedToSubmitReply'));
     } finally {
       setIsSubmitting(false);
     }
@@ -171,7 +171,7 @@ const DetailPage: React.FC = () => {
             {post.imageUrl && (
               <img 
                 src={post.imageUrl} 
-                alt="Question visual" 
+                alt={t('questionVisual')}
                 className={styles.messageImage}
               />
             )}
@@ -179,7 +179,7 @@ const DetailPage: React.FC = () => {
             <div className={styles.messageHeader}>
               <FontAwesomeIcon icon={faUser} />
               <span className={styles.messageId}>
-                {t('anonymousUser')} #{post.userId?.substring(0, 4) || 'Unknown'}
+                {t('anonymousUser')} #{post.userId?.substring(0, 4) || t('unknown')}
               </span>
             </div>
             
@@ -212,18 +212,21 @@ const DetailPage: React.FC = () => {
               <div 
                 className={`${styles.reaction} ${selectedReaction === 'smile' ? styles.selected : ''}`}
                 onClick={() => handleReactionSelect('smile')}
+                title={t('reactionSmile')}
               >
                 <FontAwesomeIcon icon={faSmile} />
               </div>
               <div 
                 className={`${styles.reaction} ${selectedReaction === 'heart' ? styles.selected : ''}`}
                 onClick={() => handleReactionSelect('heart')}
+                title={t('reactionHeart')}
               >
                 <FontAwesomeIcon icon={faHeart} />
               </div>
               <div 
                 className={`${styles.reaction} ${selectedReaction === 'thumbsUp' ? styles.selected : ''}`}
                 onClick={() => handleReactionSelect('thumbsUp')}
+                title={t('reactionThumbsUp')}
               >
                 <FontAwesomeIcon icon={faThumbsUp} />
               </div>
