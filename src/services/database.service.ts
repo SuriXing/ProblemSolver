@@ -2,6 +2,7 @@ import { supabase } from '../lib/supabase';
 import { Post, Reply, InsertTables, Tables } from '../types/database.types';
 import { getSupabaseUrl } from '../utils/supabaseUtils';
 import { SUPABASE_URL } from '../utils/environment';
+import i18next from 'i18next';
 
 // Get the Supabase URL from environment variables
 const supabaseUrl = getSupabaseUrl();
@@ -19,7 +20,7 @@ export const DatabaseService = {
       const access_code = await generateAccessCode();
       
       // Log the request for debugging
-      console.log('Creating post with data:', { ...postData, access_code, views: 0 });
+      console.log(i18next.t('creatingPost'));
       
       // Make sure user_id is null if it's undefined (Supabase prefers explicit null)
       const finalPostData = {
@@ -30,12 +31,12 @@ export const DatabaseService = {
       };
       
       // Log the Supabase URL being used
-      console.log('Using Supabase URL:', supabaseUrl);
+      console.log(i18next.t('usingSupabaseUrl', { url: supabaseUrl }));
       
       // Try a simple query first to test connection
       const { error: testError } = await supabase.from('posts').select('count', { count: 'exact', head: true });
       if (testError) {
-        console.error('Test query failed:', testError);
+        console.error(i18next.t('testQueryFailed'));
         return null;
       }
       
@@ -47,7 +48,7 @@ export const DatabaseService = {
         .single();
       
       if (error) {
-        console.error('Error creating post:', error);
+        console.error(i18next.t('errorCreatingPost'));
         // Log more details about the error
         if (error.details) console.error('Error details:', error.details);
         if (error.hint) console.error('Error hint:', error.hint);
@@ -55,7 +56,7 @@ export const DatabaseService = {
         return null;
       }
       
-      console.log('Post created successfully:', data);
+      console.log(i18next.t('postCreatedSuccess'));
       return data as Post;
     } catch (error) {
       console.error('Exception creating post:', error);
@@ -91,20 +92,16 @@ export const DatabaseService = {
    */
   async getPostByAccessCode(accessCode: string): Promise<Post | null> {
     try {
-      console.log(`正在获取访问码为 "${accessCode}" 的帖子`);
+      console.log(i18next.t('fetchingPost', { accessCode }));
       
       // 首先检查访问码是否为空
       if (!accessCode || accessCode.trim() === '') {
-        console.log('访问码为空，返回 null');
+        console.log(i18next.t('emptyAccessCode'));
         return null;
       }
       
       // 添加额外的日志
-      console.log('查询前检查:', { 
-        supabaseUrl: SUPABASE_URL,
-        accessCode: accessCode, 
-        accessCodeLength: accessCode.length 
-      });
+      console.log(i18next.t('queryCheck'));
       
       // 查询帖子和回复
       const { data, error } = await supabase
@@ -118,13 +115,13 @@ export const DatabaseService = {
         console.error('获取帖子出错:', error);
         
         if (error.code === 'PGRST116') {
-          console.log('没有找到匹配的帖子');
+          console.log(i18next.t('noMatchingPost'));
         }
         
         return null;
       }
       
-      console.log('成功获取帖子:', data ? '找到' : '未找到');
+      console.log(i18next.t('postRetrieveStatus', { found: data ? true : false }));
       return data as Post;
     } catch (error) {
       console.error('获取帖子时发生异常:', error);

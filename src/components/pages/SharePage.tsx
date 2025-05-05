@@ -99,7 +99,7 @@ const SharePage: React.FC = () => {
       <Layout>
         <div style={{ textAlign: 'center', padding: '50px 0' }}>
           <Spin size="large" />
-          <p>Redirecting...</p>
+          <p>{t('redirecting')}</p>
         </div>
       </Layout>
     );
@@ -111,7 +111,7 @@ const SharePage: React.FC = () => {
         <div style={{ padding: '20px' }}>
           {error && <Alert message={error} type="error" showIcon />}
           <Button onClick={() => navigate('/past-questions')}>
-            Go to Past Questions
+            {t('goToPastQuestions')}
           </Button>
         </div>
       </Layout>

@@ -127,11 +127,11 @@ const PastQuestionsPage: React.FC<PastQuestionsPageProps> = ({ showDebug, debugP
         
         setUserData(fetchedData);
       } else {
-        setError('我们找不到与此访问码关联的帖子。请检查您的访问码并重试。');
+        setError(t('postNotFound'));
       }
     } catch (error) {
       console.error('Error fetching post:', error);
-      setError('获取数据时出错。请稍后再试。');
+      setError(t('fetchError'));
     } finally {
       setLoading(false);
     }
@@ -325,7 +325,7 @@ const PastQuestionsPage: React.FC<PastQuestionsPageProps> = ({ showDebug, debugP
           border: '1px solid #ddd',
           borderRadius: '4px' 
         }}>
-          <h4>当前访问码: {accessCode || '无'}</h4>
+          <h4>{t('currentAccessCode')}: {accessCode || t('none')}</h4>
           <div>
             <Input 
               value={accessCode}
