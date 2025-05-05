@@ -1,6 +1,7 @@
 import { supabase } from '../lib/supabase';
 import { Post, Reply, InsertTables, Tables } from '../types/database.types';
 import { getSupabaseUrl } from '../utils/supabaseUtils';
+import { SUPABASE_URL } from '../utils/environment';
 
 // Get the Supabase URL from environment variables
 const supabaseUrl = getSupabaseUrl();
@@ -90,20 +91,43 @@ export const DatabaseService = {
    */
   async getPostByAccessCode(accessCode: string): Promise<Post | null> {
     try {
-      const { data, error } = await supabase
-        .from('posts')
-        .select('*, replies(*)')
-        .eq('access_code', accessCode)
-        .single();
+      console.log(`正在获取访问码为 "${accessCode}" 的帖子`);
       
-      if (error) {
-        console.error('Error fetching post by access code:', error);
+      // 首先检查访问码是否为空
+      if (!accessCode || accessCode.trim() === '') {
+        console.log('访问码为空，返回 null');
         return null;
       }
       
+      // 添加额外的日志
+      console.log('查询前检查:', { 
+        supabaseUrl: SUPABASE_URL,
+        accessCode: accessCode, 
+        accessCodeLength: accessCode.length 
+      });
+      
+      // 查询帖子和回复
+      const { data, error } = await supabase
+        .from('posts')
+        .select('*, replies(*)')
+        .eq('access_code', accessCode.trim())
+        .single();
+      
+      // 记录结果
+      if (error) {
+        console.error('获取帖子出错:', error);
+        
+        if (error.code === 'PGRST116') {
+          console.log('没有找到匹配的帖子');
+        }
+        
+        return null;
+      }
+      
+      console.log('成功获取帖子:', data ? '找到' : '未找到');
       return data as Post;
     } catch (error) {
-      console.error('Exception fetching post by access code:', error);
+      console.error('获取帖子时发生异常:', error);
       return null;
     }
   },
@@ -241,6 +265,43 @@ export const DatabaseService = {
       console.error('Exception marking reply as solution:', error);
       return false;
     }
+  },
+  
+  /**
+   * Generate a test access code (for debugging purposes only)
+   */
+  async generateTestAccessCode(): Promise<string> {
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    const length = 8;
+    let result = '';
+    let isUnique = false;
+    
+    // 最多尝试10次，以避免无限循环
+    for (let attempts = 0; attempts < 10 && !isUnique; attempts++) {
+      // 生成一个新的随机代码
+      result = '';
+      for (let i = 0; i < length; i++) {
+        result += characters.charAt(Math.floor(Math.random() * characters.length));
+      }
+      
+      // 检查这个代码是否已经存在
+      const { data, error } = await supabase
+        .from('posts')
+        .select('access_code')
+        .eq('access_code', result)
+        .maybeSingle();
+      
+      // 如果没有结果，表示这个代码是唯一的
+      isUnique = !data && !error;
+    }
+    
+    if (!isUnique) {
+      // 如果10次尝试后都没有找到唯一的代码，使用时间戳来确保唯一性
+      result = `${result}-${Date.now()}`;
+    }
+    
+    console.log("Generated test access code:", result);
+    return result;
   }
 };
 

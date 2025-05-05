@@ -19,6 +19,9 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import StorageSystem from '../../utils/StorageSystem';
 import styles from './SharePage.module.css';
+import Layout from '../layout/Layout';
+import { Button, Alert, Spin } from 'antd';
+import { DatabaseService } from '../../services/database.service';
 
 const SharePage: React.FC = () => {
   const { t } = useTypeSafeTranslation();
@@ -36,30 +39,15 @@ const SharePage: React.FC = () => {
   
   useEffect(() => {
     if (accessCode) {
-      // Simulate fetching data
-      setTimeout(() => {
-        try {
-          if (StorageSystem.checkAccessCode(accessCode)) {
-            const data = StorageSystem.retrieveData(accessCode);
-            if (data) {
-              setUserData(data);
-            } else {
-              setError(t('errorRetrievingData'));
-            }
-          } else {
-            setError(t('invalidAccessCode'));
-          }
-        } catch (err) {
-          setError(t('somethingWentWrong'));
-        } finally {
-          setIsLoading(false);
-        }
-      }, 800);
+      // 将访问码保存到 sessionStorage 中
+      sessionStorage.setItem('temp_access_code', accessCode);
+      // 重定向到 past-questions 页面
+      navigate('/past-questions', { replace: true });
     } else {
-      setError(t('noAccessCodeProvided'));
+      setError('No access code provided');
       setIsLoading(false);
     }
-  }, [accessCode, t]);
+  }, [accessCode, navigate]);
   
   const copyToClipboard = () => {
     navigator.clipboard.writeText(shareUrl).then(() => {
@@ -108,148 +96,150 @@ const SharePage: React.FC = () => {
   
   if (isLoading) {
     return (
-      <div className={styles.loadingContainer}>
-        <div className={styles.spinner}></div>
-        <p>{t('loading')}</p>
-      </div>
+      <Layout>
+        <div style={{ textAlign: 'center', padding: '50px 0' }}>
+          <Spin size="large" />
+          <p>Redirecting...</p>
+        </div>
+      </Layout>
     );
   }
   
   if (error || !userData) {
     return (
-      <div className={styles.errorContainer}>
-        <FontAwesomeIcon icon={faExclamationCircle} size="3x" className={styles.errorIcon} />
-        <h2>{t('errorOccurred')}</h2>
-        <p>{error || t('unableToLoadData')}</p>
-        <div className={styles.errorActions}>
-          <Link to="/" className={styles.returnHomeBtn}>
-            <FontAwesomeIcon icon={faArrowLeft} /> {t('returnHome')}
-          </Link>
+      <Layout>
+        <div style={{ padding: '20px' }}>
+          {error && <Alert message={error} type="error" showIcon />}
+          <Button onClick={() => navigate('/past-questions')}>
+            Go to Past Questions
+          </Button>
         </div>
-      </div>
+      </Layout>
     );
   }
   
   return (
-    <div className={styles.sharePageContainer}>
-      <div className={styles.navigationBar}>
-        <Link to={`/past-questions?code=${accessCode}`} className={styles.backLink}>
-          <FontAwesomeIcon icon={faArrowLeft} />
-          <span>{t('backToQuestion')}</span>
-        </Link>
-      </div>
-      
-      <div className={styles.shareHeader}>
-        <div className={styles.shareIcon}>
-          <FontAwesomeIcon icon={faShare} />
-        </div>
-        <h1 className={styles.shareTitle}>{t('shareYourQuestion')}</h1>
-        <p className={styles.shareSubtitle}>{t('shareSubtitle')}</p>
-      </div>
-      
-      <div className={styles.shareContent}>
-        <div className={styles.shareCard}>
-          <h2 className={styles.shareCardTitle}>{t('shareLinkTitle')}</h2>
-          
-          <div className={styles.shareLinkContainer}>
-            <input 
-              type="text" 
-              value={shareUrl} 
-              readOnly 
-              className={styles.shareLinkInput}
-            />
-            <button 
-              className={styles.copyLinkBtn} 
-              onClick={copyToClipboard}
-            >
-              <FontAwesomeIcon icon={copied ? faCheck : faCopy} />
-              <span>{copied ? t('copied') : t('copy')}</span>
-            </button>
-          </div>
-          
-          <h3 className={styles.socialShareTitle}>{t('socialShareTitle')}</h3>
-          <div className={styles.socialButtons}>
-            <button 
-              className={`${styles.socialButton} ${styles.facebook}`}
-              onClick={() => shareToSocialMedia('facebook')}
-              aria-label="Share to Facebook"
-            >
-              <FontAwesomeIcon icon={faGlobe} />
-            </button>
-            <button 
-              className={`${styles.socialButton} ${styles.twitter}`}
-              onClick={() => shareToSocialMedia('twitter')}
-              aria-label="Share to Twitter"
-            >
-              <FontAwesomeIcon icon={faPaperPlane} />
-            </button>
-            <button 
-              className={`${styles.socialButton} ${styles.whatsapp}`}
-              onClick={() => shareToSocialMedia('whatsapp')}
-              aria-label="Share to WhatsApp"
-            >
-              <FontAwesomeIcon icon={faPhone} />
-            </button>
-            <button 
-              className={`${styles.socialButton} ${styles.wechat}`}
-              onClick={() => shareToSocialMedia('wechat')}
-              aria-label="Share to WeChat"
-            >
-              <FontAwesomeIcon icon={faComment} />
-            </button>
-            <button 
-              className={`${styles.socialButton} ${styles.weibo}`}
-              onClick={() => shareToSocialMedia('weibo')}
-              aria-label="Share to Weibo"
-            >
-              <FontAwesomeIcon icon={faCommentDots} />
-            </button>
-            <button 
-              className={`${styles.socialButton} ${styles.qq}`}
-              onClick={() => shareToSocialMedia('qq')}
-              aria-label="Share to QQ"
-            >
-              <FontAwesomeIcon icon={faShareAlt} />
-            </button>
-          </div>
-          
-          <div className={styles.otherShareOptions}>
-            <button 
-              className={styles.shareOptionBtn}
-              onClick={shareViaEmail}
-            >
-              <FontAwesomeIcon icon={faEnvelope} />
-              <span>{t('shareByEmail')}</span>
-            </button>
-            <button 
-              className={styles.shareOptionBtn}
-              onClick={copyToClipboard}
-            >
-              <FontAwesomeIcon icon={faLink} />
-              <span>{t('copyLink')}</span>
-            </button>
-          </div>
+    <Layout>
+      <div className={styles.sharePageContainer}>
+        <div className={styles.navigationBar}>
+          <Link to={`/past-questions?code=${accessCode}`} className={styles.backLink}>
+            <FontAwesomeIcon icon={faArrowLeft} />
+            <span>{t('backToQuestion')}</span>
+          </Link>
         </div>
         
-        <div className={styles.shareInfo}>
-          <h3 className={styles.shareInfoTitle}>{t('whoCanSee')}</h3>
-          <p className={styles.shareInfoText}>
-            {userData.privacyOption === 'public' 
-              ? t('publicQuestionInfo') 
-              : t('privateQuestionInfo')}
-          </p>
+        <div className={styles.shareHeader}>
+          <div className={styles.shareIcon}>
+            <FontAwesomeIcon icon={faShare} />
+          </div>
+          <h1 className={styles.shareTitle}>{t('shareYourQuestion')}</h1>
+          <p className={styles.shareSubtitle}>{t('shareSubtitle')}</p>
+        </div>
+        
+        <div className={styles.shareContent}>
+          <div className={styles.shareCard}>
+            <h2 className={styles.shareCardTitle}>{t('shareLinkTitle')}</h2>
+            
+            <div className={styles.shareLinkContainer}>
+              <input 
+                type="text" 
+                value={shareUrl} 
+                readOnly 
+                className={styles.shareLinkInput}
+              />
+              <button 
+                className={styles.copyLinkBtn} 
+                onClick={copyToClipboard}
+              >
+                <FontAwesomeIcon icon={copied ? faCheck : faCopy} />
+                <span>{copied ? t('copied') : t('copy')}</span>
+              </button>
+            </div>
+            
+            <h3 className={styles.socialShareTitle}>{t('socialShareTitle')}</h3>
+            <div className={styles.socialButtons}>
+              <button 
+                className={`${styles.socialButton} ${styles.facebook}`}
+                onClick={() => shareToSocialMedia('facebook')}
+                aria-label="Share to Facebook"
+              >
+                <FontAwesomeIcon icon={faGlobe} />
+              </button>
+              <button 
+                className={`${styles.socialButton} ${styles.twitter}`}
+                onClick={() => shareToSocialMedia('twitter')}
+                aria-label="Share to Twitter"
+              >
+                <FontAwesomeIcon icon={faPaperPlane} />
+              </button>
+              <button 
+                className={`${styles.socialButton} ${styles.whatsapp}`}
+                onClick={() => shareToSocialMedia('whatsapp')}
+                aria-label="Share to WhatsApp"
+              >
+                <FontAwesomeIcon icon={faPhone} />
+              </button>
+              <button 
+                className={`${styles.socialButton} ${styles.wechat}`}
+                onClick={() => shareToSocialMedia('wechat')}
+                aria-label="Share to WeChat"
+              >
+                <FontAwesomeIcon icon={faComment} />
+              </button>
+              <button 
+                className={`${styles.socialButton} ${styles.weibo}`}
+                onClick={() => shareToSocialMedia('weibo')}
+                aria-label="Share to Weibo"
+              >
+                <FontAwesomeIcon icon={faCommentDots} />
+              </button>
+              <button 
+                className={`${styles.socialButton} ${styles.qq}`}
+                onClick={() => shareToSocialMedia('qq')}
+                aria-label="Share to QQ"
+              >
+                <FontAwesomeIcon icon={faShareAlt} />
+              </button>
+            </div>
+            
+            <div className={styles.otherShareOptions}>
+              <button 
+                className={styles.shareOptionBtn}
+                onClick={shareViaEmail}
+              >
+                <FontAwesomeIcon icon={faEnvelope} />
+                <span>{t('shareByEmail')}</span>
+              </button>
+              <button 
+                className={styles.shareOptionBtn}
+                onClick={copyToClipboard}
+              >
+                <FontAwesomeIcon icon={faLink} />
+                <span>{t('copyLink')}</span>
+              </button>
+            </div>
+          </div>
           
-          <div className={styles.shareActions}>
-            <Link to="/" className={styles.returnHomeBtn}>
-              {t('returnHome')}
-            </Link>
-            <Link to="/help" className={styles.helpOthersBtn}>
-              {t('helpOthers')}
-            </Link>
+          <div className={styles.shareInfo}>
+            <h3 className={styles.shareInfoTitle}>{t('whoCanSee')}</h3>
+            <p className={styles.shareInfoText}>
+              {userData.privacyOption === 'public' 
+                ? t('publicQuestionInfo') 
+                : t('privateQuestionInfo')}
+            </p>
+            
+            <div className={styles.shareActions}>
+              <Link to="/" className={styles.returnHomeBtn}>
+                {t('returnHome')}
+              </Link>
+              <Link to="/help" className={styles.helpOthersBtn}>
+                {t('helpOthers')}
+              </Link>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </Layout>
   );
 };
 
