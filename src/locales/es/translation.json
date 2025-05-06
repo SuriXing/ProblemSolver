@@ -16,9 +16,9 @@
   "currentAccessCode": "Código de acceso actual",
   "none": "Ninguno",
   "shareMyPost": "Compartir mi publicación",
-  "postAnonymously": "Publicar anónimamente",
+  "postAnonymously": "Publicar de forma anónima",
   "keepPrivate": "Mantener privado",
-  "notifyViaEmail": "Notificarme por correo electrónico",
+  "notifyViaEmail": "Notificar por correo electrónico",
   "confessionRequired": "Por favor, ingresa tu confesión",
   "validEmailRequired": "Por favor, ingresa una dirección de correo electrónico válida",
   "submitReply": "Enviar respuesta",
@@ -52,7 +52,7 @@
   "errorGeneratingAccessCode": "Error al generar el código de acceso",
   "accessCodeCopied": "Código de acceso copiado",
   "copyFailed": "Error al copiar",
-  "footerText": "© 2024 Solucionador de Problemas. Todos los derechos reservados.",
+  "footerText": "© 2024 Solucionador de Problemas - Todos los derechos reservados",
   "views": "Vistas",
   "helpPageTitle": "Comunidad de ayuda",
   "helpPageDescription": "Explora preguntas de la comunidad o haz las tuyas propias.",
@@ -68,5 +68,12 @@
   "anonymous": "Anónimo",
   "user": "Usuario",
   "errorOccurred": "Ha ocurrido un error",
-  "unknownError": "Ha ocurrido un error desconocido"
-} 
+  "unknownError": "Ha ocurrido un error desconocido",
+  "tagDepression": "Depresión",
+  "tagRelationships": "Relaciones",
+  "tagFamily": "Familia",
+  "tagHealth": "Salud",
+  "tagSocial": "Social",
+  "tagOther": "Otro",
+  "customTagPlaceholder": "Agregar etiqueta personalizada..."
+}

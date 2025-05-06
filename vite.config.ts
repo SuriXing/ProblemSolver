@@ -41,8 +41,10 @@ export default defineConfig(({ mode }) => {
     build: {
       outDir: 'dist',
       sourcemap: true, // Enable for debugging
+      target: 'es2015',
       rollupOptions: {
         output: {
+          format: 'iife',
           manualChunks: {
             vendor: [
               'react', 

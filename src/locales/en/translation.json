@@ -83,7 +83,7 @@
   "errorGeneratingAccessCode": "Error generating access code",
   "accessCodeCopied": "Access code copied",
   "copyFailed": "Copy failed",
-  "footerText": "© 2023 Worry Solver. All rights reserved.",
+  "footerText": "© 2024 Problem Solver - All rights reserved",
   "homeTitle": "Worry Solver",
   "homeSubtitle": "Share your troubles, find solutions",
   "views": "Views",
@@ -102,5 +102,12 @@
   "user": "User",
   "errorOccurred": "An error occurred",
   "unknownError": "An unknown error occurred",
-  "removeTag": "Remove Tag"
+  "removeTag": "Remove Tag",
+  "tagDepression": "Depression",
+  "tagRelationships": "Relationships",
+  "tagFamily": "Family",
+  "tagHealth": "Health",
+  "tagSocial": "Social",
+  "tagOther": "Other",
+  "customTagPlaceholder": "Add custom tag..."
 }

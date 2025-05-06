@@ -16,10 +16,10 @@ const Footer: React.FC = () => {
           <Link to="/terms">{t('footer.terms')}</Link>
           <Link to="/contact">{t('footer.contact')}</Link>
         </div>
-        <p className="copyright">&copy; {currentYear} worry-solver</p>
+        <p className="copyright">{t('footerText')}</p>
       </div>
     </footer>
   );
 };
 
-export default Footer; 
+export default Footer;

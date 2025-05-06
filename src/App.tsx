@@ -1,9 +1,6 @@
-import React, { useState, useEffect, Suspense } from 'react';
-import { BrowserRouter, HashRouter, Routes, Route, useNavigate } from 'react-router-dom';
-import './utils/i18n'; // Import i18n setup
-import { useTranslation } from 'react-i18next';
-import { supabase } from './utils/supabaseClient';
-import { supabaseDirect } from './lib/supabaseDirectClient';
+import { useState, Suspense } from 'react';
+import { BrowserRouter, HashRouter, Routes, Route } from 'react-router-dom';
+import './i18n'; // Import i18n setup
 import { getBasePath, IS_PROD } from './utils/environment';
 import { TranslationProvider } from './context/TranslationContext';
 
