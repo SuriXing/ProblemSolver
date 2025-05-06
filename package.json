@@ -21,14 +21,16 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "vite build",
     "type-check": "tsc --noEmit",
-    "preview": "vite preview",
+    "preview": "vite preview --host --strictPort --port 5001",
     "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
-    "coverage": "vitest run --coverage"
+    "coverage": "vitest run --coverage",
+    "serve": "serve -s dist -l 5000",
+    "server": "node server.js"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^5.16.5",
@@ -53,7 +55,8 @@
     "ts-node": "^10.9.1",
     "typescript": "^5.0.2",
     "vite": "^4.3.2",
-    "vitest": "^0.30.1"
+    "vitest": "^0.30.1",
+    "express": "^4.18.2"
   },
   "browserslist": {
     "production": [

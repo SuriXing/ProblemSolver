@@ -100,5 +100,11 @@
   "tagHealth": "건강",
   "tagSocial": "사회",
   "tagOther": "기타",
-  "customTagPlaceholder": "사용자 지정 태그 추가..."
+  "customTagPlaceholder": "사용자 지정 태그 추가...",
+  "reactionSmile": "미소 반응",
+  "reactionHeart": "하트 반응",
+  "reactionThumbsUp": "좋아요 반응",
+  "confessionTitle": "고민 나누기",
+  "confessionSubtitle": "안전하게 고민을 나누고 따뜻한 답변을 받아보세요",
+  "confessionPlaceholder": "당신의 고민을 적어주세요..."
 }
