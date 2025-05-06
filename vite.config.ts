@@ -15,7 +15,7 @@ export default defineConfig(({ mode }) => {
         '@': path.resolve(__dirname, './src'),
       },
     },
-    base: '/Problem_Solver/',
+    base: '/Problem_solver/',
     server: {
       port: 3000,
       open: true,
