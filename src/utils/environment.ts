@@ -35,16 +35,7 @@ export function getEnv(key: string, fallback: string = ''): string {
 
 // Example of handling base paths for GitHub Pages
 export const getBasePath = () => {
-  // Check if we're on GitHub Pages
-  if (window.location.hostname === 'surixing.github.io') {
-    return '/Problem_solver';
-  }
-  // Check if we're simulating GitHub Pages locally
-  if (env.VITE_SIMULATE_GH_PAGES === 'true') {
-    return '/Problem_solver';
-  }
-  // Otherwise, use root path
-  return '';
+  return '/Problem_solver';
 };
 
 // Simplified environment access function
