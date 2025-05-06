@@ -1,73 +1,36 @@
 /**
- * Centralized environment variable access
+ * Centralized environment variable access for Vite
  */
 
-// Define a safe way to access environment variables
-function safeGetEnv(key: string, fallback: string = ''): string {
-  try {
-    // Try to access import.meta.env directly
-    // @ts-ignore - Ignore TypeScript errors for direct access
-    const viteValue = import.meta.env[key];
-    if (viteValue !== undefined && typeof viteValue === 'string') {
-      return viteValue;
-    }
-  } catch (e) {
-    // Silent catch - import.meta.env isn't available
-  }
-
-  try {
-    // Try to access process.env as fallback
-    if (typeof process !== 'undefined' && process.env && typeof process.env[key] === 'string') {
-      return process.env[key] as string;
-    }
-  } catch (e) {
-    // Silent catch - process.env isn't available
-  }
-
-  return fallback;
+// Define types for environment variables
+interface ImportMetaEnv {
+  VITE_SUPABASE_URL: string;
+  VITE_SUPABASE_ANON_KEY: string;
+  VITE_SUPABASE_SERVICE_ROLE_KEY?: string;
+  MODE: string;
+  DEV: boolean;
+  PROD: boolean;
+  SSR: boolean;
+  [key: string]: any;
 }
 
-// Supabase configuration with fallbacks
-export const SUPABASE_URL = 
-  safeGetEnv('VITE_SUPABASE_URL') || 
-  safeGetEnv('REACT_APP_SUPABASE_URL') || 
-  '';
+// Simplified access to environment variables
+const env: ImportMetaEnv = import.meta.env;
 
-export const SUPABASE_ANON_KEY = 
-  safeGetEnv('VITE_SUPABASE_ANON_KEY') || 
-  safeGetEnv('REACT_APP_SUPABASE_ANON_KEY') || 
-  '';
+// Supabase configuration
+export const SUPABASE_URL = env.VITE_SUPABASE_URL || '';
+export const SUPABASE_ANON_KEY = env.VITE_SUPABASE_ANON_KEY || '';
+export const SUPABASE_SERVICE_ROLE_KEY = env.VITE_SUPABASE_SERVICE_ROLE_KEY || '';
 
-export const SUPABASE_SERVICE_ROLE_KEY = 
-  safeGetEnv('VITE_SUPABASE_SERVICE_ROLE_KEY') || 
-  safeGetEnv('REACT_APP_SUPABASE_SERVICE_ROLE_KEY') || 
-  '';
-
-// Other environment variables
-export const NODE_ENV = 
-  safeGetEnv('MODE') || 
-  safeGetEnv('NODE_ENV') || 
-  'development';
-
-export const IS_PROD = 
-  safeGetEnv('PROD') === 'true' || 
-  NODE_ENV === 'production';
-
-export const IS_DEV = 
-  safeGetEnv('DEV') === 'true' || 
-  NODE_ENV === 'development';
+// Environment information
+export const NODE_ENV = env.MODE || 'development';
+export const IS_PROD = env.PROD || NODE_ENV === 'production';
+export const IS_DEV = env.DEV || NODE_ENV === 'development';
 
 // Function to safely access any env variable with fallback
 export function getEnv(key: string, fallback: string = ''): string {
-  return safeGetEnv(key, fallback);
-}
-
-// Simplified environment access function
-export function getEnvironment() {
-  return {
-    SUPABASE_URL,
-    SUPABASE_ANON_KEY
-  };
+  const fullKey = key.startsWith('VITE_') ? key : `VITE_${key}`;
+  return env[fullKey] || fallback;
 }
 
 // Example of handling base paths for GitHub Pages
@@ -77,11 +40,17 @@ export const getBasePath = () => {
     return '/Problem_solver';
   }
   // Check if we're simulating GitHub Pages locally
-  if (process.env.SIMULATE_GH_PAGES === 'true' || safeGetEnv('SIMULATE_GH_PAGES') === 'true') {
+  if (env.VITE_SIMULATE_GH_PAGES === 'true') {
     return '/Problem_solver';
   }
   // Otherwise, use root path
   return '';
 };
 
-// Use this when constructing URLs in your app 
+// Simplified environment access function
+export function getEnvironment() {
+  return {
+    SUPABASE_URL,
+    SUPABASE_ANON_KEY
+  };
+} 

@@ -1,0 +1,103 @@
+.success-page {
+  padding: 3rem 1rem;
+  text-align: center;
+}
+
+.success-content {
+  max-width: 600px;
+  margin: 0 auto;
+  background-color: white;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.success-title {
+  font-size: 2rem;
+  color: #4285F4;
+  margin-bottom: 1rem;
+}
+
+.success-message {
+  color: #666;
+  margin-bottom: 2rem;
+  font-size: 1.1rem;
+}
+
+.access-code-section {
+  margin: 2rem 0;
+  padding: 1.5rem;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  border: 1px dashed #ddd;
+}
+
+.access-code-section h2 {
+  font-size: 1.3rem;
+  color: #333;
+  margin-bottom: 1rem;
+}
+
+.access-code-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 1rem 0;
+}
+
+.access-code {
+  font-family: monospace;
+  background-color: white;
+  border: 1px solid #ddd;
+  padding: 0.8rem 1.5rem;
+  border-radius: 4px;
+  font-size: 1.2rem;
+  letter-spacing: 1px;
+  margin-right: 8px;
+}
+
+.copy-button {
+  background-color: #4285F4;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 0.5rem;
+  cursor: pointer;
+  height: 40px;
+  width: 40px;
+}
+
+.copy-button:hover {
+  background-color: #3367d6;
+}
+
+.copy-message {
+  color: #4caf50;
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.access-code-instruction {
+  color: #666;
+  font-size: 0.9rem;
+  margin-top: 1rem;
+}
+
+.action-buttons {
+  margin-top: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.btn-primary, .btn-secondary {
+  min-width: 200px;
+}
+
+@media (min-width: 768px) {
+  .action-buttons {
+    flex-direction: row;
+    justify-content: center;
+  }
+} 

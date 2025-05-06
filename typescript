@@ -1,0 +1,7 @@
+const { /* data is unused */ error } = await supabase.from('posts').select('count');
+
+// Or:
+const { /*data,*/ error } = await supabase.from('posts').select('count');
+
+// Or if you might need it later:
+const { _data, error } = await supabase.from('posts').select('count'); 
