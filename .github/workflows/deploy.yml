@@ -3,7 +3,7 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches:
-      - main  # 或者你的默认分支名称
+      - main
 
 permissions:
   contents: write
@@ -18,10 +18,10 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18'  # 或者你项目使用的 Node.js 版本
+          node-version: '18'
 
       - name: Install Dependencies
-        run: npm ci  # 使用 ci 而不是 install 以确保一致性
+        run: npm ci
 
       - name: Build
         run: npm run build
@@ -29,10 +29,9 @@ jobs:
           VITE_SIMULATE_GH_PAGES: true
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
-          VITE_API_URL: ${{ secrets.VITE_API_URL }}
 
       - name: Deploy
-        uses: JamesIves/github-pages-deploy-action@v4
+        uses: peaceiris/actions-gh-pages@v3
         with:
-          folder: dist  # Vite 构建输出目录
-          branch: gh-pages  # 部署到的分支 
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist 
