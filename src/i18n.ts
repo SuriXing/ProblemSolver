@@ -4,12 +4,20 @@ import HttpBackend from 'i18next-http-backend';
 import LanguageDetector from 'i18next-browser-languagedetector';
 import { getCurrentLanguage } from './utils/translationHelper';
 import type { InitOptions, Module } from 'i18next';
+import { DefaultTFuncReturn } from 'react-i18next';
 
 import enTranslation from './locales/en/translation.json';
 import zhCNTranslation from './locales/zh-CN/translation.json';
 import jaTranslation from './locales/ja/translation.json';
 import koTranslation from './locales/ko/translation.json';
 import esTranslation from './locales/es/translation.json';
+
+// Improve TypeScript support for the t function
+declare module 'react-i18next' {
+  interface CustomTypeOptions {
+    returnNull: false;
+  }
+}
 
 const backendOptions = {
   loadPath: '/locales/{{lng}}/{{ns}}.json',

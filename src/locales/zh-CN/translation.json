@@ -125,5 +125,10 @@
   "showAccessCodeTest": "显示访问码测试",
   "test": "测试",
   "generate": "生成",
-  "showEnvironmentVariables": "显示环境变量"
+  "showEnvironmentVariables": "显示环境变量",
+  "confessionTitle": "分享你的心事",
+  "confessionSubtitle": "在这里安全地倾诉烦恼，获得温暖回应",
+  "confessionPlaceholder": "在这里输入你的告白...",
+  "addTags": "添加标签",
+  "emailPlaceholder": "输入您的电子邮件"
 }

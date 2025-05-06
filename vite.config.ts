@@ -8,9 +8,6 @@ export default defineConfig(({ mode }) => {
   // Load env file based on mode
   const env = loadEnv(mode, process.cwd(), '');
   
-  console.log('Building in mode:', mode);
-  console.log('Base path:', env.VITE_SIMULATE_GH_PAGES === 'true' ? '/Problem_solver/' : '/');
-  
   return {
     plugins: [react()],
     resolve: {
@@ -18,7 +15,7 @@ export default defineConfig(({ mode }) => {
         '@': path.resolve(__dirname, './src'),
       },
     },
-    base: env.VITE_SIMULATE_GH_PAGES === 'true' ? '/Problem_solver/' : '/',
+    base: '/Problem_Solver/',
     server: {
       port: 3000,
       open: true,

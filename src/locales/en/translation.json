@@ -126,5 +126,10 @@
   "showAccessCodeTest": "Show Access Code Test",
   "test": "Test",
   "generate": "Generate",
-  "showEnvironmentVariables": "Show Environment Variables"
+  "showEnvironmentVariables": "Show Environment Variables",
+  "confessionTitle": "Share Your Concerns",
+  "confessionSubtitle": "Safely share your troubles and receive warm responses",
+  "confessionPlaceholder": "Type your confession here...",
+  "addTags": "Add Tags",
+  "emailPlaceholder": "Enter your email"
 }
