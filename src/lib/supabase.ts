@@ -39,9 +39,11 @@ if (IS_DEV) {
 }
 
 // Function to check connection status
-export async function checkSupabaseConnection() {
+export async function checkSupabaseConnection(): Promise<boolean> {
   try {
-    const { data, error } = await supabase.from('posts').select('count');
+    // Add eslint-disable for unused variable
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { data, error } = await supabase.from('posts').select('count', { count: 'exact', head: true });
     
     if (error && error.code === '42P01') {
       console.log('Posts table does not exist yet. This is expected if you need to run the setup scripts.');

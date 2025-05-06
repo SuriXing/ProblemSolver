@@ -1,7 +1,6 @@
 import { supabase } from '../lib/supabase';
-import { Post, Reply, InsertTables, Tables } from '../types/database.types';
+import { Post, Reply, InsertTables } from '../types/database.types';
 import { getSupabaseUrl } from '../utils/supabaseUtils';
-import { SUPABASE_URL } from '../utils/environment';
 import i18next from 'i18next';
 
 // Get the Supabase URL from environment variables

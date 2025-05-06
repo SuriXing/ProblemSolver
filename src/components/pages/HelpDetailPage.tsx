@@ -1,32 +1,23 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useTypeSafeTranslation } from '../../utils/translationHelper';
 import { 
   Card, 
   Button, 
-  Input, 
-  Form,
-  Avatar,
   Divider,
-  message
+  message,
 } from 'antd';
 import { 
   ArrowLeftOutlined,
-  UserOutlined,
   EyeOutlined,
-  MessageOutlined,
-  SendOutlined
+  MessageOutlined
 } from '@ant-design/icons';
-import StorageSystem, { UserData, Reply } from '../../utils/StorageSystem';
 import Layout from '../layout/Layout';
 import '../../styles/HelpDetailPage.css';
 import { DatabaseService } from '../../services/database.service';
 import { Post, Reply as DatabaseReply } from '../../types/database.types';
 import ReplyForm from '../ReplyForm';
-import { supabase } from '../../lib/supabase';
 import { getCurrentUserId } from '../../utils/authHelpers';
-
-const { TextArea } = Input;
 
 // Helper function to get time ago
 const getTimeAgo = (timestamp: string): string => {
@@ -56,71 +47,61 @@ const getTimeAgo = (timestamp: string): string => {
   }
 };
 
-// Generate a random helper ID
-const generateHelperId = (): string => {
-  return `Helper #${Math.floor(1000 + Math.random() * 9000)}`;
-};
-
 const HelpDetailPage: React.FC = () => {
   const { accessCode } = useParams<{ accessCode: string }>();
   const { t } = useTypeSafeTranslation();
-  const [form] = Form.useForm();
   
   const [post, setPost] = useState<Post | null>(null);
   const [replies, setReplies] = useState<DatabaseReply[]>([]);
   const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
-  const [helperId] = useState(generateHelperId());
   const [error, setError] = useState<string | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | undefined>(undefined);
   
-  // Fetch post and replies
-  const fetchPostAndReplies = async () => {
-    if (!accessCode) {
-      setError('Invalid access code');
-      setLoading(false);
-      return;
-    }
+  // Wrap fetchPostAndReplies in useCallback to fix dependency issue
+  const fetchPostAndReplies = useCallback(async () => {
+    if (!accessCode) return;
     
+    setLoading(true);
     try {
-      setLoading(true);
-      
-      // Get post by access code
+      // Fetch the post by access code
       const fetchedPost = await DatabaseService.getPostByAccessCode(accessCode);
       
-      if (!fetchedPost) {
+      if (fetchedPost) {
+        setPost(fetchedPost);
+        
+        // Increment view count
+        await DatabaseService.incrementViewCount(fetchedPost.id);
+        
+        // Fetch replies for this post
+        const fetchedReplies = await DatabaseService.getRepliesByPostId(fetchedPost.id);
+        setReplies(fetchedReplies || []);
+      } else {
+        console.error('Post not found with access code:', accessCode);
         setError('Post not found');
-        setLoading(false);
-        return;
       }
-      
-      setPost(fetchedPost);
-      
-      // Get replies for this post
-      const fetchedReplies = await DatabaseService.getRepliesByPostId(fetchedPost.id);
-      setReplies(fetchedReplies);
-      
-    } catch (error) {
-      console.error('Error fetching post details:', error);
-      setError('Failed to load post details');
+    } catch (err) {
+      console.error('Error fetching post and replies:', err);
+      setError('Error loading data');
     } finally {
       setLoading(false);
     }
-  };
+  }, [accessCode]); // Include accessCode in dependencies
   
   // Load post and replies on component mount
   useEffect(() => {
-    fetchPostAndReplies();
-  }, [accessCode]);
+    if (accessCode) {
+      fetchPostAndReplies();
+    }
+  }, [accessCode, fetchPostAndReplies]);
   
   // Get the current user ID when the component mounts
   useEffect(() => {
-    async function fetchCurrentUser() {
+    async function getUserId() {
       const userId = await getCurrentUserId();
       setCurrentUserId(userId);
     }
     
-    fetchCurrentUser();
+    getUserId();
   }, []);
   
   // Handle marking a reply as solution
@@ -128,61 +109,27 @@ const HelpDetailPage: React.FC = () => {
     if (!post) return;
     
     try {
-      const success = await DatabaseService.markReplyAsSolution(replyId, post.id);
+      const success = await DatabaseService.markReplyAsSolution(post.id, replyId);
       
       if (success) {
         // Refresh the replies to show the updated solution status
         fetchPostAndReplies();
+        message.success(t('markedAsSolution'));
+      } else {
+        message.error(t('errorMarkingSolution'));
       }
-    } catch (error) {
-      console.error('Error marking reply as solution:', error);
-    }
-  };
-  
-  // Handle reply submission
-  const handleSubmitReply = async (values: { replyText: string }) => {
-    if (!post || !values.replyText.trim()) return;
-    
-    setSubmitting(true);
-    
-    try {
-      // Get the current user ID
-      const userId = await getCurrentUserId();
-      
-      // Create new reply data (without id, it will be generated by the database)
-      const replyData = {
-        content: values.replyText,
-        is_anonymous: false,
-        is_solution: false,
-        user_id: userId,
-        post_id: post.id
-      };
-      
-      // Add reply to post in Supabase
-      await DatabaseService.createReply(replyData);
-      
-      // Get updated post data
-      const updatedPostData = await DatabaseService.getPostByAccessCode(accessCode!);
-      setPost(updatedPostData);
-      
-      // Reset form
-      form.resetFields();
-      
-      // Show success message
-      message.success(t('replySubmitted'));
-    } catch (error) {
-      console.error('Error submitting reply:', error);
-      message.error(t('errorSubmittingReply'));
-    } finally {
-      setSubmitting(false);
+    } catch (err) {
+      console.error('Error marking reply as solution:', err);
+      message.error(t('errorMarkingSolution'));
     }
   };
   
   if (loading) {
     return (
       <Layout>
-        <div className="container help-detail-container">
-          <div className="loading-message">{t('loading')}</div>
+        <div className="loading-container">
+          <div className="loading-spinner"></div>
+          <p>{t('loadingPost')}</p>
         </div>
       </Layout>
     );
@@ -191,10 +138,11 @@ const HelpDetailPage: React.FC = () => {
   if (!post) {
     return (
       <Layout>
-        <div className="container help-detail-container">
-          <div className="error-message">{t('postNotFound')}</div>
-          <Link to="/help" className="back-link">
-            <ArrowLeftOutlined /> {t('backToHelp')}
+        <div className="error-container">
+          <h2>{t('postNotFound')}</h2>
+          <p>{t('postNotFoundDesc')}</p>
+          <Link to="/help">
+            <Button type="primary">{t('backToHelp')}</Button>
           </Link>
         </div>
       </Layout>
@@ -203,19 +151,20 @@ const HelpDetailPage: React.FC = () => {
   
   return (
     <Layout>
-      <div className="container help-detail-container">
-        <div className="page-header">
-          <Link to="/help" className="back-link">
-            <ArrowLeftOutlined /> {t('backToHelp')}
-          </Link>
-        </div>
-        
-        <Card className="post-detail-card">
+      <div className="help-detail-container">
+        <Card className="post-card">
           <div className="post-header">
+            <Link to="/help" className="back-link">
+              <ArrowLeftOutlined /> {t('backToHelp')}
+            </Link>
+            
             <div className="post-meta">
-              <span className="post-id">ID: {post.user_id}</span>
+              <span className="post-author">
+                {post.is_anonymous ? t('anonymous') : t('user')}
+              </span>
               <span className="post-time">{getTimeAgo(post.created_at)}</span>
             </div>
+            
             <div className="post-stats">
               <span className="post-stat">
                 <EyeOutlined /> {post.views || 0} {t('views')}

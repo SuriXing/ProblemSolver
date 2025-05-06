@@ -129,24 +129,29 @@ function retrieveData(accessCode: string): Promise<UserData | null> {
 }
 
 /**
- * Check if an access code exists in storage
+ * Check if an access code exists in the database
  * @param accessCode - Access code to check
- * @returns True if access code exists
+ * @returns Promise that resolves to true if access code exists
  */
-function checkAccessCode(accessCode: string): boolean {
+export async function checkAccessCode(accessCode: string): Promise<boolean> {
   console.log('StorageSystem: Checking if access code exists:', accessCode);
   try {
     if (!accessCode) return false;
     
-    // Get current data as an array
-    const storage = getLocalData();
+    const { data, error } = await supabase
+      .from('posts')
+      .select('*')
+      .eq('access_code', accessCode)
+      .single();
     
-    // Check if any post has the matching access code
-    const exists = storage.some(post => post.accessCode === accessCode);
+    console.log('StorageSystem: Access code', accessCode, data ? 'exists' : 'does not exist');
     
-    console.log('StorageSystem: Access code', accessCode, exists ? 'exists' : 'does not exist');
+    if (error) {
+      console.error('StorageSystem: Error checking access code:', error);
+      return false;
+    }
     
-    return exists;
+    return !!data;
   } catch (error) {
     console.error('StorageSystem: Error checking access code:', error);
     return false;
@@ -155,29 +160,25 @@ function checkAccessCode(accessCode: string): boolean {
 
 /**
  * Generate a unique access code
- * @returns Unique access code
+ * @returns Promise that resolves to a unique access code
  */
-function generateAccessCode(): string {
-  // Format: XXXX-XXXX-XXXX where X is alphanumeric
-  const segments = 3;
-  const segmentLength = 4;
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // Removed confusing characters like I, 1, O, 0
-  
+export async function generateAccessCode(): Promise<string> {
+  // Generate a random 6-character code
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  const length = 6;
   let code = '';
-  for (let s = 0; s < segments; s++) {
-    if (s > 0) code += '-';
-    for (let i = 0; i < segmentLength; i++) {
-      const randomIndex = Math.floor(Math.random() * chars.length);
-      code += chars[randomIndex];
-    }
+  
+  for (let i = 0; i < length; i++) {
+    const randomIndex = Math.floor(Math.random() * characters.length);
+    code += characters.charAt(randomIndex);
   }
   
   // Make sure it's unique
-  if (checkAccessCode(code)) {
+  const exists = await checkAccessCode(code);
+  if (exists) {
     return generateAccessCode(); // Try again if exists
   }
   
-  console.log('StorageSystem: Generated new access code:', code);
   return code;
 }
 
