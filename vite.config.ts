@@ -44,14 +44,7 @@ export default defineConfig(({ mode }) => {
       target: 'es2015',
       rollupOptions: {
         output: {
-          format: 'iife',
-          manualChunks: {
-            vendor: [
-              'react', 
-              'react-dom', 
-              'react-router-dom'
-            ]
-          }
+          inlineDynamicImports: false,
         }
       }
     }

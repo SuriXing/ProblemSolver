@@ -6,8 +6,50 @@
 }
 
 .main-content {
-  flex: 1 0 auto;
-  padding-bottom: 2rem;
+  flex: 1;
+  padding-top: 64px; /* 考虑 header 的高度 */
+  transition: opacity 0.3s ease-out;
+}
+
+.footer {
+  padding: 1.5rem 0;
+  background-color: #f8f9fa;
+  text-align: center;
+  font-size: 0.9rem;
+  color: #6c757d;
+  transition: opacity 0.3s ease-out;
+}
+
+.footer .container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+/* 语言切换时的过渡效果 */
+.layout.language-changing .main-content,
+.layout.language-changing .footer {
+  opacity: 0.5;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .main-content {
+    padding-top: 56px;
+  }
+}
+
+/* 暗色主题支持 */
+@media (prefers-color-scheme: dark) {
+  .footer {
+    background-color: #1a1a1a;
+    color: #999;
+  }
+  
+  .layout.language-changing .main-content,
+  .layout.language-changing .footer {
+    opacity: 0.3;
+  }
 }
 
 /* Add this to your Layout.css file */
@@ -42,4 +84,4 @@
 
 .language-option:hover {
   background-color: #f1f1f1;
-} 
+}

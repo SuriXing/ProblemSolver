@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
-import { Button, Drawer, Input, Space, Typography, message, Collapse, Switch, Divider, Card } from 'antd';
-import { BugOutlined, KeyOutlined, CopyOutlined, DatabaseOutlined, TranslationOutlined } from '@ant-design/icons';
+import { useTranslation } from 'react-i18next';
+import { useTranslationContext } from '../context/TranslationContext';
+import { Card, Switch, Space, Button, Divider, Typography, Drawer, message, Collapse, Input } from 'antd';
+import { BugOutlined } from '@ant-design/icons';
 import { DatabaseService } from '../services/database.service';
 import { Post } from '../types/database.types';
-import { useTypeSafeTranslation } from '../utils/translationHelper';
-import { useTranslation } from 'react-i18next';
+import type { TranslationKey } from '../types/i18n.types';
+import './DebugMenu.css';
 
 const { Panel } = Collapse;
-const { Text, Title } = Typography;
+const { Title, Text } = Typography;
 
 interface DebugMenuProps {
   showTest: boolean;
@@ -26,7 +28,8 @@ const DebugMenu: React.FC<DebugMenuProps> = ({
   showEnvDebug,
   setShowEnvDebug
 }) => {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
+  const { changeLanguage, currentLanguage } = useTranslationContext();
   const [visible, setVisible] = useState(false);
   const [testAccessCode, setTestAccessCode] = useState('');
   const [foundPost, setFoundPost] = useState<Post | null>(null);
@@ -35,10 +38,13 @@ const DebugMenu: React.FC<DebugMenuProps> = ({
   const [showTranslationDebug, setShowTranslationDebug] = useState(false);
   const [showAccessCodeTest, setShowAccessCodeTest] = useState(false);
 
+  // Helper function to ensure string type from translation
+  const translate = (key: TranslationKey): string => String(t(key));
+
   // Test access code
   const testAccessCodeHandler = async () => {
     if (!testAccessCode.trim()) {
-      message.error(t('pleaseEnterAccessCode'));
+      message.error(translate('pleaseEnterAccessCode'));
       return;
     }
 
@@ -47,13 +53,13 @@ const DebugMenu: React.FC<DebugMenuProps> = ({
       const post = await DatabaseService.getPostByAccessCode(testAccessCode);
       setFoundPost(post);
       if (post) {
-        message.success(t('postFoundSuccess'));
+        message.success(translate('postFoundSuccess'));
       } else {
-        message.error(t('postNotFound'));
+        message.error(translate('postNotFound'));
       }
     } catch (error) {
-      message.error(t('errorTestingAccessCode'));
-      console.error(t('errorTestingAccessCode'), error);
+      message.error(translate('errorTestingAccessCode'));
+      console.error(translate('errorTestingAccessCode'), error);
     } finally {
       setLoading(false);
     }
@@ -65,9 +71,9 @@ const DebugMenu: React.FC<DebugMenuProps> = ({
     try {
       const accessCode = await DatabaseService.generateTestAccessCode();
       setTestAccessCode(accessCode);
-      message.success(t('newAccessCodeGenerated'));
+      message.success(translate('newAccessCodeGenerated'));
     } catch (error) {
-      message.error(t('errorGeneratingAccessCode'));
+      message.error(translate('errorGeneratingAccessCode'));
     } finally {
       setLoading(false);
     }
@@ -76,8 +82,8 @@ const DebugMenu: React.FC<DebugMenuProps> = ({
   // Copy access code to clipboard
   const copyAccessCode = () => {
     navigator.clipboard.writeText(testAccessCode)
-      .then(() => message.success(t('accessCodeCopied')))
-      .catch(() => message.error(t('copyFailed')));
+      .then(() => message.success(translate('accessCodeCopied')))
+      .catch(() => message.error(translate('copyFailed')));
   };
 
   // Show environment variables info
@@ -101,11 +107,6 @@ const DebugMenu: React.FC<DebugMenuProps> = ({
   const onClose = () => {
     setVisible(false);
   };
-  
-  const changeLanguage = (lng: string) => {
-    i18n.changeLanguage(lng);
-    localStorage.setItem('language', lng);
-  };
 
   return (
     <>
@@ -123,11 +124,11 @@ const DebugMenu: React.FC<DebugMenuProps> = ({
         }}
         onClick={showDrawer}
       >
-        Debug
+        {translate('debug')}
       </Button>
 
       <Drawer
-        title="Debug Menu"
+        title={translate('debugMenu')}
         placement="right"
         onClose={onClose}
         open={visible}
@@ -139,14 +140,14 @@ const DebugMenu: React.FC<DebugMenuProps> = ({
         }
       >
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          <Card title="Database Options">
+          <Card title={translate('systemSettings')}>
             <div style={{ marginBottom: 16 }}>
               <Switch 
                 checked={showTest} 
                 onChange={setShowTest} 
                 style={{ marginRight: 8 }} 
               />
-              <Text>Show Database Test</Text>
+              <Text>{translate('showSupabaseTest')}</Text>
             </div>
             
             <div style={{ marginBottom: 16 }}>
@@ -155,7 +156,7 @@ const DebugMenu: React.FC<DebugMenuProps> = ({
                 onChange={setUseDirectClient} 
                 style={{ marginRight: 8 }} 
               />
-              <Text>Use Direct Client</Text>
+              <Text>{translate('useDirectClient')}</Text>
             </div>
             
             <div style={{ marginBottom: 16 }}>
@@ -164,41 +165,40 @@ const DebugMenu: React.FC<DebugMenuProps> = ({
                 onChange={setShowAccessCodeTest} 
                 style={{ marginRight: 8 }} 
               />
-              <Text>Access Code Testing</Text>
+              <Text>{translate('accessCodeTesting')}</Text>
             </div>
             
             {showAccessCodeTest && (
               <div style={{ marginTop: 16 }}>
                 <Divider />
-                <Title level={5}>Access Code Test</Title>
+                <Title level={5}>{translate('accessCodeTest')}</Title>
                 <Space direction="vertical" style={{ width: '100%' }}>
                   <Input
-                    placeholder="Enter access code"
+                    placeholder={translate('enterAccessCode')}
                     value={testAccessCode}
-                    onChange={(e) => setTestAccessCode(e.target.value)}
-                    prefix={<KeyOutlined />}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTestAccessCode(e.target.value)}
                     allowClear
                   />
                   
                   <Space>
                     <Button onClick={testAccessCodeHandler} loading={loading}>
-                      Test
+                      {translate('test')}
                     </Button>
-                    <Button icon={<CopyOutlined />} onClick={copyAccessCode}>
-                      Copy
+                    <Button onClick={copyAccessCode}>
+                      {translate('copy')}
                     </Button>
-                    <Button icon={<DatabaseOutlined />} onClick={generateNewAccessCode}>
-                      Generate
+                    <Button onClick={generateNewAccessCode}>
+                      {translate('generate')}
                     </Button>
                   </Space>
                 
                   {foundPost && (
                     <div style={{ marginTop: 16 }}>
-                      <Title level={5}>Found Post:</Title>
-                      <Text>ID: {foundPost.id}</Text><br />
-                      <Text>Title: {foundPost.title}</Text><br />
-                      <Text>Type: {foundPost.purpose}</Text><br />
-                      <Text>Access Code: {foundPost.access_code}</Text>
+                      <Title level={5}>{translate('foundPost')}</Title>
+                      <Text>{translate('id')}: {foundPost.id}</Text><br />
+                      <Text>{translate('title')}: {foundPost.title}</Text><br />
+                      <Text>{translate('type')}: {foundPost.purpose}</Text><br />
+                      <Text>{translate('accessCode')}: {foundPost.access_code}</Text>
                     </div>
                   )}
                 </Space>
@@ -206,14 +206,14 @@ const DebugMenu: React.FC<DebugMenuProps> = ({
             )}
           </Card>
           
-          <Card title="Environment Options">
+          <Card title={translate('environmentOptions')}>
             <div style={{ marginBottom: 16 }}>
               <Switch 
                 checked={showEnvDebug} 
                 onChange={setShowEnvDebug} 
                 style={{ marginRight: 8 }} 
               />
-              <Text>Show Environment Debug</Text>
+              <Text>{translate('showEnvDebug')}</Text>
             </div>
             
             <div style={{ marginBottom: 16 }}>
@@ -222,26 +222,26 @@ const DebugMenu: React.FC<DebugMenuProps> = ({
                 onChange={setShowEnvironment} 
                 style={{ marginRight: 8 }} 
               />
-              <Text>Show Environment Variables</Text>
+              <Text>{translate('showEnvironmentVariables')}</Text>
             </div>
             
             {renderEnvironmentInfo()}
           </Card>
           
-          <Card title="Translation Options">
+          <Card title={translate('translationSettings')}>
             <div style={{ marginBottom: 16 }}>
               <Switch 
                 checked={showTranslationDebug} 
                 onChange={setShowTranslationDebug} 
                 style={{ marginRight: 8 }} 
               />
-              <Text>Show Translation Debug</Text>
+              <Text>{translate('showTranslationDebug')}</Text>
             </div>
             
             <Divider />
             
             <div>
-              <Title level={5}>Current Language: {i18n.language}</Title>
+              <Title level={5}>{translate('currentLanguage')}: {currentLanguage}</Title>
               <Space wrap>
                 <Button onClick={() => changeLanguage('en')}>English</Button>
                 <Button onClick={() => changeLanguage('zh-CN')}>中文</Button>
@@ -254,15 +254,15 @@ const DebugMenu: React.FC<DebugMenuProps> = ({
             {showTranslationDebug && (
               <div style={{ marginTop: 16 }}>
                 <Divider />
-                <Title level={5}>Translation Keys</Title>
+                <Title level={5}>{translate('translationKeys')}</Title>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <Text>helpPageTitle: {t('helpPageTitle')}</Text>
-                  <Text>allPosts: {t('allPosts')}</Text>
-                  <Text>newest: {t('newest')}</Text>
-                  <Text>popular: {t('popular')}</Text>
-                  <Text>solved: {t('solved')}</Text>
-                  <Text>backToHome: {t('backToHome')}</Text>
-                  <Text>createNewPost: {t('createNewPost')}</Text>
+                  <Text>{translate('helpPageTitle')}: {translate('helpPageTitle')}</Text>
+                  <Text>{translate('allPosts')}: {translate('allPosts')}</Text>
+                  <Text>{translate('newest')}: {translate('newest')}</Text>
+                  <Text>{translate('popular')}: {translate('popular')}</Text>
+                  <Text>{translate('solved')}: {translate('solved')}</Text>
+                  <Text>{translate('backToHome')}: {translate('backToHome')}</Text>
+                  <Text>{translate('createNewPost')}: {translate('createNewPost')}</Text>
                 </div>
               </div>
             )}
@@ -273,4 +273,4 @@ const DebugMenu: React.FC<DebugMenuProps> = ({
   );
 };
 
-export default DebugMenu; 
+export default DebugMenu;

@@ -7,19 +7,8 @@ import Layout from '../layout/Layout';
 import '../../styles/HomePage.css';
 
 const HomePage: React.FC = () => {
-  const { t } = useTypeSafeTranslation();
+  const { t, i18n } = useTypeSafeTranslation();
   const navigate = useNavigate();
-  
-  // Safe translation function
-  const safeT = (key: string, fallback: string) => {
-    try {
-      const translation = t(key);
-      return translation === key ? fallback : translation;
-    } catch (e) {
-      console.warn(`Translation error for key '${key}':`, e);
-      return fallback;
-    }
-  };
   
   const [visibleElements, setVisibleElements] = useState({
     heroTitle: false,
@@ -28,19 +17,10 @@ const HomePage: React.FC = () => {
     optionCard2: false
   });
 
-  // Add animation when component mounts
+  // Update page title when language changes
   useEffect(() => {
-    // Stagger the animations
-    const timers = [
-      setTimeout(() => setVisibleElements(prev => ({ ...prev, heroTitle: true })), 100),
-      setTimeout(() => setVisibleElements(prev => ({ ...prev, heroSubtitle: true })), 300),
-      setTimeout(() => setVisibleElements(prev => ({ ...prev, optionCard1: true })), 500),
-      setTimeout(() => setVisibleElements(prev => ({ ...prev, optionCard2: true })), 700)
-    ];
-
-    // Cleanup timers
-    return () => timers.forEach(timer => clearTimeout(timer));
-  }, []);
+    document.title = t('siteName');
+  }, [t, i18n.language]);
 
   // Navigation handlers
   const handleConfessClick = () => {
@@ -51,7 +31,17 @@ const HomePage: React.FC = () => {
     navigate('/help');
   };
 
-  console.log('HomePage rendering');
+  // Add animation when component mounts
+  useEffect(() => {
+    const timers = [
+      setTimeout(() => setVisibleElements(prev => ({ ...prev, heroTitle: true })), 100),
+      setTimeout(() => setVisibleElements(prev => ({ ...prev, heroSubtitle: true })), 300),
+      setTimeout(() => setVisibleElements(prev => ({ ...prev, optionCard1: true })), 500),
+      setTimeout(() => setVisibleElements(prev => ({ ...prev, optionCard2: true })), 700)
+    ];
+
+    return () => timers.forEach(timer => clearTimeout(timer));
+  }, []);
 
   return (
     <Layout>
@@ -59,10 +49,10 @@ const HomePage: React.FC = () => {
         <div className="hero">
           <div className="container">
             <h1 className={`hero-title ${visibleElements.heroTitle ? 'visible' : ''}`}>
-              {safeT('homeTitle', 'Worry Solver')}
+              {t('homeTitle')}
             </h1>
             <p className={`hero-subtitle ${visibleElements.heroSubtitle ? 'visible' : ''}`}>
-              {safeT('homeSubtitle', 'Share your troubles, find solutions')}
+              {t('homeSubtitle')}
             </p>
           </div>
         </div>
@@ -78,10 +68,10 @@ const HomePage: React.FC = () => {
               <div className="option-icon" style={{ backgroundColor: '#f0f5ff' }}>
                 <FontAwesomeIcon icon={faComments} style={{ color: '#4285F4' }} />
               </div>
-              <h2>{safeT('confessCardTitle', 'Share Your Worries')}</h2>
-              <p>{safeT('confessCardDesc', 'Share your troubles safely and receive warm responses')}</p>
+              <h2>{t('confessCardTitle')}</h2>
+              <p>{t('confessCardDesc')}</p>
               <div className="btn-primary">
-                {safeT('startConfession', 'Start Sharing')}
+                {t('startConfession')}
               </div>
             </div>
 
@@ -94,21 +84,17 @@ const HomePage: React.FC = () => {
               <div className="option-icon" style={{ backgroundColor: '#f0f5ff' }}>
                 <FontAwesomeIcon icon={faHandsHelping} style={{ color: '#4285F4' }} />
               </div>
-              <h2>{safeT('helpCardTitle', 'Help Others')}</h2>
-              <p>{safeT('helpCardDesc', 'Provide guidance to those in need')}</p>
+              <h2>{t('helpCardTitle')}</h2>
+              <p>{t('helpCardDesc')}</p>
               <div className="btn-primary" style={{ backgroundColor: 'white', color: '#4285F4', border: '1px solid #4285F4' }}>
-                {safeT('goHelp', 'Offer Help')}
+                {t('goHelp')}
               </div>
             </div>
           </div>
-        </div>
-        
-        <div className="footer text-center" style={{ color: '#999', fontSize: '0.9rem', marginTop: '2rem' }}>
-          {safeT('footerText', '© 2023 Worry Solver. All rights reserved.')}
         </div>
       </section>
     </Layout>
   );
 };
 
-export default HomePage; 
+export default HomePage;

@@ -7,7 +7,7 @@ import './assets/css/global.css';
 import './assets/css/index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
-import './utils/i18n'; // Import i18n configuration
+import './i18n'; // Import i18n configuration
 
 // Create React root
 const root = ReactDOM.createRoot(
