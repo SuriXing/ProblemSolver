@@ -1,5 +1,5 @@
 import { useState, Suspense, useEffect } from 'react';
-import { BrowserRouter, HashRouter, Routes, Route } from 'react-router-dom';
+import { HashRouter, Routes, Route } from 'react-router-dom';
 import './i18n'; // Import i18n setup
 import { getBasePath, IS_PROD } from './utils/environment';
 import { TranslationProvider } from './context/TranslationContext';
@@ -23,11 +23,6 @@ import SupabaseTest from './components/SupabaseTest';
 import EnvDebug from './components/EnvDebug';
 import DebugMenu from './components/DebugMenu';
 
-// Choose router based on environment
-const Router = window.location.hostname === 'surixing.github.io' 
-  ? HashRouter 
-  : BrowserRouter;
-
 const AppWrapper = () => {
   const { i18n } = useTranslation();
 
@@ -44,12 +39,11 @@ function App() {
   const [showTest, setShowTest] = useState(false);
   const [useDirectClient, setUseDirectClient] = useState(false);
   const [showEnvDebug, setShowEnvDebug] = useState(false);
-  const basePath = getBasePath();
 
   return (
     <TranslationProvider>
       <Suspense fallback={<div>Loading...</div>}>
-        <Router basename={basePath}>
+        <HashRouter>
           {isLoading ? (
             <LoadingPage />
           ) : (
@@ -81,7 +75,6 @@ function App() {
                 <Route path="/share/:accessCode" element={<SharePage />} />
                 <Route path="*" element={<NotFoundPage />} />
               </Routes>
-              
               {showTest && <SupabaseTest />}
               {!IS_PROD && (
                 <DebugMenu 
@@ -96,7 +89,7 @@ function App() {
               {showEnvDebug && <EnvDebug />}
             </>
           )}
-        </Router>
+        </HashRouter>
       </Suspense>
     </TranslationProvider>
   );
