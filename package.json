@@ -30,22 +30,32 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
+    "build:local": "cross-env PUBLIC_URL=. react-scripts build",
+    "build:gh-pages": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
+    "dev": "vite",
+    "dev:pages": "cross-env SIMULATE_GH_PAGES=true vite",
+    "preview": "cross-env REACT_APP_ENV=production react-scripts start",
+    "vite:preview": "npx -p vite vite preview",
+    "vite:build": "vite build",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d build",
     "cy:open": "cypress open",
     "cy:run": "cypress run",
     "cy:run:chrome": "cypress run --browser chrome",
     "cy:run:firefox": "cypress run --browser firefox",
     "cy:run:edge": "cypress run --browser edge",
-    "test:browsers": "npm run cy:run:chrome && npm run cy:run:firefox && npm run cy:run:edge",
-    "dev:pages": "cross-env SIMULATE_GH_PAGES=true vite",
-    "predeploy": "npm run build",
-    "deploy": "gh-pages -d build"
+    "test:browsers": "npm run cy:run:chrome && npm run cy:run:firefox && npm run cy:run:edge"
   },
   "devDependencies": {
+    "@vitejs/plugin-react": "^4.4.1",
+    "cross-env": "^7.0.3",
     "cypress": "^12.5.1",
     "cypress-visual-regression": "^5.3.0",
-    "ts-node": "^10.9.1"
+    "serve": "^14.2.4",
+    "ts-node": "^10.9.1",
+    "vite": "^6.3.5"
   },
   "eslintConfig": {
     "extends": [

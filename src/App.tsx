@@ -314,8 +314,11 @@ REACT_APP_SUPABASE_ANON_KEY=your-anon-key`}
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const activeSupabase = useDirectClient ? supabaseDirect : supabase;
   
+  // Get the base URL from the environment or default to '/'
+  const basename = process.env.PUBLIC_URL || '/';
+  
   return (
-    <Router basename={getBasePath()}>
+    <Router basename={basename}>
       {isLoading ? (
         <LoadingPage />
       ) : (
