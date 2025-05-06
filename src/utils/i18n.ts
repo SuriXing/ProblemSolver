@@ -775,4 +775,8 @@ if (typeof window !== 'undefined') {
     };
 }
 
+// Log the imported translations to verify they contain the expected keys
+console.log('EN Translation footerText:', translations['en'].footer.about);
+console.log('ZH-CN Translation footerText:', translations['zh-CN'].footer.about);
+
 export default i18next;

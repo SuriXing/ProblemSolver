@@ -4,12 +4,23 @@ import { useTypeSafeTranslation } from '../../utils/translationHelper';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHandsHelping, faComments } from '@fortawesome/free-solid-svg-icons';
 import Layout from '../layout/Layout';
-// Import our new CSS file
 import '../../styles/HomePage.css';
 
 const HomePage: React.FC = () => {
   const { t } = useTypeSafeTranslation();
   const navigate = useNavigate();
+  
+  // Safe translation function
+  const safeT = (key: string, fallback: string) => {
+    try {
+      const translation = t(key);
+      return translation === key ? fallback : translation;
+    } catch (e) {
+      console.warn(`Translation error for key '${key}':`, e);
+      return fallback;
+    }
+  };
+  
   const [visibleElements, setVisibleElements] = useState({
     heroTitle: false,
     heroSubtitle: false,
@@ -40,16 +51,18 @@ const HomePage: React.FC = () => {
     navigate('/help');
   };
 
+  console.log('HomePage rendering');
+
   return (
     <Layout>
       <section id="home-view">
         <div className="hero">
           <div className="container">
             <h1 className={`hero-title ${visibleElements.heroTitle ? 'visible' : ''}`}>
-              {t('homeTitle')}
+              {safeT('homeTitle', 'Worry Solver')}
             </h1>
             <p className={`hero-subtitle ${visibleElements.heroSubtitle ? 'visible' : ''}`}>
-              {t('homeSubtitle')}
+              {safeT('homeSubtitle', 'Share your troubles, find solutions')}
             </p>
           </div>
         </div>
@@ -65,10 +78,10 @@ const HomePage: React.FC = () => {
               <div className="option-icon" style={{ backgroundColor: '#f0f5ff' }}>
                 <FontAwesomeIcon icon={faComments} style={{ color: '#4285F4' }} />
               </div>
-              <h2>{t('confessCardTitle')}</h2>
-              <p>{t('confessCardDesc')}</p>
+              <h2>{safeT('confessCardTitle', 'Share Your Worries')}</h2>
+              <p>{safeT('confessCardDesc', 'Share your troubles safely and receive warm responses')}</p>
               <div className="btn-primary">
-                {t('startConfession')}
+                {safeT('startConfession', 'Start Sharing')}
               </div>
             </div>
 
@@ -81,17 +94,17 @@ const HomePage: React.FC = () => {
               <div className="option-icon" style={{ backgroundColor: '#f0f5ff' }}>
                 <FontAwesomeIcon icon={faHandsHelping} style={{ color: '#4285F4' }} />
               </div>
-              <h2>{t('helpCardTitle')}</h2>
-              <p>{t('helpCardDesc')}</p>
+              <h2>{safeT('helpCardTitle', 'Help Others')}</h2>
+              <p>{safeT('helpCardDesc', 'Provide guidance to those in need')}</p>
               <div className="btn-primary" style={{ backgroundColor: 'white', color: '#4285F4', border: '1px solid #4285F4' }}>
-                {t('goHelp')}
+                {safeT('goHelp', 'Offer Help')}
               </div>
             </div>
           </div>
         </div>
         
         <div className="footer text-center" style={{ color: '#999', fontSize: '0.9rem', marginTop: '2rem' }}>
-          {t('footerText')}
+          {safeT('footerText', '© 2023 Worry Solver. All rights reserved.')}
         </div>
       </section>
     </Layout>

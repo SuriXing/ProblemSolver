@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { Button, Drawer, Input, Space, Typography, message, Collapse, Switch, Divider } from 'antd';
-import { BugOutlined, KeyOutlined, CopyOutlined, DatabaseOutlined } from '@ant-design/icons';
+import { Button, Drawer, Input, Space, Typography, message, Collapse, Switch, Divider, Card } from 'antd';
+import { BugOutlined, KeyOutlined, CopyOutlined, DatabaseOutlined, TranslationOutlined } from '@ant-design/icons';
 import { DatabaseService } from '../services/database.service';
 import { Post } from '../types/database.types';
 import { useTypeSafeTranslation } from '../utils/translationHelper';
+import { useTranslation } from 'react-i18next';
 
 const { Panel } = Collapse;
 const { Text, Title } = Typography;
@@ -25,14 +26,16 @@ const DebugMenu: React.FC<DebugMenuProps> = ({
   showEnvDebug,
   setShowEnvDebug
 }) => {
-  const { t } = useTypeSafeTranslation();
+  const { t, i18n } = useTranslation();
   const [visible, setVisible] = useState(false);
   const [testAccessCode, setTestAccessCode] = useState('');
   const [foundPost, setFoundPost] = useState<Post | null>(null);
   const [loading, setLoading] = useState(false);
   const [showEnvironment, setShowEnvironment] = useState(false);
+  const [showTranslationDebug, setShowTranslationDebug] = useState(false);
+  const [showAccessCodeTest, setShowAccessCodeTest] = useState(false);
 
-  // 测试访问码
+  // Test access code
   const testAccessCodeHandler = async () => {
     if (!testAccessCode.trim()) {
       message.error(t('pleaseEnterAccessCode'));
@@ -56,7 +59,7 @@ const DebugMenu: React.FC<DebugMenuProps> = ({
     }
   };
 
-  // 生成新的访问码（仅供测试）
+  // Generate new access code (for testing only)
   const generateNewAccessCode = async () => {
     setLoading(true);
     try {
@@ -70,25 +73,38 @@ const DebugMenu: React.FC<DebugMenuProps> = ({
     }
   };
 
-  // 复制访问码到剪贴板
+  // Copy access code to clipboard
   const copyAccessCode = () => {
     navigator.clipboard.writeText(testAccessCode)
       .then(() => message.success(t('accessCodeCopied')))
       .catch(() => message.error(t('copyFailed')));
   };
 
-  // 显示环境变量信息
+  // Show environment variables info
   const renderEnvironmentInfo = () => {
     if (!showEnvironment) return null;
     
     return (
       <div style={{ marginTop: 16 }}>
-        <Title level={5}>环境信息</Title>
+        <Title level={5}>Environment Info</Title>
         <Text>NODE_ENV: {process.env.NODE_ENV}</Text><br />
         <Text>BASE_URL: {window.location.origin}</Text><br />
-        <Text>API Endpoint: {import.meta.env.VITE_SUPABASE_URL ? '已设置' : '未设置'}</Text>
+        <Text>API Endpoint: {import.meta.env.VITE_SUPABASE_URL ? 'Set' : 'Not Set'}</Text>
       </div>
     );
+  };
+
+  const showDrawer = () => {
+    setVisible(true);
+  };
+  
+  const onClose = () => {
+    setVisible(false);
+  };
+  
+  const changeLanguage = (lng: string) => {
+    i18n.changeLanguage(lng);
+    localStorage.setItem('language', lng);
   };
 
   return (
@@ -98,113 +114,160 @@ const DebugMenu: React.FC<DebugMenuProps> = ({
         icon={<BugOutlined />}
         style={{
           position: 'fixed',
-          left: 0,
-          top: '30%',
+          bottom: 20,
+          right: 20,
           zIndex: 1000,
-          borderTopLeftRadius: 0,
-          borderBottomLeftRadius: 0,
-          paddingLeft: 8,
-          paddingRight: 8,
-          width: 40,
-          height: 120,
-          writingMode: 'vertical-rl',
-          textOrientation: 'mixed',
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'center',
+          justifyContent: 'center'
         }}
-        onClick={() => setVisible(true)}
+        onClick={showDrawer}
       >
-        {t('debug')}
+        Debug
       </Button>
 
       <Drawer
-        title={t('debugMenu')}
-        placement="left"
-        onClose={() => setVisible(false)}
-        visible={visible}
-        width={320}
+        title="Debug Menu"
+        placement="right"
+        onClose={onClose}
+        open={visible}
+        width="50%"
+        extra={
+          <Space>
+            <Button onClick={onClose}>Close</Button>
+          </Space>
+        }
       >
-        <Collapse defaultActiveKey={['1']}>
-          <Panel header={t('accessCodeTest')} key="1">
-            <Space direction="vertical" style={{ width: '100%' }}>
-              <Input
-                placeholder={t('enterAccessCode')}
-                value={testAccessCode}
-                onChange={(e) => setTestAccessCode(e.target.value)}
-                prefix={<KeyOutlined />}
-                allowClear
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          <Card title="Database Options">
+            <div style={{ marginBottom: 16 }}>
+              <Switch 
+                checked={showTest} 
+                onChange={setShowTest} 
+                style={{ marginRight: 8 }} 
               />
-              
-              <Space>
-                <Button onClick={testAccessCodeHandler} loading={loading}>
-                  {t('testAccessCode')}
-                </Button>
-                <Button icon={<CopyOutlined />} onClick={copyAccessCode}>
-                  {t('copy')}
-                </Button>
-                <Button icon={<DatabaseOutlined />} onClick={generateNewAccessCode}>
-                  {t('generateNewCode')}
-                </Button>
+              <Text>Show Database Test</Text>
+            </div>
+            
+            <div style={{ marginBottom: 16 }}>
+              <Switch 
+                checked={useDirectClient} 
+                onChange={setUseDirectClient} 
+                style={{ marginRight: 8 }} 
+              />
+              <Text>Use Direct Client</Text>
+            </div>
+            
+            <div style={{ marginBottom: 16 }}>
+              <Switch 
+                checked={showAccessCodeTest} 
+                onChange={setShowAccessCodeTest} 
+                style={{ marginRight: 8 }} 
+              />
+              <Text>Access Code Testing</Text>
+            </div>
+            
+            {showAccessCodeTest && (
+              <div style={{ marginTop: 16 }}>
+                <Divider />
+                <Title level={5}>Access Code Test</Title>
+                <Space direction="vertical" style={{ width: '100%' }}>
+                  <Input
+                    placeholder="Enter access code"
+                    value={testAccessCode}
+                    onChange={(e) => setTestAccessCode(e.target.value)}
+                    prefix={<KeyOutlined />}
+                    allowClear
+                  />
+                  
+                  <Space>
+                    <Button onClick={testAccessCodeHandler} loading={loading}>
+                      Test
+                    </Button>
+                    <Button icon={<CopyOutlined />} onClick={copyAccessCode}>
+                      Copy
+                    </Button>
+                    <Button icon={<DatabaseOutlined />} onClick={generateNewAccessCode}>
+                      Generate
+                    </Button>
+                  </Space>
+                
+                  {foundPost && (
+                    <div style={{ marginTop: 16 }}>
+                      <Title level={5}>Found Post:</Title>
+                      <Text>ID: {foundPost.id}</Text><br />
+                      <Text>Title: {foundPost.title}</Text><br />
+                      <Text>Type: {foundPost.purpose}</Text><br />
+                      <Text>Access Code: {foundPost.access_code}</Text>
+                    </div>
+                  )}
+                </Space>
+              </div>
+            )}
+          </Card>
+          
+          <Card title="Environment Options">
+            <div style={{ marginBottom: 16 }}>
+              <Switch 
+                checked={showEnvDebug} 
+                onChange={setShowEnvDebug} 
+                style={{ marginRight: 8 }} 
+              />
+              <Text>Show Environment Debug</Text>
+            </div>
+            
+            <div style={{ marginBottom: 16 }}>
+              <Switch 
+                checked={showEnvironment} 
+                onChange={setShowEnvironment} 
+                style={{ marginRight: 8 }} 
+              />
+              <Text>Show Environment Variables</Text>
+            </div>
+            
+            {renderEnvironmentInfo()}
+          </Card>
+          
+          <Card title="Translation Options">
+            <div style={{ marginBottom: 16 }}>
+              <Switch 
+                checked={showTranslationDebug} 
+                onChange={setShowTranslationDebug} 
+                style={{ marginRight: 8 }} 
+              />
+              <Text>Show Translation Debug</Text>
+            </div>
+            
+            <Divider />
+            
+            <div>
+              <Title level={5}>Current Language: {i18n.language}</Title>
+              <Space wrap>
+                <Button onClick={() => changeLanguage('en')}>English</Button>
+                <Button onClick={() => changeLanguage('zh-CN')}>中文</Button>
+                <Button onClick={() => changeLanguage('ja')}>日本語</Button>
+                <Button onClick={() => changeLanguage('ko')}>한국어</Button>
+                <Button onClick={() => changeLanguage('es')}>Español</Button>
               </Space>
-
-              {foundPost && (
-                <div style={{ marginTop: 16 }}>
-                  <Title level={5}>{t('foundPost')}:</Title>
-                  <Text>{t('id')}: {foundPost.id}</Text><br />
-                  <Text>{t('title')}: {foundPost.title}</Text><br />
-                  <Text>{t('type')}: {foundPost.purpose}</Text><br />
-                  <Text>{t('accessCode')}: {foundPost.access_code}</Text>
+            </div>
+            
+            {showTranslationDebug && (
+              <div style={{ marginTop: 16 }}>
+                <Divider />
+                <Title level={5}>Translation Keys</Title>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <Text>helpPageTitle: {t('helpPageTitle')}</Text>
+                  <Text>allPosts: {t('allPosts')}</Text>
+                  <Text>newest: {t('newest')}</Text>
+                  <Text>popular: {t('popular')}</Text>
+                  <Text>solved: {t('solved')}</Text>
+                  <Text>backToHome: {t('backToHome')}</Text>
+                  <Text>createNewPost: {t('createNewPost')}</Text>
                 </div>
-              )}
-            </Space>
-          </Panel>
-
-          <Panel header={t('environmentSettings')} key="2">
-            <Space direction="vertical" style={{ width: '100%' }}>
-              <div>
-                <Switch
-                  checked={showEnvironment}
-                  onChange={setShowEnvironment}
-                /> {t('showEnvironmentVars')}
               </div>
-              {renderEnvironmentInfo()}
-            </Space>
-          </Panel>
-
-          <Panel header={t('systemSettings')} key="3">
-            <Space direction="vertical" style={{ width: '100%' }}>
-              <div>
-                <Switch
-                  checked={showTest}
-                  onChange={setShowTest}
-                /> {t('showSupabaseTest')}
-              </div>
-              
-              <div>
-                <Switch
-                  checked={useDirectClient}
-                  onChange={(checked) => {
-                    setUseDirectClient(checked);
-                    window.location.reload();
-                  }}
-                /> {t('useDirectClient')}
-              </div>
-              
-              <div>
-                <Switch
-                  checked={showEnvDebug}
-                  onChange={setShowEnvDebug}
-                /> {t('showEnvDebug')}
-              </div>
-            </Space>
-          </Panel>
-        </Collapse>
-
-        <Divider />
-        <Text type="secondary">
-          {t('debugModeWarning')}
-        </Text>
+            )}
+          </Card>
+        </div>
       </Drawer>
     </>
   );

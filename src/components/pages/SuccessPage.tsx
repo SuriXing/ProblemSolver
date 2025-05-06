@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTypeSafeTranslation } from '../../utils/translationHelper';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCircleCheck, faEye, faCopy, faHome, faHandsHelping, faCircleInfo, faShare } from '@fortawesome/free-solid-svg-icons';
@@ -8,28 +8,46 @@ import styles from './SuccessPage.module.css';
 
 const SuccessPage: React.FC = () => {
   const { t } = useTypeSafeTranslation();
+  const location = useLocation();
+  const navigate = useNavigate();
   const [userData, setUserData] = useState<UserData | null>(null);
   const [accessCode, setAccessCode] = useState('');
   const [copied, setCopied] = useState(false);
   
+  // Get access code from location state
   useEffect(() => {
-    // Get the access code from localStorage
-    const storedAccessCode = localStorage.getItem('accessCode');
+    console.log('Location state:', location.state);
     
-    if (storedAccessCode) {
-      setAccessCode(storedAccessCode);
+    // First try to get from location state (direct navigation from form submission)
+    if (location.state?.accessCode) {
+      console.log('Access code from location state:', location.state.accessCode);
+      setAccessCode(location.state.accessCode);
+      localStorage.setItem('accessCode', location.state.accessCode);
+    } else {
+      // Fall back to localStorage (when returning to the page)
+      const storedAccessCode = localStorage.getItem('accessCode');
       
-      // Try to get user data
-      const data = StorageSystem.retrieveData(storedAccessCode);
-      if (data) {
-        data.then((result: UserData | null) => {
-          if (result) {
-            setUserData(result);
-          }
-        });
+      if (storedAccessCode) {
+        console.log('Access code from localStorage:', storedAccessCode);
+        setAccessCode(storedAccessCode);
+      } else {
+        console.warn('No access code found in state or localStorage');
       }
     }
-  }, []);
+    
+    // Try to get user data
+    const fetchUserData = async () => {
+      const storedCode = location.state?.accessCode || localStorage.getItem('accessCode');
+      if (storedCode) {
+        const data = await StorageSystem.retrieveData(storedCode);
+        if (data) {
+          setUserData(data);
+        }
+      }
+    };
+    
+    fetchUserData();
+  }, [location.state]);
   
   // Copy access code to clipboard
   const copyAccessCode = () => {
@@ -55,7 +73,7 @@ const SuccessPage: React.FC = () => {
       setTimeout(() => setCopied(false), 2000);
     });
   };
-  
+
   return (
     <section className={styles.successView}>
       <div className={styles.successHeader}>

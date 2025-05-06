@@ -1,0 +1,202 @@
+/* TagSelector styles */
+.tag-selector {
+  margin-bottom: 1.5rem;
+}
+
+.tag-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.common-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.tag-chip {
+  background-color: #f1f1f1;
+  border: 1px solid #ddd;
+  border-radius: 16px;
+  padding: 0.3rem 0.8rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.tag-chip.selected {
+  background-color: #4285F4;
+  color: white;
+  border-color: #4285F4;
+}
+
+.tag-input-container {
+  margin-bottom: 0.75rem;
+}
+
+.tag-input {
+  width: 100%;
+  padding: 0.6rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.selected-tags {
+  margin-top: 0.5rem;
+}
+
+.tags-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  background-color: #e3f2fd;
+  color: #2962ff;
+  border-radius: 16px;
+  padding: 0.3rem 0.6rem;
+  font-size: 0.9rem;
+}
+
+.remove-tag {
+  background: none;
+  border: none;
+  color: #2962ff;
+  margin-left: 0.3rem;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0 0.2rem;
+}
+
+.confession-page {
+  padding: 2rem 1rem;
+}
+
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.confession-title {
+  font-size: 2rem;
+  color: #333;
+  margin-bottom: 0.5rem;
+  text-align: center;
+}
+
+.confession-subtitle {
+  color: #666;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.confession-form {
+  background-color: #fff;
+  border-radius: 8px;
+  padding: 2rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.confession-textarea {
+  width: 100%;
+  min-height: 150px;
+  padding: 1rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  resize: vertical;
+}
+
+.confession-textarea.error {
+  border-color: #e53935;
+}
+
+.error-message {
+  color: #e53935;
+  font-size: 0.9rem;
+  margin-top: 0.3rem;
+}
+
+.form-section {
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+}
+
+.form-section h3 {
+  font-size: 1.2rem;
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+.checkbox-group {
+  margin-bottom: 1rem;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.checkbox-label input {
+  margin-right: 0.5rem;
+}
+
+.email-input {
+  width: 100%;
+  padding: 0.7rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.email-input.error {
+  border-color: #e53935;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 2rem;
+}
+
+.btn-primary {
+  background-color: #4285F4;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 0.7rem 1.5rem;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.btn-primary:hover {
+  background-color: #3367d6;
+}
+
+.btn-primary:disabled {
+  background-color: #a1c0fa;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background-color: transparent;
+  color: #4285F4;
+  border: none;
+  padding: 0.7rem 1.5rem;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.btn-secondary:hover {
+  text-decoration: underline;
+} 

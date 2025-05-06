@@ -5,7 +5,8 @@ import {
   Input, 
   Card,
   Pagination,
-  Radio
+  Radio,
+  Button
 } from 'antd';
 import type { RadioChangeEvent } from 'antd/es/radio';
 import { 
@@ -17,6 +18,7 @@ import {
 import Layout from '../layout/Layout';
 import { Post } from '../../types/database.types';
 import { DatabaseService } from '../../services/database.service';
+import './HelpPage.css'; // Make sure this CSS file exists
 
 // Helper function to get time ago
 const getTimeAgo = (timestamp: string): string => {
@@ -47,12 +49,12 @@ const getTimeAgo = (timestamp: string): string => {
 };
 
 const HelpPage: React.FC = () => {
-  const { t } = useTypeSafeTranslation();
+  const { t, i18n } = useTypeSafeTranslation();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
-  const [activeFilter, setActiveFilter] = useState('全部');
+  const [activeFilter, setActiveFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const postsPerPage = 10;
   const [renderError, setRenderError] = useState<Error | null>(null);
@@ -89,6 +91,11 @@ const HelpPage: React.FC = () => {
     fetchPosts();
   }, []);
 
+  // Force reload translations
+  useEffect(() => {
+    i18n.reloadResources();
+  }, [i18n]);
+
   try {
     // Handle tag click
     const handleTagClick = (tag: string) => {
@@ -100,11 +107,9 @@ const HelpPage: React.FC = () => {
       setCurrentPage(1); // Reset to first page
     };
     
-    // Handle filter click
-    const handleFilterClick = (filter: string) => {
-      setActiveFilter(filter);
-      // Implement filtering logic here
-      // For now, just update the UI
+    // Handle filter change
+    const handleFilterChange = (e: RadioChangeEvent) => {
+      setActiveFilter(e.target.value);
     };
     
     // Filter posts by search term and tag
@@ -118,302 +123,141 @@ const HelpPage: React.FC = () => {
       return matchesSearch && matchesTag;
     });
     
-    // Calculate pagination
+    // Pagination
     const indexOfLastPost = currentPage * postsPerPage;
     const indexOfFirstPost = indexOfLastPost - postsPerPage;
     const currentPosts = filteredPosts.slice(indexOfFirstPost, indexOfLastPost);
     
-    // Handle pagination
-    const paginate = (pageNumber: number) => {
-      setCurrentPage(pageNumber);
-      // Scroll to top
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+    // Change page
+    const handlePageChange = (page: number) => {
+      setCurrentPage(page);
     };
     
-    // Handle post click - increment view count
-    const handlePostClick = async (post: Post) => {
-      if (!post.id) {
-        console.error("Post has no ID:", post);
-        return;
-      }
-      
-      try {
-        await DatabaseService.incrementViewCount(post.id);
-      } catch (error) {
-        console.error('Error incrementing view count:', error);
-      }
+    // Handle search
+    const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+      setSearchTerm(e.target.value);
+      setCurrentPage(1); // Reset to first page when searching
     };
-
-    if (loading) {
-      return (
-        <Layout>
-          <div className="container help-container">
-            <div className="loading-message">{t('loading')}</div>
-          </div>
-        </Layout>
-      );
-    }
-
-    if (error) {
-      return (
-        <Layout>
-          <div className="container help-container">
-            <div className="error-message">{error}</div>
-            <Link to="/" className="back-link">
-              <ArrowLeftOutlined /> {t('returnHome')}
-            </Link>
-          </div>
-        </Layout>
-      );
-    }
-
-    if (renderError) {
-      return (
-        <Layout>
-          <div className="container help-container">
-            <div className="error-message">
-              <h2>Rendering Error</h2>
-              <p>{renderError.message}</p>
-              <pre>{renderError.stack}</pre>
-            </div>
-            <Link to="/" className="back-link">
-              <ArrowLeftOutlined /> {t('returnHome')}
-            </Link>
-          </div>
-        </Layout>
-      );
-    }
-
+    
     return (
       <Layout>
-        <div className="container help-container">
-          <div className="page-header">
-            <Link to="/" className="back-link">
-              <ArrowLeftOutlined /> {t('returnHome')}
-            </Link>
-            <button 
-              onClick={() => {
-                localStorage.removeItem('problemSolver_userData');
-                console.log('localStorage posts cleared');
-                window.location.reload(); // Reload the page to reflect changes
-              }}
-              style={{
-                marginLeft: '20px',
-                padding: '5px 10px',
-                background: '#ff4d4f',
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: 'pointer'
-              }}
-            >
-              Clear All Posts
-            </button>
-            <button 
-              onClick={() => {
-                const data = localStorage.getItem('problemSolver_userData');
-                console.log('Current localStorage data:', data);
-                try {
-                  const parsed = JSON.parse(data || '{}');
-                  console.log('Parsed data:', parsed);
-                } catch (e) {
-                  console.error('Error parsing data:', e);
-                }
-              }}
-              style={{
-                marginLeft: '10px',
-                padding: '5px 10px',
-                background: '#1890ff',
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: 'pointer'
-              }}
-            >
-              Debug Data
-            </button>
-            <button 
-              onClick={() => {
-                // Create a test post
-                const testPost = {
-                  userId: "1234",
-                  accessCode: "test" + Date.now(),
-                  confessionText: "This is a test post created at " + new Date().toLocaleString(),
-                  selectedTags: ["焦虑", "学习"],
-                  privacyOption: "public",
-                  emailNotification: false,
-                  email: "",
-                  timestamp: new Date().toISOString(),
-                  replies: [],
-                  views: 0
-                };
-                
-                // Get current data
-                let storage = [];
-                try {
-                  const existingData = localStorage.getItem('problemSolver_userData');
-                  if (existingData) {
-                    const parsed = JSON.parse(existingData);
-                    storage = Array.isArray(parsed) ? parsed : [];
-                  }
-                } catch (e) {
-                  console.error('Error parsing existing data, starting fresh', e);
-                  storage = [];
-                }
-                
-                // Add test post
-                storage.push(testPost);
-                
-                // Save back to localStorage
-                localStorage.setItem('problemSolver_userData', JSON.stringify(storage));
-                console.log('Test post created:', testPost);
-                console.log('Current localStorage after test post:', localStorage.getItem('problemSolver_userData'));
-                
-                // Reload the page
-                window.location.reload();
-              }}
-              style={{
-                marginLeft: '10px',
-                padding: '5px 10px',
-                background: '#52c41a',
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: 'pointer'
-              }}
-            >
-              Create Test Post
-            </button>
+        <div className="help-page-container">
+          <div className="help-header">
+            <h1>{t('helpPageTitle')}</h1>
+            <p>{t('helpPageDescription')}</p>
+            
+            <div className="action-buttons">
+              <Link to="/" className="back-button">
+                <Button type="default" icon={<ArrowLeftOutlined />}>
+                  {t('backToHome')}
+                </Button>
+              </Link>
+              <Link to="/confession" className="new-post-button">
+                <Button type="primary">
+                  {t('createNewPost')}
+                </Button>
+              </Link>
+            </div>
           </div>
-        
-          <div className="tag-filters">
+          
+          <div className="search-filter-container">
+            <div className="search-box">
+              <Input 
+                placeholder={t('searchPlaceholder')}
+                prefix={<SearchOutlined />}
+                value={searchTerm}
+                onChange={handleSearch}
+              />
+            </div>
+            
+            <div className="filter-options">
+              <Radio.Group value={activeFilter} onChange={handleFilterChange}>
+                <Radio.Button value="all">{t('allPosts')}</Radio.Button>
+                <Radio.Button value="newest">{t('newest')}</Radio.Button>
+                <Radio.Button value="popular">{t('popular')}</Radio.Button>
+                <Radio.Button value="solved">{t('solved')}</Radio.Button>
+              </Radio.Group>
+            </div>
+          </div>
+          
+          <div className="tags-container">
             {getTags().map(tag => (
-              <span
+              <span 
                 key={tag}
-                className={`tag ${selectedTag === tag ? 'selected' : ''}`}
+                className={`tag ${selectedTag === tag ? 'active' : ''}`}
                 onClick={() => handleTagClick(tag)}
               >
                 {tag}
               </span>
             ))}
           </div>
-        
-          <div className="filter-bar">
-            <Radio.Group 
-              value={activeFilter}
-              onChange={(e: RadioChangeEvent) => handleFilterClick(e.target.value)}
-              optionType="button"
-              buttonStyle="solid"
-            >
-              {['全部', '最新提问', '等待回答', '热门话题'].map(filter => (
-                <Radio.Button key={filter} value={filter}>
-                  {filter}
-                </Radio.Button>
-              ))}
-            </Radio.Group>
-            <Input.Search
-              placeholder={t('searchPlaceholder')}
-              value={searchTerm}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
-              style={{ width: 200 }}
-              enterButton={<SearchOutlined />}
-            />
-          </div>
-
-          <div className="topics-list">
-            {currentPosts.length === 0 ? (
-              <div className="no-posts-message">{t('noPostsFound')}</div>
-            ) : (
-              currentPosts.map((post) => {
-                // Add defensive checks for each post
-                if (!post) return null;
-                
-                return (
-                  <Card 
-                    key={post.access_code || post.id || 'unknown'}
-                    className="topic-card"
-                    actions={[]}
-                  >
-                    <Card.Meta
-                      title={
-                        post.access_code ? (
-                          <Link 
-                            to={`/help/${post.access_code}`} 
-                            onClick={() => handlePostClick(post)}
-                          >
-                            {post.content && post.content.length > 50 
-                              ? `${post.content.substring(0, 50)}...` 
-                              : post.content || 'No text'}
-                          </Link>
-                        ) : (
-                          <span>
-                            {post.content && post.content.length > 50 
-                              ? `${post.content.substring(0, 50)}...` 
-                              : post.content || 'No text'}
-                          </span>
-                        )
-                      }
-                      description={
-                        <>
-                          <div style={{ marginBottom: 8 }}>
-                            <span className="topic-category">
-                              {post.tags && post.tags.length > 0 ? post.tags[0] : '其他'}
-                            </span>
-                            <span className="topic-time" style={{ float: 'right' }}>
-                              {post.created_at ? getTimeAgo(post.created_at) : 'Unknown time'}
-                            </span>
-                          </div>
-                          <div className="topic-tags">
-                            {post.tags && post.tags.slice(0, 3).map(tag => (
-                              <span key={tag} className="topic-tag">
-                                {tag}
-                              </span>
-                            ))}
-                          </div>
-                          <div className="topic-stats">
-                            <span className="topic-stat">
-                              <MessageOutlined /> {t('replies')}: {post.replies ? post.replies.length : 0}
-                            </span>
-                            <span className="topic-stat">
-                              <EyeOutlined /> {t('views')}: {post.views || 0}
-                            </span>
-                          </div>
-                        </>
-                      }
-                    />
-                  </Card>
-                );
-              })
-            )}
-          </div>
           
-          {filteredPosts.length > postsPerPage && (
-            <Pagination
-              current={currentPage}
-              total={filteredPosts.length}
-              pageSize={postsPerPage}
-              onChange={paginate}
-              showSizeChanger={false}
-              style={{ marginTop: 30, textAlign: 'center' }}
-            />
+          {loading ? (
+            <div className="loading-container">
+              <div className="loading-spinner"></div>
+              <p>{t('loadingPosts')}</p>
+            </div>
+          ) : error ? (
+            <div className="error-container">
+              <p>{error}</p>
+            </div>
+          ) : currentPosts.length === 0 ? (
+            <div className="no-posts-container">
+              <p>{t('noPostsFound')}</p>
+            </div>
+          ) : (
+            <div className="posts-container">
+              {currentPosts.map(post => (
+                <Card key={post.id} className="post-card">
+                  <Link to={`/help/${post.access_code}`} className="post-link">
+                    <div className="post-content">
+                      <div className="post-text">{post.content}</div>
+                      <div className="post-meta">
+                        <span className="post-author">
+                          {post.is_anonymous ? t('anonymous') : t('user')}
+                        </span>
+                        <span className="post-time">{getTimeAgo(post.created_at)}</span>
+                      </div>
+                      <div className="post-tags">
+                        {post.tags && post.tags.map(tag => (
+                          <span key={tag} className="post-tag">{tag}</span>
+                        ))}
+                      </div>
+                      <div className="post-stats">
+                        <span className="post-views">
+                          <EyeOutlined /> {post.views || 0}
+                        </span>
+                        <span className="post-replies">
+                          <MessageOutlined /> {post.replies?.length || 0}
+                        </span>
+                      </div>
+                    </div>
+                  </Link>
+                </Card>
+              ))}
+              
+              <Pagination
+                current={currentPage}
+                pageSize={postsPerPage}
+                total={filteredPosts.length}
+                onChange={handlePageChange}
+                showSizeChanger={false}
+                className="pagination"
+              />
+            </div>
           )}
         </div>
       </Layout>
     );
   } catch (error) {
-    console.error("Error rendering HelpPage:", error);
+    console.error('Render error:', error);
     setRenderError(error as Error);
     
     return (
       <Layout>
-        <div className="container help-container">
-          <div className="error-message">
-            <h2>Rendering Error</h2>
-            <p>{(error as Error).message}</p>
-          </div>
-          <Link to="/" className="back-link">
-            <ArrowLeftOutlined /> {t('returnHome')}
-          </Link>
+        <div className="error-container">
+          <h2>{t('errorOccurred')}</h2>
+          <p>{renderError?.message || t('unknownError')}</p>
         </div>
       </Layout>
     );
