@@ -52,7 +52,7 @@
   "errorGeneratingAccessCode": "アクセスコードの生成中にエラーが発生しました",
   "accessCodeCopied": "アクセスコードがコピーされました",
   "copyFailed": "コピーに失敗しました",
-  "footerText": "© 2024 悩み解決. All rights reserved.",
+  "footerText": "© 2024 悩み解決ショップ - すべての権利を保有",
   "views": "閲覧数",
   "helpPageTitle": "ヘルプコミュニティ",
   "helpPageDescription": "コミュニティの質問を閲覧するか、自分の質問を投稿してください。",
@@ -68,5 +68,12 @@
   "anonymous": "匿名",
   "user": "ユーザー",
   "errorOccurred": "エラーが発生しました",
-  "unknownError": "不明なエラーが発生しました"
-} 
+  "unknownError": "不明なエラーが発生しました",
+  "tagDepression": "鬱",
+  "tagRelationships": "人間関係",
+  "tagFamily": "家族",
+  "tagHealth": "健康",
+  "tagSocial": "社交",
+  "tagOther": "その他",
+  "customTagPlaceholder": "カスタムタグを追加..."
+}
