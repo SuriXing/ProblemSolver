@@ -33,11 +33,6 @@ export function getEnv(key: string, fallback: string = ''): string {
   return env[fullKey] || fallback;
 }
 
-// Example of handling base paths for GitHub Pages
-export const getBasePath = () => {
-  return '/Problem_solver';
-};
-
 // Simplified environment access function
 export function getEnvironment() {
   return {

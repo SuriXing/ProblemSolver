@@ -1,7 +1,7 @@
 import { useState, Suspense, useEffect } from 'react';
 import { HashRouter, Routes, Route } from 'react-router-dom';
 import './i18n'; // Import i18n setup
-import { getBasePath, IS_PROD } from './utils/environment';
+import { IS_PROD } from './utils/environment';
 import { TranslationProvider } from './context/TranslationContext';
 import { useTranslation } from 'react-i18next';
 
