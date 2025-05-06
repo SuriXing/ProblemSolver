@@ -8,9 +8,8 @@ import {
   faPaperPlane, 
   faLock, 
   faHandsHelping, 
-  faHistory 
+  faHistory
 } from '@fortawesome/free-solid-svg-icons';
-import StorageSystem, { UserData } from '../../utils/StorageSystem';
 import styles from './ConfessionPage.module.css';
 import Layout from '../layout/Layout';
 // Import the confession image
@@ -32,8 +31,10 @@ const ConfessionPage: React.FC = () => {
   const [privacyOption, setPrivacyOption] = useState('public');
   const [emailNotification, setEmailNotification] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [confessions, setConfessions] = useState<Post[]>([]);
-  const [loading, setLoading] = useState(true);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [confessions, setConfessions] = useState<any[]>([]);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [loading, setLoading] = useState(false);
   
   // Available tags based on current language
   const availableTags = {

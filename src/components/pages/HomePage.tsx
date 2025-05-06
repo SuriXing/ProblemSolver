@@ -1,15 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
+import { useTypeSafeTranslation } from '../../utils/translationHelper';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faHandsHelping } from '@fortawesome/free-solid-svg-icons';
-import { faCommentDots } from '@fortawesome/free-solid-svg-icons';
+import { faHandsHelping, faComments } from '@fortawesome/free-solid-svg-icons';
 import Layout from '../layout/Layout';
 // Import our new CSS file
 import '../../styles/HomePage.css';
 
 const HomePage: React.FC = () => {
-  const { t, i18n } = useTranslation();
+  const { t } = useTypeSafeTranslation();
   const navigate = useNavigate();
   const [visibleElements, setVisibleElements] = useState({
     heroTitle: false,
@@ -47,10 +46,10 @@ const HomePage: React.FC = () => {
         <div className="hero">
           <div className="container">
             <h1 className={`hero-title ${visibleElements.heroTitle ? 'visible' : ''}`}>
-              {t('homeTitle', '在这里，你的故事有人倾听')}
+              {t('homeTitle')}
             </h1>
             <p className={`hero-subtitle ${visibleElements.heroSubtitle ? 'visible' : ''}`}>
-              {t('homeSubtitle', '匿名、安全、温暖的社区')}
+              {t('homeSubtitle')}
             </p>
           </div>
         </div>
@@ -64,12 +63,12 @@ const HomePage: React.FC = () => {
               tabIndex={0}
             >
               <div className="option-icon" style={{ backgroundColor: '#f0f5ff' }}>
-                <FontAwesomeIcon icon={faCommentDots} style={{ color: '#4285F4' }} />
+                <FontAwesomeIcon icon={faComments} style={{ color: '#4285F4' }} />
               </div>
-              <h2>{t('confessCardTitle', '我有话想说')}</h2>
-              <p>{t('confessCardDesc', '在这里安全地分享你的困扰，收获温暖回应')}</p>
+              <h2>{t('confessCardTitle')}</h2>
+              <p>{t('confessCardDesc')}</p>
               <div className="btn-primary">
-                {t('startConfession', '开始倾诉')}
+                {t('startConfession')}
               </div>
             </div>
 
@@ -82,17 +81,17 @@ const HomePage: React.FC = () => {
               <div className="option-icon" style={{ backgroundColor: '#f0f5ff' }}>
                 <FontAwesomeIcon icon={faHandsHelping} style={{ color: '#4285F4' }} />
               </div>
-              <h2>{t('helpCardTitle', '我想帮助别人')}</h2>
-              <p>{t('helpCardDesc', '给予他人温暖的建议，成为某人的光')}</p>
+              <h2>{t('helpCardTitle')}</h2>
+              <p>{t('helpCardDesc')}</p>
               <div className="btn-primary" style={{ backgroundColor: 'white', color: '#4285F4', border: '1px solid #4285F4' }}>
-                {t('goHelp', '去帮助他人')}
+                {t('goHelp')}
               </div>
             </div>
           </div>
         </div>
         
         <div className="footer text-center" style={{ color: '#999', fontSize: '0.9rem', marginTop: '2rem' }}>
-          {t('footerText', '© 2024 解忧杂货铺 - 一个温暖的心灵港湾')}
+          {t('footerText')}
         </div>
       </section>
     </Layout>

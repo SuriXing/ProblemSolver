@@ -6,7 +6,6 @@ import { supabase } from './utils/supabaseClient';
 import HomePage from './components/pages/HomePage';
 import HelpPage from './components/pages/HelpPage';
 import ConfessionPage from './components/pages/ConfessionPage';
-import DetailPage from './components/pages/DetailPage';
 import SuccessPage from './components/pages/SuccessPage';
 import HelpSuccessPage from './components/pages/HelpSuccessPage';
 import PastQuestionsPage from './components/pages/PastQuestionsPage';
@@ -21,7 +20,7 @@ import SupabaseTest from './components/SupabaseTest';
 import { Button } from 'antd';
 import { supabaseDirect } from './lib/supabaseDirectClient';
 import EnvDebug from './components/EnvDebug';
-import { SUPABASE_URL, SUPABASE_ANON_KEY, getEnv, IS_PROD, getBasePath } from './utils/environment';
+import { SUPABASE_URL, SUPABASE_ANON_KEY, IS_PROD, getBasePath } from './utils/environment';
 import DebugMenu from './components/DebugMenu';
 
 const App: React.FC = () => {
@@ -41,6 +40,7 @@ const App: React.FC = () => {
     const checkConnection = async () => {
       try {
         // Try to query the posts table instead of problems
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { data, error } = await supabase.from('posts').select('count');
         
         // If the table doesn't exist yet, that's okay
@@ -133,6 +133,7 @@ const App: React.FC = () => {
   }, [useDirectClient]);
   
   // Add a button to test database connection
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const testDatabaseConnection = async () => {
     try {
       // Try to create a test post
@@ -310,6 +311,7 @@ REACT_APP_SUPABASE_ANON_KEY=your-anon-key`}
     );
   }
   
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const activeSupabase = useDirectClient ? supabaseDirect : supabase;
   
   return (

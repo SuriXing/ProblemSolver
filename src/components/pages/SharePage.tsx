@@ -9,7 +9,6 @@ import {
   faShare, 
   faEnvelope, 
   faLink,
-  faExclamationCircle,
   faGlobe,
   faPaperPlane,
   faPhone,
@@ -17,11 +16,9 @@ import {
   faCommentDots,
   faShareAlt
 } from '@fortawesome/free-solid-svg-icons';
-import StorageSystem from '../../utils/StorageSystem';
-import styles from './SharePage.module.css';
 import Layout from '../layout/Layout';
 import { Button, Alert, Spin } from 'antd';
-import { DatabaseService } from '../../services/database.service';
+import styles from './SharePage.module.css';
 
 const SharePage: React.FC = () => {
   const { t } = useTypeSafeTranslation();
@@ -31,6 +28,7 @@ const SharePage: React.FC = () => {
   const [copied, setCopied] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [userData, setUserData] = useState<any>(null);
   
   // Get the base URL
