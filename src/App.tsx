@@ -1,8 +1,9 @@
-import { useState, Suspense } from 'react';
+import { useState, Suspense, useEffect } from 'react';
 import { BrowserRouter, HashRouter, Routes, Route } from 'react-router-dom';
 import './i18n'; // Import i18n setup
 import { getBasePath, IS_PROD } from './utils/environment';
 import { TranslationProvider } from './context/TranslationContext';
+import { useTranslation } from 'react-i18next';
 
 // Import all your page components
 import HomePage from './components/pages/HomePage';
@@ -26,6 +27,17 @@ import DebugMenu from './components/DebugMenu';
 const Router = window.location.hostname === 'surixing.github.io' 
   ? HashRouter 
   : BrowserRouter;
+
+const AppWrapper = () => {
+  const { i18n } = useTranslation();
+
+  useEffect(() => {
+    // 更新 HTML lang 属性
+    document.documentElement.lang = i18n.language;
+  }, [i18n.language]);
+
+  return <App />;
+};
 
 function App() {
   const [isLoading, setIsLoading] = useState(false);
@@ -90,4 +102,4 @@ function App() {
   );
 }
 
-export default App;
+export default AppWrapper;

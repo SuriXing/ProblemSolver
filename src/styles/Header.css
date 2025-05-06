@@ -1,148 +1,195 @@
 /* Header Styles */
 .header {
   background-color: white;
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   padding: 1rem 0;
-  position: sticky;
+  position: fixed;
   top: 0;
-  z-index: 100;
+  left: 0;
+  right: 0;
+  z-index: 1000;
 }
 
 .header .container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
 .logo {
-  font-size: 1.5rem;
-  font-weight: 600;
   display: flex;
   align-items: center;
+  text-decoration: none;
+  color: #4f7cff;
+  font-size: 1.2rem;
+  font-weight: 600;
 }
 
 .logo a {
-  color: var(--primary);
-  text-decoration: none;
-  transition: opacity 0.2s ease;
   display: flex;
   align-items: center;
-}
-
-.logo a:hover {
-  opacity: 0.8;
+  text-decoration: none;
+  color: inherit;
 }
 
 .logo-icon {
-  color: #4e89e8;
-  font-size: 1.8rem;
   margin-right: 0.5rem;
-}
-
-.logo span {
-  color: var(--gray-800);
+  font-size: 1.4rem;
 }
 
 .nav-actions {
   display: flex;
   align-items: center;
+  gap: 1rem;
 }
 
 .history-link {
   display: flex;
   align-items: center;
-  margin-right: 1.5rem;
   text-decoration: none;
-  color: var(--gray-700);
-  font-size: 0.95rem;
+  color: #666;
+  font-size: 0.9rem;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.history-link:hover {
+  background-color: #f5f5f5;
+  color: #4f7cff;
 }
 
 .history-link svg {
   margin-right: 0.5rem;
-  color: var(--primary);
-}
-
-.history-link:hover {
-  color: var(--primary);
 }
 
 .language-selector {
   position: relative;
-  margin-left: 1rem;
+  z-index: 100;
 }
 
 .language-button {
   display: flex;
   align-items: center;
+  gap: 0.5rem;
   padding: 0.5rem 1rem;
-  background-color: rgba(0, 0, 0, 0.03);
   border-radius: 4px;
   cursor: pointer;
   font-size: 0.9rem;
-  color: var(--gray-700);
-  transition: background-color 0.2s ease;
-}
-
-.language-button svg {
-  margin-right: 0.5rem;
-  color: var(--primary);
+  color: #666;
+  transition: all 0.2s;
+  user-select: none;
 }
 
 .language-button:hover {
-  background-color: rgba(0, 0, 0, 0.05);
+  background-color: #f5f5f5;
+  color: #4f7cff;
 }
 
 .language-dropdown {
-  display: none;
   position: absolute;
   top: 100%;
   right: 0;
-  margin-top: 0;
-  padding-top: 2px;
   background-color: white;
   border-radius: 4px;
-  box-shadow: var(--shadow-md);
-  overflow: hidden;
-  min-width: 160px;
-  z-index: 10;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 0.5rem 0;
+  min-width: 120px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: all 0.2s;
 }
 
 .language-selector:hover .language-dropdown {
-  display: block;
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
 }
 
 .language-option {
-  padding: 0.75rem 1rem;
+  padding: 0.5rem 1rem;
   cursor: pointer;
-  transition: background-color 0.2s ease;
   font-size: 0.9rem;
+  color: #666;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
 }
 
 .language-option:hover {
-  background-color: var(--gray-100);
+  background-color: #f5f5f5;
+  color: #4f7cff;
 }
 
 .language-option.active {
-  background-color: var(--gray-100);
-  color: var(--primary);
+  color: #4f7cff;
   font-weight: 500;
+  background-color: #f0f5ff;
 }
 
+/* 响应式设计 */
 @media (max-width: 768px) {
-  .header {
-    padding: 0.75rem 0;
+  .nav-actions {
+    gap: 0.5rem;
   }
-  
-  .logo {
-    font-size: 1.3rem;
-  }
-  
-  .history-link span {
+
+  .history-link span,
+  .language-button span {
     display: none;
   }
-  
-  .history-link svg {
-    margin-right: 0;
-    font-size: 1.2rem;
+
+  .language-button,
+  .history-link {
+    padding: 0.5rem;
   }
-} 
+
+  .language-dropdown {
+    right: -1rem;
+  }
+}
+
+/* 暗色主题支持 */
+@media (prefers-color-scheme: dark) {
+  .header {
+    background-color: #1a1a1a;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  }
+
+  .logo {
+    color: #6b8eff;
+  }
+
+  .history-link,
+  .language-button {
+    color: #ccc;
+  }
+
+  .history-link:hover,
+  .language-button:hover {
+    background-color: #2a2a2a;
+    color: #6b8eff;
+  }
+
+  .language-dropdown {
+    background-color: #1a1a1a;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  }
+
+  .language-option {
+    color: #ccc;
+  }
+
+  .language-option:hover {
+    background-color: #2a2a2a;
+    color: #6b8eff;
+  }
+
+  .language-option.active {
+    color: #6b8eff;
+    background-color: #2a2a2a;
+  }
+}
