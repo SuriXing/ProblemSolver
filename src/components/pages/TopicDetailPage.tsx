@@ -10,6 +10,7 @@ import {
   faComments
 } from '@fortawesome/free-solid-svg-icons';
 import styles from './TopicDetailPage.module.css';
+import { useTranslation } from 'react-i18next';
 
 // Mock data for topic details
 const topicDetails = {
@@ -136,6 +137,10 @@ const TopicDetailPage: React.FC = () => {
     setTopicReplies(sortedReplies);
   };
   
+  function renderTag(tag: string) {
+    return t(`tag${tag.charAt(0).toUpperCase() + tag.slice(1)}`, tag);
+  }
+  
   if (isLoading) {
     return (
       <div className={styles.loadingContainer}>
@@ -189,7 +194,7 @@ const TopicDetailPage: React.FC = () => {
         <div className={styles.topicFooter}>
           <div className={styles.topicTags}>
             {topic.tags.map((tag: string, index: number) => (
-              <span key={index} className={styles.topicTag}>{tag}</span>
+              <span key={index} className={styles.topicTag}>{renderTag(tag)}</span>
             ))}
           </div>
           <div className={styles.topicActions}>
