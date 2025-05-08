@@ -16,7 +16,6 @@
   "currentAccessCode": "当前访问码",
   "none": "无",
   "shareMyPost": "分享我的帖子",
-  "postAnonymously": "匿名发布",
   "keepPrivate": "保持私密",
   "notifyViaEmail": "通过电子邮件通知我",
   "confessionRequired": "请输入您的倾诉内容",
@@ -130,5 +129,6 @@
   "confessionSubtitle": "在这里安全地倾诉烦恼，获得温暖回应",
   "confessionPlaceholder": "在这里输入你的告白...",
   "addTags": "添加标签",
-  "emailPlaceholder": "输入您的电子邮件"
+  "emailPlaceholder": "输入您的电子邮件",
+  "send": "发送"
 }
