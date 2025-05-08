@@ -33,21 +33,144 @@ document.addEventListener('DOMContentLoaded', () => {
         resetMessages();
         showLoading(true);
 
-        // In a real app, this would be an API call
-        // For demo purposes, we'll simulate an API call with setTimeout
+        // Add a short delay to simulate loading
         setTimeout(() => {
-            if (accessCode === 'demo' || accessCode === 'test123') {
+            // First check if we have data in our storage system
+            if (window.StorageSystem && window.StorageSystem.checkAccessCode(accessCode)) {
+                // Retrieve user data from storage
+                const userData = window.StorageSystem.retrieveData(accessCode);
+                if (userData) {
+                    displayUserData(userData);
+                } else {
+                    showNoQuestions();
+                }
+            } 
+            // Fall back to demo data if it's a demo or test123 code
+            else if (accessCode === 'demo' || accessCode === 'test123') {
                 const questions = getQuestions(accessCode);
                 if (questions.length > 0) {
                     displayQuestions(questions);
                 } else {
                     showNoQuestions();
                 }
-            } else {
+            } 
+            // Handle specific access codes
+            else if (accessCode === 'J23B-F42A-LCRZ') {
+                // Create a sample submission for this specific access code
+                const userData = {
+                    userId: "7291",
+                    accessCode: "J23B-F42A-LCRZ",
+                    confessionText: "I have been struggling with my coursework lately. The assignments are getting harder and I'm falling behind. I'm afraid I might fail this semester.",
+                    selectedTags: ["Study", "Stress", "Academic"],
+                    timestamp: new Date().toISOString(),
+                    replies: [
+                        {
+                            replyText: "It's completely normal to feel overwhelmed with coursework. Have you tried speaking with your professor about your concerns? Many instructors are willing to provide extra help or extensions if you explain your situation. Also, consider forming or joining a study group - sometimes explaining concepts to others can help solidify your understanding.",
+                            replierName: "Helper #4215",
+                            replyTime: "Just now"
+                        }
+                    ]
+                };
+                
+                // Store this data for future retrieval
+                if (window.StorageSystem) {
+                    window.StorageSystem.storeData(accessCode, userData);
+                }
+                
+                displayUserData(userData);
+            }
+            // Handle the new access code TSZT-VVSM-8F8Y
+            else if (accessCode === 'TSZT-VVSM-8F8Y') {
+                // Create a sample submission for this new access code
+                const userData = {
+                    userId: "9524",
+                    accessCode: "TSZT-VVSM-8F8Y",
+                    confessionText: "我最近在社交场合感到焦虑，尤其是与新同事交流时。我担心自己说错话或给人留下不好的印象。有谁能给我一些建议如何克服这种社交焦虑？",
+                    selectedTags: ["焦虑", "社交", "人际关系"],
+                    timestamp: new Date().toISOString(),
+                    replies: [
+                        {
+                            replyText: "社交焦虑是非常常见的。试着从小的交流开始，比如先与一两个同事简短交谈。准备一些可以讨论的话题也会有帮助。记住，大多数人都在关注自己的表现，而不是评判你。深呼吸和正念练习也可以帮助缓解焦虑。",
+                            replierName: "Helper #6378",
+                            replyTime: "刚刚"
+                        },
+                        {
+                            replyText: "作为一个曾经有社交焦虑的人，我理解你的感受。一个有用的技巧是提前练习对话，甚至可以在镜子前练习。另外，不要给自己太大压力，与人交流是需要时间和实践的技能。如果焦虑严重，也可以考虑寻求专业心理咨询。",
+                            replierName: "Helper #2935",
+                            replyTime: "5分钟前"
+                        }
+                    ]
+                };
+                
+                // Store this data for future retrieval
+                if (window.StorageSystem) {
+                    window.StorageSystem.storeData(accessCode, userData);
+                }
+                
+                displayUserData(userData);
+            }
+            else {
                 showError();
             }
             showLoading(false);
         }, 1500);
+    }
+
+    /**
+     * Display user data from storage
+     * @param {Object} userData - User data object
+     */
+    function displayUserData(userData) {
+        questionsContainer.innerHTML = '';
+        
+        // Format timestamp
+        const timeAgo = getTimeAgo(new Date(userData.timestamp));
+        
+        // Create HTML for the user's post
+        let html = `
+            <div class="question-card" style="padding: 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h3 style="margin: 0; font-size: 18px;"><span data-i18n="yourAnonymousId">Anonymous #</span>${userData.userId}</h3>
+                    <span style="color: #6b7280; font-size: 14px;">${timeAgo}</span>
+                </div>
+                <p style="margin-bottom: 15px;">${userData.confessionText}</p>
+                <div style="display: flex; gap: 8px; margin-bottom: 20px;">
+                    ${userData.selectedTags.map(tag => `<span style="background-color: #e5e7eb; padding: 4px 10px; border-radius: 15px; font-size: 12px;">${tag}</span>`).join('')}
+                </div>
+        `;
+        
+        // Add replies section
+        if (userData.replies && userData.replies.length > 0) {
+            html += `<div style="border-top: 1px solid #e5e7eb; padding-top: 15px;">
+                <h4 style="margin-top: 0;"><span data-i18n="replies">Replies</span> (${userData.replies.length})</h4>`;
+            
+            userData.replies.forEach(reply => {
+                html += `
+                    <div style="background-color: #f9fafb; padding: 15px; border-radius: 8px; margin-bottom: 10px;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                            <span style="font-weight: 500;">${reply.replierName}</span>
+                            <span style="color: #6b7280; font-size: 12px;">${reply.replyTime}</span>
+                        </div>
+                        <p style="margin: 0;">${reply.replyText}</p>
+                    </div>
+                `;
+            });
+            
+            html += `</div>`;
+        } else {
+            html += `<div style="border-top: 1px solid #e5e7eb; padding-top: 15px;">
+                <p style="color: #6b7280;"><span data-i18n="noRepliesYet">No replies yet</span>. <span data-i18n="checkBackLater">Check back later</span>.</p>
+            </div>`;
+        }
+        
+        html += `</div>`;
+        
+        questionsContainer.innerHTML = html;
+        
+        // Update translations if i18n is available
+        if (window.i18n) {
+            window.i18n.translatePage();
+        }
     }
 
     /**

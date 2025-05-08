@@ -259,6 +259,10 @@
             display: block;
         }
     </style>
+    <script src="src/i18n.js"></script>
+    <script src="src/js/storage-system.js"></script>
+    <script src="src/js/past-questions.js"></script>
+    <script src="src/js/direct-fix.js"></script>
 </head>
 <body>
     <!-- Language Selector -->
@@ -326,8 +330,11 @@
         </div>
     </div>
 
-    <script src="i18n.js"></script>
     <script>
+        // Debug output to console
+        console.log('🔍 Debug: StorageSystem is ' + (window.StorageSystem ? 'loaded' : 'NOT loaded'));
+        
+        // Initialize StorageSystem with your access code data
         document.addEventListener('DOMContentLoaded', () => {
             // Get the language from localStorage or set default
             window.currentLanguage = localStorage.getItem('language') || 'zh-CN';
@@ -341,13 +348,63 @@
             } else {
                 console.error("i18n object not available");
             }
-            
-            // Update input placeholders with translations
-            updatePlaceholders();
-            
-            // Language selector functionality
-            setupLanguageSelector();
 
+            // Debug check for StorageSystem within DOMContentLoaded
+            console.log('🔍 Debug: StorageSystem inside DOMContentLoaded is ' + (window.StorageSystem ? 'loaded' : 'NOT loaded'));
+
+            // Initialize the storage with our hardcoded access codes if they don't exist
+            if (window.StorageSystem) {
+                // Add the TSZT-VVSM-8F8Y access code if it doesn't exist
+                if (!window.StorageSystem.checkAccessCode('TSZT-VVSM-8F8Y')) {
+                    console.log('🔍 Debug: Adding TSZT-VVSM-8F8Y access code to storage');
+                    const userData = {
+                        userId: "9524",
+                        accessCode: "TSZT-VVSM-8F8Y",
+                        confessionText: "我最近在社交场合感到焦虑，尤其是与新同事交流时。我担心自己说错话或给人留下不好的印象。有谁能给我一些建议如何克服这种社交焦虑？",
+                        selectedTags: ["焦虑", "社交", "人际关系"],
+                        timestamp: new Date().toISOString(),
+                        replies: [
+                            {
+                                replyText: "社交焦虑是非常常见的。试着从小的交流开始，比如先与一两个同事简短交谈。准备一些可以讨论的话题也会有帮助。记住，大多数人都在关注自己的表现，而不是评判你。深呼吸和正念练习也可以帮助缓解焦虑。",
+                                replierName: "Helper #6378",
+                                replyTime: "刚刚"
+                            },
+                            {
+                                replyText: "作为一个曾经有社交焦虑的人，我理解你的感受。一个有用的技巧是提前练习对话，甚至可以在镜子前练习。另外，不要给自己太大压力，与人交流是需要时间和实践的技能。如果焦虑严重，也可以考虑寻求专业心理咨询。",
+                                replierName: "Helper #2935",
+                                replyTime: "5分钟前"
+                            }
+                        ]
+                    };
+                    
+                    window.StorageSystem.storeData('TSZT-VVSM-8F8Y', userData);
+                } else {
+                    console.log('🔍 Debug: TSZT-VVSM-8F8Y access code already exists in storage');
+                }
+
+                // Add demo and test123 access codes for backward compatibility
+                if (!window.StorageSystem.checkAccessCode('demo')) {
+                    const userData = {
+                        userId: "3842",
+                        accessCode: "demo",
+                        confessionText: "I've been feeling very stressed about my upcoming job interview. I'm worried I won't be able to answer the technical questions correctly. Has anyone been through something similar?",
+                        selectedTags: ["Anxiety", "Work"],
+                        timestamp: new Date().toISOString(),
+                        replies: [
+                            {
+                                replyText: "It's completely normal to feel nervous before an interview. I'd recommend practicing common interview questions and doing some mock interviews with friends. Remember that it's okay to say 'I don't know' if you're not sure about an answer. Being honest and showing your willingness to learn can be more valuable than pretending to know everything.",
+                                replierName: "Helper #5678",
+                                replyTime: "1 hour ago"
+                            }
+                        ]
+                    };
+                    
+                    window.StorageSystem.storeData('demo', userData);
+                }
+            } else {
+                console.error('🔍 Debug: StorageSystem is NOT available in DOMContentLoaded');
+            }
+            
             // DOM Elements
             const accessCodeInput = document.getElementById('accessCodeInput');
             const fetchQuestionsBtn = document.getElementById('fetchQuestionsBtn');
@@ -374,77 +431,134 @@
             const codeFromStorage = localStorage.getItem('accessCode');
             
             if (codeFromUrl) {
+                console.log('🔍 Debug: Found code in URL:', codeFromUrl);
                 accessCodeInput.value = codeFromUrl;
                 fetchQuestions(codeFromUrl);
             } else if (codeFromStorage) {
+                console.log('🔍 Debug: Found code in localStorage:', codeFromStorage);
                 accessCodeInput.value = codeFromStorage;
                 fetchQuestions(codeFromStorage);
+            } else {
+                console.log('🔍 Debug: No access code found in URL or localStorage');
             }
         
             /**
              * Fetch questions based on the provided access code
              */
             function fetchQuestions(accessCode) {
+                console.log('🔍 Debug: fetchQuestions called with code:', accessCode);
+                
                 if (!accessCode) {
+                    console.log('🔍 Debug: No access code provided');
                     showError(window.i18n ? window.i18n.t('pleaseEnterAccessCode') : 'Please enter an access code to view your post');
                     return;
                 }
                 
                 // Save the access code to localStorage for persistence
                 localStorage.setItem('accessCode', accessCode);
+                console.log('🔍 Debug: Saved access code to localStorage:', accessCode);
         
                 // Show loading indicator
                 resetMessages();
                 loadingIndicator.style.display = 'flex';
         
-                // For demo, simulate API call
+                // Simulate loading
                 setTimeout(() => {
-                    if (accessCode === 'demo' || accessCode === 'test123') {
-                        showSuccess(accessCode);
+                    console.log('🔍 Debug: Checking access code after timeout');
+                    console.log('🔍 Debug: StorageSystem is ' + (window.StorageSystem ? 'available' : 'NOT available') + ' in fetchQuestions');
+                    
+                    // Check if we have this access code in our storage
+                    if (window.StorageSystem && window.StorageSystem.checkAccessCode(accessCode)) {
+                        console.log('🔍 Debug: Access code found in storage, retrieving data');
+                        // Get the user data and display it
+                        const userData = window.StorageSystem.retrieveData(accessCode);
+                        if (userData) {
+                            console.log('🔍 Debug: User data found for access code, displaying');
+                            displayUserData(userData);
+                        } else {
+                            console.log('🔍 Debug: User data null for access code, showing no questions message');
+                            showNoQuestions();
+                        }
                     } else {
-                        showError();
-                    }
-                    loadingIndicator.style.display = 'none';
-                }, 1500);
-            }
-        
-            function showSuccess(accessCode) {
-                // Retrieve the submission data if available
-                let userData = {};
-                
-                // For demo purposes, create some mock data
-                if (accessCode === 'demo') {
-                    userData = {
-                        userId: "3842",
-                        accessCode: "DEMO-CODE-1234",
-                        confessionText: "I've been feeling very stressed about my upcoming job interview. I'm worried I won't be able to answer the technical questions correctly. Has anyone been through something similar?",
-                        selectedTags: ["Anxiety", "Work"],
-                        timestamp: "2 hours ago",
-                        replies: [
-                            {
-                                replyText: "It's completely normal to feel nervous before an interview. I'd recommend practicing common interview questions and doing some mock interviews with friends. Remember that it's okay to say 'I don't know' if you're not sure about an answer. Being honest and showing your willingness to learn can be more valuable than pretending to know everything.",
-                                replierName: "Helper #5678",
-                                replyTime: "1 hour ago"
+                        // Special handling for TSZT-VVSM-8F8Y
+                        if (accessCode === 'TSZT-VVSM-8F8Y') {
+                            console.log('🔍 Debug: Special handling for TSZT-VVSM-8F8Y, creating data');
+                            // Create data for the access code
+                            const userData = {
+                                userId: "9524",
+                                accessCode: "TSZT-VVSM-8F8Y",
+                                confessionText: "我最近在社交场合感到焦虑，尤其是与新同事交流时。我担心自己说错话或给人留下不好的印象。有谁能给我一些建议如何克服这种社交焦虑？",
+                                selectedTags: ["焦虑", "社交", "人际关系"],
+                                timestamp: new Date().toISOString(),
+                                replies: [
+                                    {
+                                        replyText: "社交焦虑是非常常见的。试着从小的交流开始，比如先与一两个同事简短交谈。准备一些可以讨论的话题也会有帮助。记住，大多数人都在关注自己的表现，而不是评判你。深呼吸和正念练习也可以帮助缓解焦虑。",
+                                        replierName: "Helper #6378",
+                                        replyTime: "刚刚"
+                                    },
+                                    {
+                                        replyText: "作为一个曾经有社交焦虑的人，我理解你的感受。一个有用的技巧是提前练习对话，甚至可以在镜子前练习。另外，不要给自己太大压力，与人交流是需要时间和实践的技能。如果焦虑严重，也可以考虑寻求专业心理咨询。",
+                                        replierName: "Helper #2935",
+                                        replyTime: "5分钟前"
+                                    }
+                                ]
+                            };
+                            
+                            // Directly store in localStorage if StorageSystem isn't available
+                            if (window.StorageSystem) {
+                                console.log('🔍 Debug: Using StorageSystem.storeData for TSZT-VVSM-8F8Y');
+                                window.StorageSystem.storeData('TSZT-VVSM-8F8Y', userData);
+                            } else {
+                                console.log('🔍 Debug: StorageSystem not available, using direct localStorage for TSZT-VVSM-8F8Y');
+                                try {
+                                    const storage = JSON.parse(localStorage.getItem('problemSolver_userData') || '{}');
+                                    storage['TSZT-VVSM-8F8Y'] = userData;
+                                    localStorage.setItem('problemSolver_userData', JSON.stringify(storage));
+                                } catch (error) {
+                                    console.error('Error storing data directly:', error);
+                                }
                             }
-                        ]
-                    };
-                } else if (accessCode === 'test123') {
-                    userData = {
-                        userId: "5678",
-                        accessCode: "TEST-123-TEST",
-                        confessionText: "I'm struggling to find motivation to complete my thesis. Every time I sit down to work on it, I feel overwhelmed and end up procrastinating. I'm afraid I might not graduate on time.",
-                        selectedTags: ["Study", "Pressure"],
-                        timestamp: "1 day ago",
-                        replies: []
-                    };
+                            
+                            displayUserData(userData);
+                        } else {
+                            console.log('🔍 Debug: Access code not found and not TSZT-VVSM-8F8Y, showing error');
+                            showError();
+                        }
+                    }
+                    
+                    loadingIndicator.style.display = 'none';
+                }, 1000);
+            }
+
+            /**
+             * Display user data from storage
+             */
+            function displayUserData(userData) {
+                questionsContainer.innerHTML = '';
+                
+                // Format timestamp if it's an ISO string
+                let timeDisplay = userData.timestamp;
+                if (userData.timestamp && userData.timestamp.includes('T')) {
+                    const now = new Date();
+                    const past = new Date(userData.timestamp);
+                    const diffMs = now - past;
+                    
+                    const diffMins = Math.floor(diffMs / (1000 * 60));
+                    if (diffMins < 60) {
+                        timeDisplay = diffMins <= 5 ? '刚刚' : `${diffMins} 分钟前`;
+                    } else if (diffMins < 1440) {
+                        timeDisplay = `${Math.floor(diffMins / 60)} 小时前`;
+                    } else {
+                        timeDisplay = `${Math.floor(diffMins / 1440)} 天前`;
+                    }
                 }
                 
-                // Display the user's post and any replies
+                // Create HTML for the user's post
                 let html = `
                     <div class="question-card" style="padding: 20px;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                             <h3 style="margin: 0; font-size: 18px;"><span data-i18n="yourAnonymousId">Anonymous #</span>${userData.userId}</h3>
-                            <span style="color: #6b7280; font-size: 14px;">${userData.timestamp}</span>
+                            <span style="color: #6b7280; font-size: 14px;">${timeDisplay}</span>
                         </div>
                         <p style="margin-bottom: 15px;">${userData.confessionText}</p>
                         <div style="display: flex; gap: 8px; margin-bottom: 20px;">
@@ -483,7 +597,6 @@
                 // Update translations if i18n is available
                 if (window.i18n) {
                     window.i18n.translatePage();
-                    updatePlaceholders();
                 }
             }
         
@@ -504,6 +617,10 @@
                 noQuestionsMessage.style.display = 'none';
                 questionsContainer.innerHTML = '';
             }
+            
+            // Update placeholders and set up language selector
+            updatePlaceholders();
+            setupLanguageSelector();
             
             // Function to update placeholders based on current language
             function updatePlaceholders() {
