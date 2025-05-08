@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Form, Input, Button, Checkbox } from 'antd';
+import { Form, Input, Button } from 'antd';
 import { DatabaseService } from '../services/database.service';
 import { InsertTables } from '../types/database.types';
 import { useTypeSafeTranslation } from '../utils/translationHelper';
@@ -13,7 +13,6 @@ interface ReplyFormProps {
 const ReplyForm: React.FC<ReplyFormProps> = ({ postId, onReplyAdded }) => {
   const { t } = useTypeSafeTranslation();
   const [content, setContent] = useState('');
-  const [isAnonymous, setIsAnonymous] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const handleSubmit = async () => {
@@ -30,7 +29,7 @@ const ReplyForm: React.FC<ReplyFormProps> = ({ postId, onReplyAdded }) => {
       const replyData: Omit<InsertTables<'replies'>, 'id' | 'created_at' | 'updated_at'> = {
         post_id: postId,
         content,
-        is_anonymous: isAnonymous,
+        is_anonymous: false,
         is_solution: false,
         user_id: userId
       };
@@ -57,15 +56,6 @@ const ReplyForm: React.FC<ReplyFormProps> = ({ postId, onReplyAdded }) => {
           onChange={(e) => setContent(e.target.value)}
           placeholder={t('replyPlaceholder')}
         />
-      </Form.Item>
-      
-      <Form.Item>
-        <Checkbox 
-          checked={isAnonymous} 
-          onChange={(e) => setIsAnonymous(e.target.checked)}
-        >
-          {t('postAnonymously')}
-        </Checkbox>
       </Form.Item>
       
       <Form.Item>

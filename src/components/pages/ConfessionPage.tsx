@@ -164,29 +164,6 @@ const ConfessionPage: React.FC = () => {
             
             <div className="form-section">
               <h3>{t('privacySettings')}</h3>
-              
-              <div className="checkbox-group">
-                <label className="checkbox-label">
-                  <input
-                    type="checkbox"
-                    checked={isAnonymous}
-                    onChange={(e) => setIsAnonymous(e.target.checked)}
-                  />
-                  {t('postAnonymously')}
-                </label>
-              </div>
-              
-              <div className="checkbox-group">
-                <label className="checkbox-label">
-                  <input
-                    type="checkbox"
-                    checked={isPrivate}
-                    onChange={(e) => setIsPrivate(e.target.checked)}
-                  />
-                  {t('keepPrivate')}
-                </label>
-              </div>
-              
               <div className="checkbox-group">
                 <label className="checkbox-label">
                   <input
@@ -197,7 +174,6 @@ const ConfessionPage: React.FC = () => {
                   {t('notifyViaEmail')}
                 </label>
               </div>
-              
               {notifyViaEmail && (
                 <div className="form-group">
                   <input

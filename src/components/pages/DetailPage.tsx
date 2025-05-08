@@ -20,11 +20,13 @@ import { getTimeAgo } from '../../utils/helpers';
 import { Post, Reply } from '../../types/post';
 import styles from './DetailPage.module.css';
 import Layout from '../layout/Layout';
+import { useTranslation } from 'react-i18next';
 
 const DetailPage: React.FC = () => {
   const { t } = useTypeSafeTranslation();
   const { accessCode } = useParams<{ accessCode: string }>();
   const navigate = useNavigate();
+  const { t: i18nT } = useTranslation();
   
   const [post, setPost] = useState<Post | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -122,6 +124,10 @@ const DetailPage: React.FC = () => {
     setSelectedReaction(selectedReaction === reaction ? null : reaction);
   };
   
+  function renderTag(tag: string) {
+    return i18nT(`tag${tag.charAt(0).toUpperCase() + tag.slice(1)}`, tag);
+  }
+  
   if (isLoading) {
     return (
       <div className={styles.loading}>
@@ -189,9 +195,7 @@ const DetailPage: React.FC = () => {
             
             <div className={styles.messageTags}>
               {(post.selectedTags || post.tags || []).map((tag: string, index: number) => (
-                <span key={index} className={styles.tag}>
-                  {tag}
-                </span>
+                <span key={index} className={styles.tag}>{renderTag(tag)}</span>
               ))}
             </div>
             

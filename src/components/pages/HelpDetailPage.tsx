@@ -18,6 +18,7 @@ import { DatabaseService } from '../../services/database.service';
 import { Post, Reply as DatabaseReply } from '../../types/database.types';
 import ReplyForm from '../ReplyForm';
 import { getCurrentUserId } from '../../utils/authHelpers';
+import { useTranslation } from 'react-i18next';
 
 // Helper function to get time ago
 const getTimeAgo = (timestamp: string): string => {
@@ -50,6 +51,7 @@ const getTimeAgo = (timestamp: string): string => {
 const HelpDetailPage: React.FC = () => {
   const { accessCode } = useParams<{ accessCode: string }>();
   const { t } = useTypeSafeTranslation();
+  const { t: i18nT } = useTranslation();
   
   const [post, setPost] = useState<Post | null>(null);
   const [replies, setReplies] = useState<DatabaseReply[]>([]);
@@ -124,6 +126,10 @@ const HelpDetailPage: React.FC = () => {
     }
   };
   
+  function renderTag(tag: string) {
+    return i18nT(`tag${tag.charAt(0).toUpperCase() + tag.slice(1)}`, tag);
+  }
+  
   if (loading) {
     return (
       <Layout>
@@ -181,7 +187,7 @@ const HelpDetailPage: React.FC = () => {
           
           <div className="post-tags">
             {post.tags.map(tag => (
-              <span key={tag} className="post-tag">{tag}</span>
+              <span key={tag} className="post-tag">{renderTag(tag)}</span>
             ))}
           </div>
           
@@ -195,7 +201,7 @@ const HelpDetailPage: React.FC = () => {
               <p>{t('noRepliesYet')}</p>
             ) : (
               replies.map(reply => (
-                <div key={reply.id} className={`reply ${reply.is_solution ? 'solution' : ''}`}>
+                <div key={reply.id} className="replyItem">
                   <div className="reply-content">{reply.content}</div>
                   <div className="reply-meta">
                     <span>{reply.is_anonymous ? t('anonymous') : t('user')}</span>
