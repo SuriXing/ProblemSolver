@@ -184,18 +184,17 @@ const DetailPage: React.FC = () => {
             
             <div className={styles.messageHeader}>
               <FontAwesomeIcon icon={faUser} />
-              <span className={styles.messageId}>
-                {t('anonymousUser')} #{post.userId?.substring(0, 4) || t('unknown')}
-              </span>
             </div>
             
             <div className={styles.messageContent}>
-              {post.confessionText || post.content}
+              {t(`post.${post.id}.content`, { defaultValue: post.content })}
             </div>
             
             <div className={styles.messageTags}>
               {(post.selectedTags || post.tags || []).map((tag: string, index: number) => (
-                <span key={index} className={styles.tag}>{renderTag(tag)}</span>
+                <span key={index} className={styles.tag}>
+                  {t(`tag.${tag}`, { defaultValue: tag })}
+                </span>
               ))}
             </div>
             

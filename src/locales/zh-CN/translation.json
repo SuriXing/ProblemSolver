@@ -130,5 +130,24 @@
   "confessionPlaceholder": "在这里输入你的告白...",
   "addTags": "添加标签",
   "emailPlaceholder": "输入您的电子邮件",
-  "send": "发送"
+  "send": "发送",
+  "justNow": "刚刚",
+  "minutesAgo": "{{count}} 分钟前",
+  "hoursAgo": "{{count}} 小时前",
+  "daysAgo": "{{count}} 天前",
+  "weeksAgo": "{{count}} 周前",
+  "monthsAgo": "{{count}} 个月前",
+  "yearsAgo": "{{count}} 年前",
+  "tag": {
+    "anxiety": "焦虑",
+    "depression": "抑郁",
+    "stress": "压力",
+    "relationships": "人际关系",
+    "family": "家庭",
+    "work": "工作",
+    "study": "学习",
+    "health": "健康",
+    "social": "社交",
+    "other": "其他"
+  }
 }
