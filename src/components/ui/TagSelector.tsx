@@ -15,6 +15,7 @@ const TagSelector: React.FC<TagSelectorProps> = ({
   const { t } = useTypeSafeTranslation();
   const [inputValue, setInputValue] = useState('');
   const [tags, setTags] = useState<string[]>(initialTags);
+  const [showCustomInput, setShowCustomInput] = useState(false);
 
   // Safe translation function
   const safeT = (key: string, fallback: string) => {
@@ -45,11 +46,15 @@ const TagSelector: React.FC<TagSelectorProps> = ({
   }, [tags, onTagsSelected]);
 
   const addTag = (tag: string) => {
-    const trimmedTag = tag.trim().toLowerCase();
-    if (trimmedTag && !tags.includes(trimmedTag)) {
-      const newTags = [...tags, trimmedTag];
-      setTags(newTags);
+    const trimmedTag = tag.trim();
+    if (
+      trimmedTag &&
+      !tags.includes(trimmedTag) &&
+      !commonTags.some(t => t.id === trimmedTag) // Prevent adding a common tag as custom
+    ) {
+      setTags([...tags, trimmedTag]);
       setInputValue('');
+      setShowCustomInput(false);
     }
   };
 
@@ -65,6 +70,11 @@ const TagSelector: React.FC<TagSelectorProps> = ({
   };
 
   const handleCommonTagClick = (tagId: string) => {
+    if (tagId === 'other') {
+      setShowCustomInput((prev) => !prev);
+      setInputValue('');
+      return;
+    }
     if (!tags.includes(tagId)) {
       setTags([...tags, tagId]);
     } else {
@@ -81,7 +91,7 @@ const TagSelector: React.FC<TagSelectorProps> = ({
           <button
             type="button"
             key={tag.id}
-            className={`tag-chip ${tags.includes(tag.id) ? 'selected' : ''}`}
+            className={`tag-chip ${tags.includes(tag.id) ? 'selected' : ''}${tag.id === 'other' && showCustomInput ? ' selected' : ''}`}
             onClick={() => handleCommonTagClick(tag.id)}
           >
             {tag.label}
@@ -89,33 +99,39 @@ const TagSelector: React.FC<TagSelectorProps> = ({
         ))}
       </div>
       
-      <div className="tag-input-container">
-        <input
-          type="text"
-          value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
-          onKeyDown={handleKeyDown}
-          onBlur={() => inputValue && addTag(inputValue)}
-          placeholder={safeT('customTagPlaceholder', 'Type custom tag and press Enter')}
-          className="tag-input"
-        />
-      </div>
+      {showCustomInput && (
+        <div className="tag-input-container">
+          <input
+            type="text"
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            onKeyDown={handleKeyDown}
+            onBlur={() => inputValue && addTag(inputValue)}
+            placeholder={safeT('customTagPlaceholder', 'Type custom tag and press Enter')}
+            className="tag-input"
+            autoFocus
+          />
+        </div>
+      )}
       
       <div className="selected-tags">
         {tags.length > 0 && (
           <div className="tags-list">
             {tags.map(tag => (
-              <span key={tag} className="tag">
-                {commonTags.find(t => t.id === tag)?.label || tag}
-                <button 
-                  type="button" 
-                  className="remove-tag" 
-                  onClick={() => removeTag(tag)}
-                  aria-label={safeT('removeTag', 'Remove tag')}
-                >
-                  ×
-                </button>
-              </span>
+              // Only show tags that are not 'other'
+              commonTags.find(t => t.id === tag && t.id === 'other') ? null : (
+                <span key={tag} className="tag">
+                  {commonTags.find(t => t.id === tag)?.label || tag}
+                  <button 
+                    type="button" 
+                    className="remove-tag" 
+                    onClick={() => removeTag(tag)}
+                    aria-label={safeT('removeTag', 'Remove tag')}
+                  >
+                    ×
+                  </button>
+                </span>
+              )
             ))}
           </div>
         )}
