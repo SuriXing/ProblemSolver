@@ -126,10 +126,6 @@ const HelpDetailPage: React.FC = () => {
     }
   };
   
-  function renderTag(tag: string) {
-    return i18nT(`tag${tag.charAt(0).toUpperCase() + tag.slice(1)}`, tag);
-  }
-  
   if (loading) {
     return (
       <Layout>
@@ -165,9 +161,6 @@ const HelpDetailPage: React.FC = () => {
             </Link>
             
             <div className="post-meta">
-              <span className="post-author">
-                {post.is_anonymous ? t('anonymous') : t('user')}
-              </span>
               <span className="post-time">{getTimeAgo(post.created_at)}</span>
             </div>
             
@@ -182,12 +175,14 @@ const HelpDetailPage: React.FC = () => {
           </div>
           
           <div className="post-title">
-            {post.content}
+            {i18nT(`post.${post.id}.content`, { defaultValue: post.content })}
           </div>
           
           <div className="post-tags">
             {post.tags.map(tag => (
-              <span key={tag} className="post-tag">{renderTag(tag)}</span>
+              <span key={tag} className="post-tag">
+                {i18nT(`tag.${tag}`, { defaultValue: tag })}
+              </span>
             ))}
           </div>
           
@@ -203,8 +198,17 @@ const HelpDetailPage: React.FC = () => {
               replies.map(reply => (
                 <div key={reply.id} className="replyItem">
                   <div className="reply-content">{reply.content}</div>
+                  {/* If reply has tags, render them translated */}
+                  {Array.isArray((reply as any).tags) && (reply as any).tags.length > 0 && (
+                    <div className="reply-tags">
+                      {(reply as any).tags.map((tag: string) => (
+                        <span key={tag} className="post-tag">
+                          {i18nT(`tag.${tag}`, { defaultValue: tag })}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                   <div className="reply-meta">
-                    <span>{reply.is_anonymous ? t('anonymous') : t('user')}</span>
                     <span>{getTimeAgo(reply.created_at)}</span>
                     
                     {/* Show mark as solution button for post owner */}

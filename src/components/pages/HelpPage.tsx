@@ -19,6 +19,7 @@ import Layout from '../layout/Layout';
 import { Post } from '../../types/database.types';
 import { DatabaseService } from '../../services/database.service';
 import './HelpPage.css'; // Make sure this CSS file exists
+import { useTranslation } from 'react-i18next';
 
 // Helper function to get time ago
 const getTimeAgo = (timestamp: string): string => {
@@ -50,6 +51,7 @@ const getTimeAgo = (timestamp: string): string => {
 
 const HelpPage: React.FC = () => {
   const { t, i18n } = useTypeSafeTranslation();
+  const { t: i18nextT } = useTranslation();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -187,7 +189,7 @@ const HelpPage: React.FC = () => {
                 className={`tag ${selectedTag === tag ? 'active' : ''}`}
                 onClick={() => handleTagClick(tag)}
               >
-                {tag}
+                {i18nextT(`tag.${tag}`, { defaultValue: tag })}
               </span>
             ))}
           </div>
@@ -213,14 +215,11 @@ const HelpPage: React.FC = () => {
                     <div className="post-content">
                       <div className="post-text">{post.content}</div>
                       <div className="post-meta">
-                        <span className="post-author">
-                          {post.is_anonymous ? t('anonymous') : t('user')}
-                        </span>
                         <span className="post-time">{getTimeAgo(post.created_at)}</span>
                       </div>
                       <div className="post-tags">
                         {post.tags && post.tags.map(tag => (
-                          <span key={tag} className="post-tag">{tag}</span>
+                          <span key={tag} className="post-tag">{i18nextT(`tag.${tag}`, { defaultValue: tag })}</span>
                         ))}
                       </div>
                       <div className="post-stats">
