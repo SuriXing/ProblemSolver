@@ -106,5 +106,20 @@
   "reactionThumbsUp": "좋아요 반응",
   "confessionTitle": "고민 나누기",
   "confessionSubtitle": "안전하게 고민을 나누고 따뜻한 답변을 받아보세요",
-  "confessionPlaceholder": "당신의 고민을 적어주세요..."
+  "confessionPlaceholder": "당신의 고민을 적어주세요...",
+  "send": "보내기",
+  "emailPlaceholder": "이메일 주소 입력",
+  "addTags": "태그 추가",
+  "tag": {
+    "anxiety": "불안",
+    "depression": "우울",
+    "stress": "스트레스",
+    "relationships": "인간관계",
+    "family": "가족",
+    "work": "직장",
+    "study": "학업",
+    "health": "건강",
+    "social": "사회",
+    "other": "기타"
+  }
 }

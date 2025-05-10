@@ -132,6 +132,7 @@
   "confessionPlaceholder": "Type your confession here...",
   "addTags": "Add Tags",
   "emailPlaceholder": "Enter your email",
+  "send": "Send",
   "justNow": "Just now",
   "minutesAgo": "{{count}} minute ago",
   "minutesAgo_plural": "{{count}} minutes ago",
