@@ -103,5 +103,23 @@
   "startConfession": "話し始める",
   "confessionTitle": "思いを共有する",
   "confessionSubtitle": "ここで安心して悩みを打ち明け、温かい返事を受け取りましょう",
-  "confessionPlaceholder": "あなたの悩みを書いてください..."
+  "confessionPlaceholder": "あなたの悩みを書いてください...",
+  "send": "送信",
+  "emailPlaceholder": "メールアドレスを入力",
+  "addTags": "タグを追加",
+  "helpCardTitle": "他の人を助けたい",
+  "helpCardDesc": "温かいアドバイスをして、誰かの光になりましょう",
+  "goHelp": "助けに行く",
+  "tag": {
+    "anxiety": "不安",
+    "depression": "鬱",
+    "stress": "ストレス",
+    "relationships": "人間関係",
+    "family": "家族",
+    "work": "仕事",
+    "study": "勉強",
+    "health": "健康",
+    "social": "社交",
+    "other": "その他"
+  }
 }

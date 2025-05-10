@@ -47,6 +47,7 @@
   border-radius: 4px;
   font-family: inherit;
   transition: border-color 0.2s;
+  box-sizing: border-box;
 }
 
 .tag-input:focus {
@@ -64,6 +65,7 @@
   font-family: inherit;
   transition: border-color 0.2s;
   resize: vertical;
+  box-sizing: border-box;
 }
 
 .confession-textarea:focus {
@@ -112,6 +114,7 @@
   padding: 0.7rem;
   border: 1px solid #ddd;
   border-radius: 4px;
+  box-sizing: border-box;
 }
 
 .email-input.error {
@@ -220,8 +223,12 @@
   border-radius: 8px;
   padding: 2rem;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .form-group {
   margin-bottom: 1.5rem;
+  width: 100%;
+  box-sizing: border-box;
 } 

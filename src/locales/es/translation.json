@@ -106,5 +106,20 @@
   "reactionThumbsUp": "Reacción de me gusta",
   "confessionTitle": "Comparte tus Preocupaciones",
   "confessionSubtitle": "Comparte tus inquietudes de forma segura y recibe respuestas reconfortantes",
-  "confessionPlaceholder": "Escribe aquí tus preocupaciones..."
+  "confessionPlaceholder": "Escribe aquí tus preocupaciones...",
+  "send": "Enviar",
+  "emailPlaceholder": "Ingrese su correo electrónico",
+  "addTags": "Agregar etiquetas",
+  "tag": {
+    "anxiety": "Ansiedad",
+    "depression": "Depresión",
+    "stress": "Estrés",
+    "relationships": "Relaciones",
+    "family": "Familia",
+    "work": "Trabajo",
+    "study": "Estudio",
+    "health": "Salud",
+    "social": "Social",
+    "other": "Otro"
+  }
 }

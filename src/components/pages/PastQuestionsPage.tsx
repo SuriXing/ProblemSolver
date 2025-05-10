@@ -75,7 +75,7 @@ const PastQuestionsPage: React.FC<PastQuestionsPageProps> = ({ showDebug, debugP
 
   return (
     <Layout>
-      <div className="past-questions-container">
+      <div className="container past-questions-container">
         <h1>{t('goToPastQuestions')}</h1>
         
         <Link to="/">
