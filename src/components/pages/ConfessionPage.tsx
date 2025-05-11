@@ -191,7 +191,7 @@ const ConfessionPage: React.FC = () => {
             <div className="form-actions">
               <button 
                 type="submit" 
-                className="btn-primary" 
+                className="btn-primary-outline" 
                 disabled={isSubmitting}
               >
                 {isSubmitting 
@@ -200,7 +200,7 @@ const ConfessionPage: React.FC = () => {
               </button>
               <button 
                 type="button" 
-                className="btn-secondary" 
+                className="btn-primary-outline" 
                 onClick={() => navigate('/')}
               >
                 {t('returnHome')}

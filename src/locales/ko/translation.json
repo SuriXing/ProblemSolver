@@ -121,5 +121,7 @@
     "health": "건강",
     "social": "사회",
     "other": "기타"
-  }
+  },
+  "confessionPlaceholderHint": "여기에 당신의 고백이 표시됩니다.",
+  "viewMyPost": "내 게시물 보기"
 }

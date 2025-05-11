@@ -130,6 +130,8 @@
   "confessionTitle": "Share Your Concerns",
   "confessionSubtitle": "Safely share your troubles and receive warm responses",
   "confessionPlaceholder": "Type your confession here...",
+  "confessionPlaceholderHint": "Your confession will be shown here.",
+  "viewMyPost": "View My Post",
   "addTags": "Add Tags",
   "emailPlaceholder": "Enter your email",
   "send": "Send",

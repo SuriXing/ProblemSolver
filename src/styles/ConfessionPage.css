@@ -231,4 +231,21 @@
   margin-bottom: 1.5rem;
   width: 100%;
   box-sizing: border-box;
+}
+
+.btn-primary-outline {
+  background: #fff;
+  color: var(--primary, #4285F4);
+  border: 1.5px solid var(--primary, #4285F4);
+  border-radius: 4px;
+  padding: 0.7rem 1.5rem;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+
+.btn-primary-outline:hover {
+  background: var(--primary, #4285F4);
+  color: #fff;
+  border-color: var(--primary, #4285F4);
 } 

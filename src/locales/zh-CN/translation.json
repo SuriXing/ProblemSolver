@@ -128,6 +128,8 @@
   "confessionTitle": "分享你的心事",
   "confessionSubtitle": "在这里安全地倾诉烦恼，获得温暖回应",
   "confessionPlaceholder": "在这里输入你的告白...",
+  "confessionPlaceholderHint": "你的告白会显示在这里。",
+  "viewMyPost": "查看我的帖子",
   "addTags": "添加标签",
   "emailPlaceholder": "输入您的电子邮件",
   "send": "发送",
