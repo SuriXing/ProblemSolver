@@ -4,8 +4,11 @@ import { useTypeSafeTranslation } from '../../utils/translationHelper';
 import Layout from '../layout/Layout';
 import DebugMenu from '../DebugMenu';
 import { DatabaseService } from '../../services/database.service';
-import { Button, Card, Spin, Empty } from 'antd';
+import { Button, Card, Spin, Empty, Input } from 'antd';
 import { Post } from '../../types/database.types';
+import { message } from 'antd';
+import ConfessionPlaceholderSVG from '../../assets/placeholder_confession.svg';
+import ErrorPlaceholderSVG from '../../assets/placeholder_error.svg';
 
 // Helper function to get time ago
 const getTimeAgo = (timestamp: string): string => {
@@ -53,6 +56,11 @@ const PastQuestionsPage: React.FC<PastQuestionsPageProps> = ({ showDebug, debugP
   const [questions, setQuestions] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [accessCode, setAccessCode] = useState('');
+  const [fetchedPost, setFetchedPost] = useState<Post | null>(null);
+  const [replies, setReplies] = useState<any[]>([]);
+  const [fetchingPost, setFetchingPost] = useState(false);
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
   // Fetch all questions
   const fetchAllQuestions = useCallback(async () => {
@@ -69,50 +77,93 @@ const PastQuestionsPage: React.FC<PastQuestionsPageProps> = ({ showDebug, debugP
     }
   }, []);
 
+  // Fetch post and replies by access code
+  const handleAccessCodeSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setFetchingPost(true);
+    setFetchError(null);
+    setFetchedPost(null);
+    setReplies([]);
+    try {
+      const post = await DatabaseService.getPostByAccessCode(accessCode.trim());
+      if (!post) {
+        setFetchError(t('postNotFound'));
+        setFetchingPost(false);
+        return;
+      }
+      setFetchedPost(post);
+      // Fetch replies if available
+      if (post.id) {
+        const fetchedReplies = await DatabaseService.getRepliesByPostId(post.id);
+        setReplies(fetchedReplies || []);
+      }
+    } catch (err) {
+      setFetchError(t('errorRetrievingData'));
+    } finally {
+      setFetchingPost(false);
+    }
+  };
+
   useEffect(() => {
     fetchAllQuestions();
   }, [fetchAllQuestions]);
 
   return (
     <Layout>
-      <div className="container past-questions-container">
-        <h1>{t('goToPastQuestions')}</h1>
-        
-        <Link to="/">
-          <Button type="primary" style={{ marginBottom: 20 }}>
-            {t('returnHome')}
-          </Button>
-        </Link>
+      <div className="container past-questions-container" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minHeight: '80vh', justifyContent: 'flex-start', position: 'relative' }}>
+        <h1 style={{ textAlign: 'center', marginBottom: 24 }}>{t('goToPastQuestions')}</h1>
+        <form onSubmit={handleAccessCodeSubmit} className="accessCodeForm" style={{ marginBottom: 32, display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', maxWidth: 400 }}>
+          <label htmlFor="access-code-input" style={{ fontWeight: 500, textAlign: 'center', marginBottom: 8 }}>{t('enterAccessCode')}</label>
+          <Input
+            id="access-code-input"
+            className="accessCodeInput"
+            value={accessCode}
+            onChange={e => setAccessCode(e.target.value)}
+            placeholder={t('enterAccessCode')}
+            style={{ marginBottom: 16, maxWidth: 300, textAlign: 'center' }}
+            autoComplete="off"
+          />
+          <button type="submit" className="btn-primary" style={{ width: '100%', maxWidth: 300 }} disabled={fetchingPost}>
+            {t('viewMyPost') || 'View My Post'}
+          </button>
+        </form>
 
-        {loading ? (
-          <div className="loading-container">
-            <Spin size="large" />
-            <p>{t('loading')}</p>
+        {/* Placeholder area below input, only show if no valid post */}
+        {!fetchedPost && (
+          <div style={{ width: '100%', maxWidth: 600, minHeight: 250, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#fff', borderRadius: 8, boxShadow: '0 2px 10px rgba(0,0,0,0.07)', marginBottom: 32, padding: 32 }}>
+            {fetchError ? (
+              <>
+                <img src={ErrorPlaceholderSVG} alt="error" style={{ width: 120, height: 120, marginBottom: 16 }} />
+                <div style={{ color: '#e53935', fontWeight: 500, fontSize: 18, textAlign: 'center' }}>{t('postNotFound') || 'Wrong access code, please give me correct one.'}</div>
+              </>
+            ) : (
+              <>
+                <img src={ConfessionPlaceholderSVG} alt="placeholder" style={{ width: 120, height: 120, marginBottom: 16 }} />
+                <div style={{ color: '#888', fontWeight: 500, fontSize: 18, textAlign: 'center' }}>{t('confessionPlaceholderHint') || 'Your confession will be shown here.'}</div>
+              </>
+            )}
           </div>
-        ) : error ? (
-          <div className="error-container">
-            <p>{error}</p>
-            <Button onClick={fetchAllQuestions}>Retry</Button>
-          </div>
-        ) : questions.length === 0 ? (
-          <Empty description={t('noQuestionFound')} />
-        ) : (
-          <div className="questions-list">
-            {questions.map(question => (
-              <Card 
-                key={question.id} 
-                title={question.title || 'Untitled'} 
-                style={{ marginBottom: 16 }}
-              >
-                <p>{question.content}</p>
-                <div className="card-footer">
-                  <Link to={`/share/${question.access_code}`}>
-                    <Button type="primary">View Details</Button>
-                  </Link>
-                </div>
-              </Card>
-            ))}
-          </div>
+        )}
+
+        {/* Show fetched post and replies if available */}
+        {fetchedPost && (
+          <Card title={fetchedPost.title || t('untitled')} style={{ marginBottom: 24, width: '100%', maxWidth: 600 }}>
+            <p>{fetchedPost.content}</p>
+            <div style={{ marginBottom: 12 }}>
+              <b>{t('replies')}:</b>
+            </div>
+            {replies.length === 0 ? (
+              <div style={{ color: '#888' }}>{t('noRepliesYet')}</div>
+            ) : (
+              <ul style={{ paddingLeft: 20 }}>
+                {replies.map((reply, idx) => (
+                  <li key={reply.id || idx} style={{ marginBottom: 8 }}>
+                    {reply.content}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Card>
         )}
       </div>
       {/* 使用传入的 showDebug 属性控制调试菜单的显示 */}

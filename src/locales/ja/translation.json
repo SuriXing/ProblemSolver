@@ -121,5 +121,7 @@
     "health": "健康",
     "social": "社交",
     "other": "その他"
-  }
+  },
+  "confessionPlaceholderHint": "あなたの告白がここに表示されます。",
+  "viewMyPost": "自分の投稿を見る"
 }
