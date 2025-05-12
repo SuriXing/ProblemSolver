@@ -1,0 +1,25 @@
+.container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 16px 0;
+}
+
+.tag {
+  padding: 6px 12px;
+  border-radius: 16px;
+  border: 1px solid #ccc;
+  background-color: #f5f5f5;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tag:hover {
+  background-color: #e0e0e0;
+}
+
+.selected {
+  background-color: #1976d2;
+  color: white;
+  border-color: #1976d2;
+}
