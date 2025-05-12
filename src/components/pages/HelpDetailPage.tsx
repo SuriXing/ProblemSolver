@@ -21,7 +21,7 @@ import { getCurrentUserId } from '../../utils/authHelpers';
 import { useTranslation } from 'react-i18next';
 
 // Helper function to get time ago
-const getTimeAgo = (timestamp: string): string => {
+const getTimeAgo = (timestamp: string, t: (key: string, options?: any) => string): string => {
   const now = new Date();
   const past = new Date(timestamp);
   const diffMs = now.getTime() - past.getTime();
@@ -34,17 +34,17 @@ const getTimeAgo = (timestamp: string): string => {
   const diffMonths = Math.floor(diffDays / 30);
   
   if (diffMonths > 0) {
-    return diffMonths === 1 ? '1 month ago' : `${diffMonths} months ago`;
+    return t('monthsAgo', { count: diffMonths });
   } else if (diffWeeks > 0) {
-    return diffWeeks === 1 ? '1 week ago' : `${diffWeeks} weeks ago`;
+    return t('weeksAgo', { count: diffWeeks });
   } else if (diffDays > 0) {
-    return diffDays === 1 ? '1 day ago' : `${diffDays} days ago`;
+    return t('daysAgo', { count: diffDays });
   } else if (diffHours > 0) {
-    return diffHours === 1 ? '1 hour ago' : `${diffHours} hours ago`;
+    return t('hoursAgo', { count: diffHours });
   } else if (diffMins > 0) {
-    return diffMins === 1 ? '1 minute ago' : `${diffMins} minutes ago`;
+    return t('minutesAgo', { count: diffMins });
   } else {
-    return 'Just now';
+    return t('justNow');
   }
 };
 
@@ -129,9 +129,9 @@ const HelpDetailPage: React.FC = () => {
   if (loading) {
     return (
       <Layout>
-        <div className="loading-container">
+        <div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 1000 }}>
           <div className="loading-spinner"></div>
-          <p>{t('loadingPost')}</p>
+          <p style={{ marginTop: 16 }}>{t('loadingPosts')}</p>
         </div>
       </Layout>
     );
@@ -161,7 +161,7 @@ const HelpDetailPage: React.FC = () => {
             </Link>
             
             <div className="post-meta">
-              <span className="post-time">{getTimeAgo(post.created_at)}</span>
+              <span className="post-time">{getTimeAgo(post.created_at, t)}</span>
             </div>
             
             <div className="post-stats">
@@ -209,7 +209,7 @@ const HelpDetailPage: React.FC = () => {
                     </div>
                   )}
                   <div className="reply-meta">
-                    <span>{getTimeAgo(reply.created_at)}</span>
+                    <span>{getTimeAgo(reply.created_at, t)}</span>
                     
                     {/* Show mark as solution button for post owner */}
                     {post?.user_id === currentUserId && !reply.is_solution && (

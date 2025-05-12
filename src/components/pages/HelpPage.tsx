@@ -22,30 +22,28 @@ import './HelpPage.css'; // Make sure this CSS file exists
 import { useTranslation } from 'react-i18next';
 
 // Helper function to get time ago
-const getTimeAgo = (timestamp: string): string => {
+const getTimeAgo = (timestamp: string, t: (key: string, options?: any) => string): string => {
   const now = new Date();
   const past = new Date(timestamp);
   const diffMs = now.getTime() - past.getTime();
-  
   const diffSecs = Math.floor(diffMs / 1000);
   const diffMins = Math.floor(diffSecs / 60);
   const diffHours = Math.floor(diffMins / 60);
   const diffDays = Math.floor(diffHours / 24);
   const diffWeeks = Math.floor(diffDays / 7);
   const diffMonths = Math.floor(diffDays / 30);
-  
   if (diffMonths > 0) {
-    return diffMonths === 1 ? '1 month ago' : `${diffMonths} months ago`;
+    return t('monthsAgo', { count: diffMonths });
   } else if (diffWeeks > 0) {
-    return diffWeeks === 1 ? '1 week ago' : `${diffWeeks} weeks ago`;
+    return t('weeksAgo', { count: diffWeeks });
   } else if (diffDays > 0) {
-    return diffDays === 1 ? '1 day ago' : `${diffDays} days ago`;
+    return t('daysAgo', { count: diffDays });
   } else if (diffHours > 0) {
-    return diffHours === 1 ? '1 hour ago' : `${diffHours} hours ago`;
+    return t('hoursAgo', { count: diffHours });
   } else if (diffMins > 0) {
-    return diffMins === 1 ? '1 minute ago' : `${diffMins} minutes ago`;
+    return t('minutesAgo', { count: diffMins });
   } else {
-    return 'Just now';
+    return t('justNow');
   }
 };
 
@@ -215,7 +213,7 @@ const HelpPage: React.FC = () => {
                     <div className="post-content">
                       <div className="post-text">{post.content}</div>
                       <div className="post-meta">
-                        <span className="post-time">{getTimeAgo(post.created_at)}</span>
+                        <span className="post-time">{getTimeAgo(post.created_at, t)}</span>
                       </div>
                       <div className="post-tags">
                         {post.tags && post.tags.map(tag => (

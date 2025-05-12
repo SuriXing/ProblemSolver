@@ -89,7 +89,18 @@
   "popular": "인기",
   "solved": "해결됨",
   "loadingPosts": "게시물 로딩 중...",
-  "noPostsFound": "게시물을 찾을 수 없습니다",
+  "loadingPost": "게시물 로딩 중...",
+  "postNotFoundDesc": "찾으시는 게시물을 찾을 수 없습니다.",
+  "markedAsSolution": "해결책으로 표시됨",
+  "errorMarkingSolution": "해결책 표시 중 오류 발생",
+  "solution": "해결책",
+  "untitled": "제목 없음",
+  "favorite": "즐겨찾기",
+  "share": "공유",
+  "mostHelpful": "가장 도움됨",
+  "latest": "최신",
+  "oldest": "오래된 순",
+  "beFirstToReply": "첫 번째로 답글을 남겨보세요!",
   "anonymous": "익명",
   "user": "사용자",
   "errorOccurred": "오류가 발생했습니다",
@@ -123,5 +134,12 @@
     "other": "기타"
   },
   "confessionPlaceholderHint": "여기에 당신의 고백이 표시됩니다.",
-  "viewMyPost": "내 게시물 보기"
+  "viewMyPost": "내 게시물 보기",
+  "replies": "답글",
+  "yourReply": "당신의 답글",
+  "replyPlaceholder": "여기에 답글을 입력하세요...",
+  "backToHelp": "도움으로 돌아가기",
+  "addReply": "답글 추가",
+  "noRepliesYet": "아직 답글이 없습니다",
+  "beTheFirstToReply": "첫 번째로 답글을 남겨보세요!"
 }
