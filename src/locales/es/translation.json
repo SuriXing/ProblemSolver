@@ -89,6 +89,7 @@
   "popular": "Populares",
   "solved": "Resueltas",
   "loadingPosts": "Cargando publicaciones...",
+  "loadingPost": "Cargando publicación...",
   "noPostsFound": "No se encontraron publicaciones",
   "anonymous": "Anónimo",
   "user": "Usuario",
@@ -123,5 +124,20 @@
     "other": "Otro"
   },
   "confessionPlaceholderHint": "Tu confesión se mostrará aquí.",
-  "viewMyPost": "Ver mi publicación"
+  "viewMyPost": "Ver mi publicación",
+  "replies": "Respuestas",
+  "yourReply": "Tu respuesta",
+  "replyPlaceholder": "Escribe tu respuesta aquí...",
+  "backToHelp": "Volver a Ayuda",
+  "postNotFoundDesc": "No se pudo encontrar la publicación que buscas.",
+  "markedAsSolution": "Marcado como solución",
+  "errorMarkingSolution": "Error al marcar como solución",
+  "solution": "Solución",
+  "untitled": "Sin título",
+  "favorite": "Favorito",
+  "share": "Compartir",
+  "mostHelpful": "Más útil",
+  "latest": "Más recientes",
+  "oldest": "Más antiguas",
+  "beFirstToReply": "¡Sé el primero en responder!"
 }

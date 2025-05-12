@@ -134,7 +134,7 @@ export const DatabaseService = {
   async getPostsByPurpose(purpose: 'need_help' | 'offer_help'): Promise<Post[]> {
     const { data, error } = await supabase
       .from('posts')
-      .select('*')
+      .select('*, replies(*)')
       .eq('purpose', purpose)
       .order('created_at', { ascending: false });
       

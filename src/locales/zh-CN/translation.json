@@ -103,6 +103,7 @@
   "popular": "热门",
   "solved": "已解决",
   "loadingPosts": "加载帖子中...",
+  "loadingPost": "加载帖子中...",
   "noPostsFound": "未找到帖子",
   "anonymous": "匿名",
   "user": "用户",
@@ -151,5 +152,20 @@
     "health": "健康",
     "social": "社交",
     "other": "其他"
-  }
+  },
+  "replies": "回复",
+  "yourReply": "你的回复",
+  "replyPlaceholder": "在这里输入你的回复...",
+  "backToHelp": "返回帮助页",
+  "postNotFoundDesc": "未找到您要查找的帖子。",
+  "markedAsSolution": "已标记为解决方案",
+  "errorMarkingSolution": "标记为解决方案时出错",
+  "solution": "解决方案",
+  "untitled": "无标题",
+  "favorite": "收藏",
+  "share": "分享",
+  "mostHelpful": "最有帮助",
+  "latest": "最新",
+  "oldest": "最早",
+  "beFirstToReply": "成为第一个回复的人！"
 }
