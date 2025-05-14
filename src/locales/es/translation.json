@@ -139,5 +139,18 @@
   "mostHelpful": "Más útil",
   "latest": "Más recientes",
   "oldest": "Más antiguas",
-  "beFirstToReply": "¡Sé el primero en responder!"
+  "beFirstToReply": "¡Sé el primero en responder!",
+  "justNow": "Justo ahora",
+  "minutesAgo": "Hace {{count}} minuto",
+  "minutesAgo_plural": "Hace {{count}} minutos",
+  "hoursAgo": "Hace {{count}} hora",
+  "hoursAgo_plural": "Hace {{count}} horas",
+  "daysAgo": "Hace {{count}} día",
+  "daysAgo_plural": "Hace {{count}} días",
+  "weeksAgo": "Hace {{count}} semana",
+  "weeksAgo_plural": "Hace {{count}} semanas",
+  "monthsAgo": "Hace {{count}} mes",
+  "monthsAgo_plural": "Hace {{count}} meses",
+  "yearsAgo": "Hace {{count}} año",
+  "yearsAgo_plural": "Hace {{count}} años"
 }
