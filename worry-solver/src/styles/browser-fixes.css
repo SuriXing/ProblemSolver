@@ -1,0 +1,137 @@
+/* 
+ * Browser-specific CSS fixes
+ * These styles are applied based on the classes added by browserDetection.ts
+ */
+
+/* Fix for Safari flexbox gap issue in older versions */
+.safari-gap-fix .flex-container > * {
+  margin: 0.5rem;
+}
+
+.safari-gap-fix .flex-container {
+  margin: -0.5rem;
+}
+
+/* Fix for IE flexbox issues */
+.is-ie .flex-container {
+  display: flex;
+  width: 100%;
+}
+
+.ie-flex-fix .flex-item {
+  flex-basis: auto;
+}
+
+/* iOS 100vh fix using the custom --vh variable */
+.is-ios .full-height {
+  height: 100vh; /* Fallback */
+  height: calc(var(--vh, 1vh) * 100);
+}
+
+/* Fix for Firefox button rendering */
+.is-firefox button {
+  /* Firefox sometimes has issues with button rendering */
+  overflow: hidden;
+}
+
+/* Edge specific fixes */
+.is-edge .transform-element {
+  /* Fix for Edge transform rendering issues */
+  transform: translateZ(0);
+}
+
+/* Mobile specific adjustments */
+.is-mobile .desktop-only {
+  display: none !important;
+}
+
+.is-mobile .clickable-element {
+  /* Increase touch target size for mobile devices */
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Fix for different browsers rendering fonts differently */
+html, body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* Safari-specific font rendering */
+.is-safari {
+  font-weight: -0.01px; /* Slight adjustment for Safari's font rendering */
+}
+
+/* Fix for scroll issues on iOS */
+.is-ios {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Fix for scrollbar appearance differences */
+* {
+  /* Standard property for Firefox */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.3) transparent;
+}
+
+/* For Chrome, Edge, and Safari */
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.3);
+  border-radius: 4px;
+}
+
+/* Fix for input placeholder styling differences */
+::placeholder {
+  opacity: 0.5;
+  color: #888;
+}
+
+::-webkit-input-placeholder {
+  opacity: 0.5;
+  color: #888;
+}
+
+::-moz-placeholder {
+  opacity: 0.5;
+  color: #888;
+}
+
+/* Fix for iOS input zoom issue */
+@media screen and (max-width: 767px) {
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  select,
+  textarea {
+    font-size: 16px; /* Prevents zoom on iOS */
+  }
+}
+
+/* Fix for Edge and IE focus outline */
+.is-edge button:focus,
+.is-ie button:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(0, 120, 215, 0.5);
+}
+
+/* Fix for animation performance */
+.animated-element {
+  will-change: transform;
+  transform: translateZ(0); /* Triggers hardware acceleration */
+}
+
+/* Fix for fractional pixel rendering issues in some browsers */
+.pixel-perfect {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+} 

@@ -10,19 +10,19 @@ interface LanguageContextType {
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 export const LanguageProvider: React.FC<{children: ReactNode}> = ({ children }) => {
-  const [currentLanguage, setCurrentLanguage] = useState('zh-CN');
+  const [currentLanguage, setCurrentLanguage] = useState(i18nInstance.language);
 
   useEffect(() => {
-    // Initialize language from i18n once it's ready
-    i18nInstance.then((instance: unknown) => {
-      const i18n = instance as unknown as i18n;
-      setCurrentLanguage(i18n.language);
-    });
+    // Initialize language from localStorage if available
+    const savedLanguage = localStorage.getItem('language');
+    if (savedLanguage) {
+      i18nInstance.changeLanguage(savedLanguage);
+      setCurrentLanguage(savedLanguage);
+    }
   }, []);
 
   const changeLanguage = async (language: string) => {
-    const instance = await i18nInstance as unknown as i18n;
-    await instance.changeLanguage(language);
+    await i18nInstance.changeLanguage(language);
     setCurrentLanguage(language);
     localStorage.setItem('language', language);
   };

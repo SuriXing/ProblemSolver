@@ -1,0 +1,247 @@
+/* PastQuestionsPage.module.css */
+.pastQuestionsView {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.accessCodeSection {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.accessCodeSection h2 {
+  font-size: 1.8rem;
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+.accessCodeSection p {
+  font-size: 1rem;
+  color: #666;
+  max-width: 600px;
+  margin: 0 auto 2rem;
+}
+
+.accessCodeForm {
+  background-color: #f5f7fa;
+  border-radius: 10px;
+  padding: 1.5rem;
+  max-width: 600px;
+  margin: 0 auto;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+.formGroup {
+  margin-bottom: 1.5rem;
+}
+
+.formGroup label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 1rem;
+  color: #4a6fa5;
+  font-weight: 500;
+}
+
+.accessCodeInputContainer {
+  display: flex;
+  align-items: center;
+}
+
+.accessCodeInput {
+  padding: 0.8rem 1rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1.1rem;
+  text-align: center;
+  max-width: 300px;
+  margin: 0 auto;
+}
+
+.accessCodeInput:focus {
+  border-color: #4a6fa5;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(74, 111, 165, 0.2);
+}
+
+.btnPrimary {
+  background-color: #4a6fa5;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 0.8rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.btnPrimary:hover {
+  background-color: #3a5a8c;
+}
+
+.btnSecondary {
+  background-color: #6b7280;
+  color: white;
+  margin-left: 10px;
+}
+
+.btnSecondary:hover {
+  background-color: #4b5563;
+}
+
+.errorMessage {
+  margin-top: 1rem;
+  color: #e53e3e;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.loadingContainer {
+  text-align: center;
+  padding: 30px;
+}
+
+.loadingContainer p {
+  margin-top: 15px;
+  color: #6b7280;
+}
+
+.noQuestionsContainer {
+  text-align: center;
+  padding: 30px;
+  color: #6b7280;
+}
+
+.noQuestionsContainer h3 {
+  margin-bottom: 1rem;
+  font-size: 1.2rem;
+}
+
+.questionsResultsSection {
+  margin-top: 2rem;
+}
+
+.questionCard {
+  background-color: white;
+  border-radius: 10px;
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+.questionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.questionAuthor {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.questionAuthor svg {
+  color: #4caf50;
+}
+
+.questionTime {
+  font-size: 0.9rem;
+  color: #666;
+  font-style: italic;
+}
+
+.questionContent {
+  margin-bottom: 1rem;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: #333;
+}
+
+.questionTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.tag {
+  background-color: #edf2f7;
+  color: #4a6fa5;
+  border-radius: 50px;
+  padding: 0.3rem 0.8rem;
+  font-size: 0.8rem;
+}
+
+.repliesSection {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #edf2f7;
+}
+
+.repliesHeader {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+  font-size: 1.1rem;
+  color: #4a6fa5;
+}
+
+.repliesHeader svg {
+  margin-right: 0.5rem;
+}
+
+.replyCard {
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.replyMeta {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.replyContent {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: #333;
+}
+
+.noReplies {
+  font-style: italic;
+  color: #6b7280;
+  margin-top: 1rem;
+  font-size: 0.9rem;
+}
+
+.updateTimestamp {
+  color: #6b7280;
+  font-size: 0.8rem;
+  text-align: center;
+  margin-top: 2rem;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+  .questionHeader {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .questionTime {
+    margin-top: 0.5rem;
+  }
+} 

@@ -4,6 +4,7 @@ import { useLocation } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faExclamationTriangle, faSpinner } from '@fortawesome/free-solid-svg-icons';
 import StorageSystem, { UserData } from '../../utils/StorageSystem';
+import Layout from '../layout/Layout';
 
 // Helper function to get time ago
 const getTimeAgo = (timestamp: string): string => {
@@ -34,41 +35,13 @@ const getTimeAgo = (timestamp: string): string => {
 };
 
 const PastQuestionsPage: React.FC = () => {
-  const { t, i18n } = useTypeSafeTranslation();
+  const { t } = useTypeSafeTranslation();
   const location = useLocation();
   
   const [accessCode, setAccessCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [userData, setUserData] = useState<UserData | null>(null);
-  
-  // Check for access code in URL or localStorage
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const codeFromUrl = params.get('code');
-    const codeFromStorage = localStorage.getItem('accessCode');
-    
-    if (codeFromUrl) {
-      setAccessCode(codeFromUrl);
-      fetchQuestions(codeFromUrl);
-    } else if (codeFromStorage) {
-      setAccessCode(codeFromStorage);
-      fetchQuestions(codeFromStorage);
-    }
-  }, [location]);
-  
-  const handleAccessCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setAccessCode(e.target.value);
-  };
-  
-  const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    fetchQuestions(accessCode);
-  };
-  
-  const loadDemo = () => {
-    fetchQuestions('demo');
-  };
   
   const fetchQuestions = (code: string) => {
     if (!code) {
@@ -131,133 +104,163 @@ const PastQuestionsPage: React.FC = () => {
       setLoading(false);
     }, 1500);
   };
+
+  // Check for access code in URL or localStorage
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const codeFromUrl = params.get('code');
+    const codeFromStorage = localStorage.getItem('accessCode');
+    
+    if (codeFromUrl) {
+      setAccessCode(codeFromUrl);
+      fetchQuestions(codeFromUrl);
+    } else if (codeFromStorage) {
+      setAccessCode(codeFromStorage);
+      fetchQuestions(codeFromStorage);
+    }
+  }, [location, fetchQuestions]);
+  
+  const handleAccessCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setAccessCode(e.target.value);
+  };
+  
+  const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    fetchQuestions(accessCode);
+  };
+  
+  const loadDemo = () => {
+    fetchQuestions('demo');
+  };
   
   return (
-    <section className="past-questions-view">
-      <div className="access-code-section">
-        <h2>{t('accessCodeTitle')}</h2>
-        <p>{t('accessCodeDesc')}</p>
-        
-        <form className="access-code-form" onSubmit={handleFormSubmit}>
-          <div className="form-group">
-            <label htmlFor="accessCodeInput">{t('enterAccessCode')}</label>
-            <div className="access-code-input-container">
-              <input
-                id="accessCodeInput"
-                className="access-code-input"
-                type="text"
-                value={accessCode}
-                onChange={handleAccessCodeChange}
-                placeholder="XXXX-XXXX-XXXX"
-              />
-            </div>
-          </div>
+    <Layout>
+      <section className="past-questions-view">
+        <div className="access-code-section">
+          <h2>{t('accessCodeTitle')}</h2>
+          <p>{t('accessCodeDesc')}</p>
           
-          <div>
-            <button type="submit" className="btn-primary">
-              {t('fetchButton')}
-            </button>
-            <button 
-              type="button" 
-              className="btn-primary" 
-              style={{ marginLeft: '10px', background: '#6b7280' }}
-              onClick={loadDemo}
-            >
-              {t('loadDemo')}
-            </button>
-          </div>
-        </form>
+          <form className="access-code-form" onSubmit={handleFormSubmit}>
+            <div className="form-group">
+              <label htmlFor="accessCodeInput">{t('enterAccessCode')}</label>
+              <div className="access-code-input-container">
+                <input
+                  id="accessCodeInput"
+                  className="access-code-input"
+                  type="text"
+                  value={accessCode}
+                  onChange={handleAccessCodeChange}
+                  placeholder="XXXX-XXXX-XXXX"
+                />
+              </div>
+            </div>
+            
+            <div>
+              <button type="submit" className="btn-primary">
+                {t('fetchButton')}
+              </button>
+              <button 
+                type="button" 
+                className="btn-primary" 
+                style={{ marginLeft: '10px', background: '#6b7280' }}
+                onClick={loadDemo}
+              >
+                {t('loadDemo')}
+              </button>
+            </div>
+          </form>
+          
+          {/* Error message */}
+          {error && (
+            <div className="error-message">
+              <FontAwesomeIcon icon={faExclamationTriangle} />
+              {error}
+            </div>
+          )}
+        </div>
         
-        {/* Error message */}
-        {error && (
-          <div className="error-message">
-            <FontAwesomeIcon icon={faExclamationTriangle} />
-            {error}
+        {/* Loading indicator */}
+        {loading && (
+          <div style={{ textAlign: 'center', padding: '30px' }}>
+            <FontAwesomeIcon icon={faSpinner} spin size="2x" />
+            <p style={{ marginTop: '15px' }}>{t('loading')}</p>
           </div>
         )}
-      </div>
-      
-      {/* Loading indicator */}
-      {loading && (
-        <div style={{ textAlign: 'center', padding: '30px' }}>
-          <FontAwesomeIcon icon={faSpinner} spin size="2x" />
-          <p style={{ marginTop: '15px' }}>{t('loading')}</p>
-        </div>
-      )}
-      
-      {/* No data message */}
-      {!loading && !error && !userData && (
-        <div style={{ textAlign: 'center', padding: '30px', color: '#6b7280' }}>
-          <h3>{t('noQuestionsFound')}</h3>
-          <p>{t('tryAgain')}</p>
-        </div>
-      )}
-      
-      {/* Display user data */}
-      {userData && (
-        <div className="questions-results-section">
-          <div className="question-card">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-              <h3 style={{ margin: 0, fontSize: '18px' }}>
-                <span>{t('yourAnonymousId')}</span>{userData.userId}
-              </h3>
-              <span style={{ color: '#6b7280', fontSize: '14px' }}>
-                {getTimeAgo(userData.timestamp)}
-              </span>
-            </div>
-            
-            <p style={{ marginBottom: '15px' }}>{userData.confessionText}</p>
-            
-            <div style={{ display: 'flex', gap: '8px', marginBottom: '20px', flexWrap: 'wrap' }}>
-              {userData.selectedTags.map((tag, index) => (
-                <span 
-                  key={index} 
-                  style={{ 
-                    backgroundColor: '#e5e7eb', 
-                    padding: '4px 10px', 
-                    borderRadius: '15px', 
-                    fontSize: '12px' 
-                  }}
-                >
-                  {tag}
+        
+        {/* No data message */}
+        {!loading && !error && !userData && (
+          <div style={{ textAlign: 'center', padding: '30px', color: '#6b7280' }}>
+            <h3>{t('noQuestionsFound')}</h3>
+            <p>{t('tryAgain')}</p>
+          </div>
+        )}
+        
+        {/* Display user data */}
+        {userData && (
+          <div className="questions-results-section">
+            <div className="question-card">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+                <h3 style={{ margin: 0, fontSize: '18px' }}>
+                  <span>{t('yourAnonymousId')}</span>{userData.userId}
+                </h3>
+                <span style={{ color: '#6b7280', fontSize: '14px' }}>
+                  {getTimeAgo(userData.timestamp)}
                 </span>
-              ))}
-            </div>
-            
-            {/* Replies */}
-            <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '15px' }}>
-              <h4 style={{ marginTop: 0 }}>
-                <span>{t('replies')}</span> ({userData.replies.length})
-              </h4>
+              </div>
               
-              {userData.replies.length > 0 ? (
-                userData.replies.map((reply, index) => (
-                  <div 
+              <p style={{ marginBottom: '15px' }}>{userData.confessionText}</p>
+              
+              <div style={{ display: 'flex', gap: '8px', marginBottom: '20px', flexWrap: 'wrap' }}>
+                {userData.selectedTags.map((tag, index) => (
+                  <span 
                     key={index} 
                     style={{ 
-                      backgroundColor: '#f9fafb', 
-                      padding: '15px', 
-                      borderRadius: '8px', 
-                      marginBottom: '10px' 
+                      backgroundColor: '#e5e7eb', 
+                      padding: '4px 10px', 
+                      borderRadius: '15px', 
+                      fontSize: '12px' 
                     }}
                   >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                      <span style={{ fontWeight: 500 }}>{reply.replierName}</span>
-                      <span style={{ color: '#6b7280', fontSize: '12px' }}>{reply.replyTime}</span>
+                    {tag}
+                  </span>
+                ))}
+              </div>
+              
+              {/* Replies */}
+              <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '15px' }}>
+                <h4 style={{ marginTop: 0 }}>
+                  <span>{t('replies')}</span> ({userData.replies.length})
+                </h4>
+                
+                {userData.replies.length > 0 ? (
+                  userData.replies.map((reply, index) => (
+                    <div 
+                      key={index} 
+                      style={{ 
+                        backgroundColor: '#f9fafb', 
+                        padding: '15px', 
+                        borderRadius: '8px', 
+                        marginBottom: '10px' 
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                        <span style={{ fontWeight: 500 }}>{reply.replierName}</span>
+                        <span style={{ color: '#6b7280', fontSize: '12px' }}>{reply.replyTime}</span>
+                      </div>
+                      <p style={{ margin: 0 }}>{reply.replyText}</p>
                     </div>
-                    <p style={{ margin: 0 }}>{reply.replyText}</p>
-                  </div>
-                ))
-              ) : (
-                <p style={{ color: '#6b7280' }}>
-                  <span>{t('noRepliesYet')}</span>. <span>{t('checkBackLater')}</span>.
-                </p>
-              )}
+                  ))
+                ) : (
+                  <p style={{ color: '#6b7280' }}>
+                    <span>{t('noRepliesYet')}</span>. <span>{t('checkBackLater')}</span>.
+                  </p>
+                )}
+              </div>
             </div>
           </div>
-        </div>
-      )}
-    </section>
+        )}
+      </section>
+    </Layout>
   );
 };
 

@@ -1,0 +1,147 @@
+/* Header Styles */
+.header {
+  background-color: white;
+  box-shadow: var(--shadow-sm);
+  padding: 1rem 0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.header .container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo {
+  font-size: 1.5rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+}
+
+.logo a {
+  color: var(--primary);
+  text-decoration: none;
+  transition: opacity 0.2s ease;
+  display: flex;
+  align-items: center;
+}
+
+.logo a:hover {
+  opacity: 0.8;
+}
+
+.logo-icon {
+  color: #4e89e8;
+  font-size: 1.8rem;
+  margin-right: 0.5rem;
+}
+
+.logo span {
+  color: var(--gray-800);
+}
+
+.nav-actions {
+  display: flex;
+  align-items: center;
+}
+
+.history-link {
+  display: flex;
+  align-items: center;
+  margin-right: 1.5rem;
+  text-decoration: none;
+  color: var(--gray-700);
+  font-size: 0.95rem;
+}
+
+.history-link svg {
+  margin-right: 0.5rem;
+  color: var(--primary);
+}
+
+.history-link:hover {
+  color: var(--primary);
+}
+
+.language-selector {
+  position: relative;
+  margin-left: 1rem;
+}
+
+.language-button {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  background-color: rgba(0, 0, 0, 0.03);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: var(--gray-700);
+  transition: background-color 0.2s ease;
+}
+
+.language-button svg {
+  margin-right: 0.5rem;
+  color: var(--primary);
+}
+
+.language-button:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.language-dropdown {
+  display: none;
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 0.5rem;
+  background-color: white;
+  border-radius: 4px;
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+  min-width: 160px;
+  z-index: 10;
+}
+
+.language-dropdown.show {
+  display: block;
+}
+
+.language-option {
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  font-size: 0.9rem;
+}
+
+.language-option:hover {
+  background-color: var(--gray-100);
+}
+
+.language-option.active {
+  background-color: var(--gray-100);
+  color: var(--primary);
+  font-weight: 500;
+}
+
+@media (max-width: 768px) {
+  .header {
+    padding: 0.75rem 0;
+  }
+  
+  .logo {
+    font-size: 1.3rem;
+  }
+  
+  .history-link span {
+    display: none;
+  }
+  
+  .history-link svg {
+    margin-right: 0;
+    font-size: 1.2rem;
+  }
+} 
