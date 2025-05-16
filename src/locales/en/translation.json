@@ -175,5 +175,9 @@
   "mostHelpful": "Most helpful",
   "latest": "Latest",
   "oldest": "Oldest",
-  "beFirstToReply": "Be the first to reply!"
+  "beFirstToReply": "Be the first to reply!",
+  "problemSolved": "Problem Solved",
+  "problemNotSolved": "Not Solved",
+  "problemMarkedSolved": "Marked as solved!",
+  "problemMarkedUnsolved": "Marked as not solved."
 }

@@ -152,5 +152,9 @@
   "monthsAgo": "Hace {{count}} mes",
   "monthsAgo_plural": "Hace {{count}} meses",
   "yearsAgo": "Hace {{count}} año",
-  "yearsAgo_plural": "Hace {{count}} años"
+  "yearsAgo_plural": "Hace {{count}} años",
+  "problemSolved": "Problema resuelto",
+  "problemNotSolved": "No resuelto",
+  "problemMarkedSolved": "¡Marcado como resuelto!",
+  "problemMarkedUnsolved": "Marcado como no resuelto."
 }
