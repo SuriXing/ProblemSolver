@@ -152,5 +152,9 @@
   "monthsAgo": "{{count}}か月前",
   "monthsAgo_plural": "{{count}}か月前",
   "yearsAgo": "{{count}}年前",
-  "yearsAgo_plural": "{{count}}年前"
+  "yearsAgo_plural": "{{count}}年前",
+  "problemSolved": "問題解決済み",
+  "problemNotSolved": "未解決",
+  "problemMarkedSolved": "解決済みとしてマークされました！",
+  "problemMarkedUnsolved": "未解決としてマークされました。"
 }

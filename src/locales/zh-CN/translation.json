@@ -167,5 +167,9 @@
   "mostHelpful": "最有帮助",
   "latest": "最新",
   "oldest": "最早",
-  "beFirstToReply": "成为第一个回复的人！"
+  "beFirstToReply": "成为第一个回复的人！",
+  "problemSolved": "问题已解决",
+  "problemNotSolved": "未解决",
+  "problemMarkedSolved": "已标记为已解决！",
+  "problemMarkedUnsolved": "已标记为未解决。"
 }
