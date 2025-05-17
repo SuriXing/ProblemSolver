@@ -1,56 +1,81 @@
-# 解忧杂货铺论坛网站
+# Worry Solver React App
 
-一个基于GitHub Pages的温暖社区论坛，让人们可以匿名分享烦恼、获取帮助。
+A React conversion of the original "解忧杂货铺" (Worry-Solving Shop) web application. This application allows users to anonymously share their concerns and receive helpful responses from others, with access code-based authentication for checking replies.
 
-## 项目概述
+## Features
 
-"解忧杂货铺"是一个简约而温馨的在线社区平台，灵感来源于东野圭吾的小说《解忧杂货店》。在这个平台上，用户可以匿名分享自己的烦恼和困扰，也可以为他人提供温暖的建议和支持。
+- **Multilingual Support**: Switch between Chinese and English
+- **Access Code System**: Secure access to your posts using unique access codes
+- **Anonymous Sharing**: Share your concerns without revealing your identity
+- **Responsive Design**: Works on mobile and desktop devices
 
-这个网站旨在创造一个安全、温暖的空间，让人们可以卸下面具，真诚地交流和沟通，互相帮助，共同成长。
+## Demo Access Codes
 
-## 功能特点
+The application comes with demo access codes for testing:
 
-- **匿名交流**：用户可以在不暴露个人信息的情况下分享困扰和提供帮助
-- **简洁界面**：简约而不简单的UI设计，让用户专注于内容
-- **双向互助**：既可以寻求帮助，也可以提供帮助，形成良性互动
-- **响应式设计**：适配各种设备，包括桌面端、平板和手机
+- `TSZT-VVSM-8F8Y`: A sample submission in Chinese about social anxiety
+- `J23B-F42A-LCRZ`: A sample submission about academic stress
 
-## 技术栈
+## Getting Started
 
-- HTML5
-- CSS3 (响应式设计)
-- JavaScript (基础交互)
-- GitHub Pages (网站托管)
+### Prerequisites
 
-## 如何贡献
+- Node.js (v14.x or higher)
+- npm (v6.x or higher)
 
-1. Fork 这个仓库
-2. 创建你的特性分支 (`git checkout -b feature/AmazingFeature`)
-3. 提交你的更改 (`git commit -m 'Add some AmazingFeature'`)
-4. 推送到分支 (`git push origin feature/AmazingFeature`)
-5. 打开一个 Pull Request
+### Installation
 
-## 本地开发
-
-1. 克隆仓库到本地
+1. Clone the repository
    ```
-   git clone https://github.com/yourusername/解忧杂货铺.git
+   git clone <repository-url>
+   cd worry-solver
    ```
 
-2. 使用浏览器打开 `index.html` 文件，或者使用本地服务器运行项目
+2. Install dependencies
+   ```
+   npm install
+   ```
 
-## 部署
+3. Start the development server
+   ```
+   npm start
+   ```
 
-这个项目设计为可以直接部署到 GitHub Pages。将代码推送到 GitHub 仓库的 `main` 或 `gh-pages` 分支后，在仓库设置中启用 GitHub Pages 功能即可。
+4. Open your browser and navigate to http://localhost:3000
 
-## 许可证
+## Available Scripts
 
-分发在 MIT 许可证下。更多信息请查看 `LICENSE` 文件。
+In the project directory, you can run:
 
-## 联系我们
+- `npm start`: Runs the app in development mode
+- `npm test`: Launches the test runner
+- `npm run build`: Builds the app for production
+- `npm run eject`: Ejects the create-react-app configuration
 
-如有任何问题或建议，请通过 GitHub 上的 Issue 与我们联系。
+## Project Structure
 
----
+```
+worry-solver/
+├── public/              # Static files
+├── src/                 # Source code
+│   ├── assets/          # CSS, images, etc.
+│   │   ├── layout/      # Layout components
+│   │   └── pages/       # Page components
+│   ├── context/         # React context
+│   ├── hooks/           # Custom hooks
+│   ├── utils/           # Utility functions
+│   └── App.tsx          # Main app component
+├── package.json         # Dependencies and scripts
+└── tsconfig.json        # TypeScript configuration
+```
 
-祝你在解忧杂货铺找到温暖与力量！
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Acknowledgements
+
+- This project is a React conversion of the original HTML/CSS/JS implementation
+- FontAwesome for the icons
+- React Router for routing
+- i18next for internationalization
