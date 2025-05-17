@@ -156,5 +156,6 @@
   "problemSolved": "問題解決済み",
   "problemNotSolved": "未解決",
   "problemMarkedSolved": "解決済みとしてマークされました！",
-  "problemMarkedUnsolved": "未解決としてマークされました。"
+  "problemMarkedUnsolved": "未解決としてマークされました。",
+  "instruction": "使い方"
 }
