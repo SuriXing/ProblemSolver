@@ -179,5 +179,6 @@
   "problemSolved": "Problem Solved",
   "problemNotSolved": "Not Solved",
   "problemMarkedSolved": "Marked as solved!",
-  "problemMarkedUnsolved": "Marked as not solved."
+  "problemMarkedUnsolved": "Marked as not solved.",
+  "instruction": "Instruction"
 }

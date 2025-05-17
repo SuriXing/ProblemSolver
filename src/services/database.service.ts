@@ -298,6 +298,26 @@ export const DatabaseService = {
     
     console.log("Generated test access code:", result);
     return result;
+  },
+  
+  /**
+   * Update the status of a post by its access code
+   */
+  async updatePostStatusByAccessCode(accessCode: string, status: 'solved' | 'open'): Promise<boolean> {
+    try {
+      const { error } = await supabase
+        .from('posts')
+        .update({ status })
+        .eq('access_code', accessCode);
+      if (error) {
+        console.error('Error updating post status:', error);
+        return false;
+      }
+      return true;
+    } catch (error) {
+      console.error('Exception updating post status:', error);
+      return false;
+    }
   }
 };
 

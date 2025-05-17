@@ -105,15 +105,27 @@ const PastQuestionsPage: React.FC<PastQuestionsPageProps> = ({ showDebug, debugP
     }
   };
 
-  const handleProblemSolved = () => {
-    message.success(t('problemMarkedSolved'));
+  const handleProblemSolved = async () => {
+    if (!fetchedPost?.access_code) return;
+    const success = await DatabaseService.updatePostStatusByAccessCode(fetchedPost.access_code, 'solved');
+    if (success) {
+      message.success(t('problemMarkedSolved'));
+    } else {
+      message.error(t('errorOccurred'));
+    }
     setTimeout(() => {
       navigate('/');
     }, 1000);
   };
 
-  const handleProblemNotSolved = () => {
-    message.info(t('problemMarkedUnsolved'));
+  const handleProblemNotSolved = async () => {
+    if (!fetchedPost?.access_code) return;
+    const success = await DatabaseService.updatePostStatusByAccessCode(fetchedPost.access_code, 'open');
+    if (success) {
+      message.info(t('problemMarkedUnsolved'));
+    } else {
+      message.error(t('errorOccurred'));
+    }
     setTimeout(() => {
       navigate('/');
     }, 1000);

@@ -171,5 +171,6 @@
   "problemSolved": "问题已解决",
   "problemNotSolved": "未解决",
   "problemMarkedSolved": "已标记为已解决！",
-  "problemMarkedUnsolved": "已标记为未解决。"
+  "problemMarkedUnsolved": "已标记为未解决。",
+  "instruction": "使用说明"
 }

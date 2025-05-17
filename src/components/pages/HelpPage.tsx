@@ -117,10 +117,13 @@ const HelpPage: React.FC = () => {
       const matchesSearch = !searchTerm || 
         (post.content && post.content.toLowerCase().includes(searchTerm.toLowerCase())) ||
         (post.user_id && post.user_id.includes(searchTerm));
-        
       const matchesTag = !selectedTag || (post.tags && post.tags.includes(selectedTag));
-      
-      return matchesSearch && matchesTag;
+      let matchesFilter = true;
+      if (activeFilter === 'solved') {
+        matchesFilter = post.status === 'solved';
+      }
+      // You can add more filter logic for 'newest' or others if needed
+      return matchesSearch && matchesTag && matchesFilter;
     });
     
     // Pagination
@@ -174,7 +177,6 @@ const HelpPage: React.FC = () => {
               <Radio.Group value={activeFilter} onChange={handleFilterChange}>
                 <Radio.Button value="all">{t('allPosts')}</Radio.Button>
                 <Radio.Button value="newest">{t('newest')}</Radio.Button>
-                <Radio.Button value="popular">{t('popular')}</Radio.Button>
                 <Radio.Button value="solved">{t('solved')}</Radio.Button>
               </Radio.Group>
             </div>
