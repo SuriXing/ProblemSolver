@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -11,6 +11,8 @@ const Header: React.FC = () => {
   const { t, i18n } = useTranslation();
   const { changeLanguage } = useTranslationContext();
   const [showInstruction, setShowInstruction] = useState(false);
+  const [pinned, setPinned] = useState(false);
+  const instructionRef = useRef<HTMLDivElement>(null);
 
   const languages = [
     { code: 'zh-CN' as SupportedLanguages, name: '中文' },
@@ -23,6 +25,22 @@ const Header: React.FC = () => {
   const handleLanguageChange = async (languageCode: SupportedLanguages) => {
     await changeLanguage(languageCode);
   };
+
+  // Close the instruction box when clicking outside if pinned
+  useEffect(() => {
+    if (!pinned) return;
+    const handleClick = (e: MouseEvent) => {
+      if (
+        instructionRef.current &&
+        !instructionRef.current.contains(e.target as Node)
+      ) {
+        setShowInstruction(false);
+        setPinned(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [pinned]);
 
   return (
     <header className="header">
@@ -41,19 +59,21 @@ const Header: React.FC = () => {
           <div
             className="instruction-link"
             style={{ position: 'relative', display: 'flex', alignItems: 'center' }}
-            onMouseEnter={() => setShowInstruction(true)}
-            onMouseLeave={() => setShowInstruction(false)}
+            onMouseEnter={() => { if (!pinned) setShowInstruction(true); }}
+            onMouseLeave={() => { if (!pinned) setShowInstruction(false); }}
           >
             <button
               type="button"
               style={{ background: 'none', border: 'none', color: '#444', cursor: 'pointer', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: 4, fontWeight: 400 }}
               tabIndex={0}
+              onClick={() => { setPinned(true); setShowInstruction(true); }}
             >
               <span role="img" aria-label="instruction">📖</span>
               {t('instruction')}
             </button>
             {showInstruction && (
               <div
+                ref={instructionRef}
                 style={{
                   position: 'absolute',
                   top: 'calc(100% + 8px)',
@@ -72,8 +92,9 @@ const Header: React.FC = () => {
                   lineHeight: 1.7,
                   whiteSpace: 'pre-line',
                   maxHeight: 320,
-                  overflowY: 'auto',
+                  overflowY: pinned ? 'auto' : 'hidden',
                   transition: 'background 0.2s, color 0.2s',
+                  cursor: 'pointer',
                 }}
               >
                 <div style={{ fontWeight: 600, marginBottom: 10, fontSize: '1.08rem', color: '#fff' }}>
