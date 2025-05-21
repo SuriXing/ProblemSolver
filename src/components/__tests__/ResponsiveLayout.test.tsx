@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { Layout } from '../Layout';
+import Layout from '../layout/Layout';
 import { act } from 'react-dom/test-utils';
 
 // Mock the useMediaQuery hook if you're using it
@@ -124,4 +124,4 @@ describe('Responsive Layout Tests', () => {
       expect(screen.getByTestId('mobile-nav')).toBeInTheDocument();
     });
   });
-}); 
+});
