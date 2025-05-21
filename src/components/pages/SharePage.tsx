@@ -227,11 +227,11 @@ const SharePage: React.FC = () => {
             </p>
             
             <div className={styles.shareActions}>
-              <Link to="/" className={styles.returnHomeBtn}>
-                {t('returnHome')}
-              </Link>
               <Link to="/help" className={styles.helpOthersBtn}>
                 {t('helpOthers')}
+              </Link>
+              <Link to="/" className={styles.returnHomeBtn}>
+                {t('returnHome')}
               </Link>
             </div>
           </div>
