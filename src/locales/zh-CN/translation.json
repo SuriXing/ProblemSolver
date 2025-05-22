@@ -172,5 +172,7 @@
   "problemNotSolved": "未解决",
   "problemMarkedSolved": "已标记为已解决！",
   "problemMarkedUnsolved": "已标记为未解决。",
-  "instruction": "使用说明"
+  "instruction": "使用说明",
+  "hideInstruction": "不再显示使用说明",
+  "keepInstruction": "继续显示使用说明"
 }

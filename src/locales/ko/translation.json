@@ -159,5 +159,7 @@
   "problemNotSolved": "미해결",
   "problemMarkedSolved": "해결됨으로 표시되었습니다!",
   "problemMarkedUnsolved": "미해결로 표시되었습니다.",
-  "instruction": "이용 안내"
+  "instruction": "이용 안내",
+  "hideInstruction": "이 안내를 다시 표시하지 않기",
+  "keepInstruction": "계속 안내를 보여도 괜찮아요"
 }

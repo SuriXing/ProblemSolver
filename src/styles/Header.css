@@ -193,3 +193,13 @@
     background-color: #2a2a2a;
   }
 }
+
+.instruction-button:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border-color: #ccc !important;
+}
+
+.instruction-button:active {
+  background: rgba(255, 255, 255, 0.2) !important;
+  border-color: #999 !important;
+}

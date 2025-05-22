@@ -157,5 +157,7 @@
   "problemNotSolved": "No resuelto",
   "problemMarkedSolved": "¡Marcado como resuelto!",
   "problemMarkedUnsolved": "Marcado como no resuelto.",
-  "instruction": "Instrucción"
+  "instruction": "Instrucción",
+  "hideInstruction": "No mostrar más la instrucción",
+  "keepInstruction": "Está bien que siga apareciendo"
 }

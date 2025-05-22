@@ -157,5 +157,7 @@
   "problemNotSolved": "未解決",
   "problemMarkedSolved": "解決済みとしてマークされました！",
   "problemMarkedUnsolved": "未解決としてマークされました。",
-  "instruction": "使い方"
+  "instruction": "使い方",
+  "hideInstruction": "今後この説明を表示しない",
+  "keepInstruction": "今後も表示してよい"
 }
