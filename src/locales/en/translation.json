@@ -180,5 +180,7 @@
   "problemNotSolved": "Not Solved",
   "problemMarkedSolved": "Marked as solved!",
   "problemMarkedUnsolved": "Marked as not solved.",
-  "instruction": "Instruction"
+  "instruction": "Instruction",
+  "hideInstruction": "Do not show the instruction anymore",
+  "keepInstruction": "I'm fine with it still showing up"
 }
