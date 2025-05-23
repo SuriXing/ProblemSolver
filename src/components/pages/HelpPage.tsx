@@ -1,17 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useTypeSafeTranslation } from '../../utils/translationHelper';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
-  faSearch, 
-  faEye,
-  faComments,
-  faChevronRight,
-  faArrowLeft,
-  faChevronLeft,
-  faStepBackward,
-  faStepForward
-} from '@fortawesome/free-solid-svg-icons';
+  Button, 
+  Input, 
+  Card,
+  Pagination,
+  Radio
+} from 'antd';
+import type { RadioChangeEvent } from 'antd/es/radio';
+import { 
+  EyeOutlined,
+  MessageOutlined,
+  ArrowLeftOutlined,
+  SearchOutlined
+} from '@ant-design/icons';
 import { UserData } from '../../utils/StorageSystem';
 import Layout from '../layout/Layout';
 import '../../styles/HelpPage.css'; // Import CSS file instead of CSS modules
@@ -137,7 +140,7 @@ const HelpPage: React.FC = () => {
 
       <div className="container help-container">
         <Link to="/" className="back-link">
-          <FontAwesomeIcon icon={faArrowLeft} /> {t('returnHome')}
+          <ArrowLeftOutlined /> {t('returnHome')}
         </Link>
       
         <div className="tag-filters">
@@ -153,29 +156,25 @@ const HelpPage: React.FC = () => {
         </div>
       
         <div className="filter-bar">
-          <div className="filter-options">
+          <Radio.Group 
+            value={activeFilter}
+            onChange={(e: RadioChangeEvent) => handleFilterClick(e.target.value)}
+            optionType="button"
+            buttonStyle="solid"
+          >
             {['全部', '最新提问', '等待回答', '热门话题'].map(filter => (
-              <button
-                key={filter}
-                className={`filter-button ${activeFilter === filter ? 'active' : ''}`}
-                onClick={() => handleFilterClick(filter)}
-              >
+              <Radio.Button key={filter} value={filter}>
                 {filter}
-              </button>
+              </Radio.Button>
             ))}
-          </div>
-          <div className="search-bar">
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder={t('searchPlaceholder')}
-              className="search-input"
-            />
-            <button className="search-button">
-              <FontAwesomeIcon icon={faSearch} />
-            </button>
-          </div>
+          </Radio.Group>
+          <Input.Search
+            placeholder={t('searchPlaceholder')}
+            value={searchTerm}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
+            style={{ width: 200 }}
+            enterButton={<SearchOutlined />}
+          />
         </div>
 
         <div className="topics-list">
@@ -185,119 +184,63 @@ const HelpPage: React.FC = () => {
             <div className="no-posts-message">{t('noPostsFound')}</div>
           ) : (
             currentPosts.map((post) => (
-              <div className="topic-card" key={post.accessCode}>
-                <div className="topic-stats">
-                  <div className="stat-replies">
-                    <span className="stat-number">0</span>
-                    <span className="stat-label">
-                      <FontAwesomeIcon icon={faComments} style={{ marginRight: '4px' }} />
-                      {t('replies')}
-                    </span>
+              <Card 
+                key={post.accessCode}
+                className="topic-card"
+                actions={[
+                  <div key="replies">
+                    <MessageOutlined /> {t('replies')}: 0
+                  </div>,
+                  <div key="views">
+                    <EyeOutlined /> {t('views')}: 0
                   </div>
-                  <div className="stat-views">
-                    <span className="stat-number">0</span>
-                    <span className="stat-label">
-                      <FontAwesomeIcon icon={faEye} style={{ marginRight: '4px' }} />
-                      {t('views')}
-                    </span>
-                  </div>
-                </div>
-                
-                <div className="topic-content">
-                  <div className="topic-header">
-                    <span className="topic-category">
-                      {post.selectedTags[0] || '其他'}
-                    </span>
-                    <span className="topic-time">
-                      {getTimeAgo(post.timestamp)}
-                    </span>
-                  </div>
-                  
-                  <h3 className="topic-title">
-                    <Link to={`/help/${post.accessCode}`} className="topic-title-link">
+                ]}
+              >
+                <Card.Meta
+                  title={
+                    <Link to={`/help/${post.accessCode}`}>
                       {post.confessionText.substring(0, 50)}...
                     </Link>
-                  </h3>
-                  
-                  <p className="topic-excerpt">
-                    {post.confessionText.length > 200 
-                      ? `${post.confessionText.substring(0, 200)}...` 
-                      : post.confessionText}
-                  </p>
-                  
-                  <div className="topic-footer">
-                    <div className="topic-tags">
-                      {post.selectedTags.slice(0, 3).map(tag => (
-                        <span key={tag} className="topic-tag">
-                          {tag}
+                  }
+                  description={
+                    <>
+                      <div style={{ marginBottom: 8 }}>
+                        <span className="topic-category">
+                          {post.selectedTags[0] || '其他'}
                         </span>
-                      ))}
-                    </div>
-                    <Link to={`/help/${post.accessCode}`} className="topic-action">
-                      {t('viewDetail')} <FontAwesomeIcon icon={faChevronRight} />
-                    </Link>
-                  </div>
-                </div>
-              </div>
+                        <span className="topic-time" style={{ float: 'right' }}>
+                          {getTimeAgo(post.timestamp)}
+                        </span>
+                      </div>
+                      <p className="topic-excerpt">
+                        {post.confessionText.length > 200 
+                          ? `${post.confessionText.substring(0, 200)}...` 
+                          : post.confessionText}
+                      </p>
+                      <div className="topic-tags">
+                        {post.selectedTags.slice(0, 3).map(tag => (
+                          <span key={tag} className="topic-tag">
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    </>
+                  }
+                />
+              </Card>
             ))
           )}
         </div>
         
         {filteredPosts.length > postsPerPage && (
-          <div className="pagination">
-            <button 
-              onClick={() => paginate(1)} 
-              disabled={currentPage === 1}
-              className={`pagination-button ${currentPage === 1 ? 'disabled' : ''}`}
-            >
-              <FontAwesomeIcon icon={faStepBackward} />
-            </button>
-            <button 
-              onClick={() => paginate(currentPage - 1)} 
-              disabled={currentPage === 1}
-              className={`pagination-button ${currentPage === 1 ? 'disabled' : ''}`}
-            >
-              <FontAwesomeIcon icon={faChevronLeft} />
-            </button>
-            
-            {Array.from({ length: Math.min(5, totalPages) }).map((_, index) => {
-              let pageNumber: number;
-              if (totalPages <= 5) {
-                pageNumber = index + 1;
-              } else if (currentPage <= 3) {
-                pageNumber = index + 1;
-              } else if (currentPage >= totalPages - 2) {
-                pageNumber = totalPages - 4 + index;
-              } else {
-                pageNumber = currentPage - 2 + index;
-              }
-              
-              return (
-                <button 
-                  key={pageNumber}
-                  onClick={() => paginate(pageNumber)}
-                  className={`pagination-button ${currentPage === pageNumber ? 'active' : ''}`}
-                >
-                  {pageNumber}
-                </button>
-              );
-            })}
-            
-            <button 
-              onClick={() => paginate(currentPage + 1)} 
-              disabled={currentPage === totalPages}
-              className={`pagination-button ${currentPage === totalPages ? 'disabled' : ''}`}
-            >
-              <FontAwesomeIcon icon={faChevronRight} />
-            </button>
-            <button 
-              onClick={() => paginate(totalPages)} 
-              disabled={currentPage === totalPages}
-              className={`pagination-button ${currentPage === totalPages ? 'disabled' : ''}`}
-            >
-              <FontAwesomeIcon icon={faStepForward} />
-            </button>
-          </div>
+          <Pagination
+            current={currentPage}
+            total={filteredPosts.length}
+            pageSize={postsPerPage}
+            onChange={paginate}
+            showSizeChanger={false}
+            style={{ marginTop: 30, textAlign: 'center' }}
+          />
         )}
       </div>
     </Layout>

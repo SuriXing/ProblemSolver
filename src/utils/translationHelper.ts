@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 import i18next, { TOptions } from 'i18next';
 
 // Define a fixed type for the t function that explicitly supports options
-type TypedTranslateFunction = (key: string, options?: TOptions) => string;
+type TypedTranslateFunction = (key: string, options?: TOptions) => string | any;
 
 /**
  * A helper function to properly type translations with parameter support
