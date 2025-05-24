@@ -62,7 +62,7 @@
 .copyCodeBtn {
   background: none;
   border: none;
-  color: #4a6fa5;
+  color: var(--primary-color);
   cursor: pointer;
   margin-left: 10px;
   padding: 5px;
@@ -74,7 +74,7 @@
 }
 
 .copyCodeBtn.copied {
-  color: #4caf50;
+  color: var(--primary-color);
 }
 
 .accessCodeDesc {
@@ -85,8 +85,8 @@
 
 .viewPostBtn {
   background-color: white;
-  color: #4a6fa5;
-  border: 1px solid #4a6fa5;
+  color: var(--primary-color);
+  border: 1px solid var(--primary-color);
   border-radius: 4px;
   padding: 0.7rem 1.5rem;
   font-size: 1rem;
@@ -159,7 +159,7 @@
 
 .tag {
   background-color: #edf2f7;
-  color: #4a6fa5;
+  color: var(--primary-color);
   border-radius: 50px;
   padding: 0.3rem 0.8rem;
   font-size: 0.8rem;
@@ -193,22 +193,34 @@
   transition: background-color 0.2s;
 }
 
-.returnHomeBtn {
-  background-color: #4a6fa5;
-  color: white;
+.returnHomeBtn,
+.helpBtn {
+  background-color: var(--primary-color) !important;
+  color: #fff !important;
+  display: inline-block !important;
+  border: 2px solid var(--primary-color) !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  z-index: 10 !important;
+}
+
+.returnHomeBtn span,
+.returnHomeBtn svg,
+.helpBtn span,
+.helpBtn svg {
+  color: #fff !important;
+  fill: #fff !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  z-index: 10 !important;
 }
 
 .returnHomeBtn:hover {
   background-color: #3a5a8c;
 }
 
-.helpBtn {
-  background-color: #4caf50;
-  color: white;
-}
-
 .helpBtn:hover {
-  background-color: #3d9140;
+  background-color: #3a5a8c;
 }
 
 .actionButtons a svg {
@@ -228,7 +240,7 @@
   display: flex;
   align-items: center;
   font-size: 1.1rem;
-  color: #4a6fa5;
+  color: var(--primary-color);
   margin-bottom: 1rem;
 }
 
