@@ -159,5 +159,21 @@
   "problemMarkedUnsolved": "Marcado como no resuelto.",
   "instruction": "Instrucción",
   "hideInstruction": "No mostrar más la instrucción",
-  "keepInstruction": "Está bien que siga apareciendo"
+  "keepInstruction": "Está bien que siga apareciendo",
+  "thankYouTitle": "¡Gracias por compartir!",
+  "thankYouSubtitle": "Tu publicación ha sido enviada exitosamente",
+  "yourAccessCode": "Tu código de acceso",
+  "saveAccessCode": "Guarda este código para revisar tu publicación más tarde",
+  "copyAccessCode": "Copiar código de acceso",
+  "copied": "¡Copiado!",
+  "yourAnonymousId": "Tu ID anónimo:",
+  "justPosted": "Recién publicado",
+  "notifyMessage": "Serás notificado cuando alguien responda a tu publicación",
+  "helpOthers": "Ayudar a otros",
+  "whatHappensNext": "¿Qué sucede ahora?",
+  "communityWillSee": "Tu publicación será visible para la comunidad para recibir apoyo",
+  "replyIn24h": "Espera respuestas dentro de 24 horas de miembros solidarios de la comunidad",
+  "emailNotification": "Recibirás notificaciones por correo cuando alguien responda (si está habilitado)",
+  "checkWithCode": "Usa tu código de acceso en cualquier momento para revisar respuestas y actualizaciones",
+  "dismiss": "Cerrar"
 }
