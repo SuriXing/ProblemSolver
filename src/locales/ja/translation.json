@@ -159,5 +159,21 @@
   "problemMarkedUnsolved": "未解決としてマークされました。",
   "instruction": "使い方",
   "hideInstruction": "今後この説明を表示しない",
-  "keepInstruction": "今後も表示してよい"
+  "keepInstruction": "今後も表示してよい",
+  "thankYouTitle": "共有していただき、ありがとうございます！",
+  "thankYouSubtitle": "投稿が正常に送信されました",
+  "yourAccessCode": "あなたのアクセスコード",
+  "saveAccessCode": "後で投稿を確認するためにこのコードを保存してください",
+  "copyAccessCode": "アクセスコードをコピー",
+  "copied": "コピーしました！",
+  "yourAnonymousId": "あなたの匿名ID：",
+  "justPosted": "投稿したばかり",
+  "notifyMessage": "誰かがあなたの投稿に返信したときに通知されます",
+  "helpOthers": "他の人を助ける",
+  "whatHappensNext": "次に何が起こりますか？",
+  "communityWillSee": "あなたの投稿はサポートのためにコミュニティに表示されます",
+  "replyIn24h": "思いやりのあるコミュニティメンバーから24時間以内に返信が期待できます",
+  "emailNotification": "誰かが返信したときにメール通知を受け取ります（有効にしている場合）",
+  "checkWithCode": "いつでもアクセスコードを使用して返信と更新を確認できます",
+  "dismiss": "閉じる"
 }

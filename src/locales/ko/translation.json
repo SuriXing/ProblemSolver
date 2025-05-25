@@ -161,5 +161,21 @@
   "problemMarkedUnsolved": "미해결로 표시되었습니다.",
   "instruction": "이용 안내",
   "hideInstruction": "이 안내를 다시 표시하지 않기",
-  "keepInstruction": "계속 안내를 보여도 괜찮아요"
+  "keepInstruction": "계속 안내를 보여도 괜찮아요",
+  "thankYouTitle": "공유해 주셔서 감사합니다!",
+  "thankYouSubtitle": "게시물이 성공적으로 제출되었습니다",
+  "yourAccessCode": "당신의 액세스 코드",
+  "saveAccessCode": "나중에 게시물을 확인하기 위해 이 코드를 저장하세요",
+  "copyAccessCode": "액세스 코드 복사",
+  "copied": "복사되었습니다!",
+  "yourAnonymousId": "당신의 익명 ID:",
+  "justPosted": "방금 게시됨",
+  "notifyMessage": "누군가 당신의 게시물에 답글을 달면 알림을 받게 됩니다",
+  "helpOthers": "다른 사람 돕기",
+  "whatHappensNext": "다음에 무엇이 일어날까요?",
+  "communityWillSee": "당신의 게시물이 지원을 위해 커뮤니티에 표시됩니다",
+  "replyIn24h": "배려심 있는 커뮤니티 구성원들로부터 24시간 내에 답글을 받을 수 있습니다",
+  "emailNotification": "누군가 답글을 달면 이메일 알림을 받게 됩니다 (활성화된 경우)",
+  "checkWithCode": "언제든지 액세스 코드를 사용하여 답글과 업데이트를 확인할 수 있습니다",
+  "dismiss": "닫기"
 }
