@@ -118,37 +118,12 @@ const SuccessPage: React.FC = () => {
           </button>
         </div>
         
-        {userData && (
-          <div className={styles.successMessage}>
-            <div className={styles.messageCard}>
-              <div className={styles.messageInfo}>
-                <div className={styles.messageMeta}>
-                  <span className={styles.messageAuthor}>
-                    <FontAwesomeIcon icon={faCircleCheck} /> 
-                    <span>{t('yourAnonymousId')}</span>
-                    <span id="user-id">{userData.userId}</span>
-                  </span>
-                  <span className={styles.messageTime}>{t('justPosted')}</span>
-                </div>
-                <div className={styles.messageContent}>
-                  <p id="confession-preview">{userData.confessionText}</p>
-                </div>
-                <div className={styles.messageTags} id="confession-tags">
-                  {userData.selectedTags.map((tag, index) => (
-                    <span key={index} className={styles.tag}>{renderTag(tag)}</span>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-        
         <div className={styles.successActions}>
           <div className={styles.actionButtons}>
-            <Link to="/" className={`${styles.returnHomeBtn}`}>
+            <Link to="/">
               <FontAwesomeIcon icon={faHome} /> <span>{t('returnHome')}</span>
             </Link>
-            <Link to="/help" className={`${styles.helpBtn}`}>
+            <Link to="/help">
               <FontAwesomeIcon icon={faHandsHelping} /> <span>{t('helpOthers')}</span>
             </Link>
           </div>
@@ -171,9 +146,6 @@ const SuccessPage: React.FC = () => {
           </div>
         )}
         
-        <button className={styles.sharePostBtn} onClick={sharePost}>
-          <FontAwesomeIcon icon={faShare} /> <span>{t('shareMyPost')}</span>
-        </button>
         <AccessCodeNotebook />
       </section>
     </Layout>
