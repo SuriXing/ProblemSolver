@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useTypeSafeTranslation } from '../../utils/translationHelper';
 import { 
-  Button, 
   Input, 
   Card,
   Pagination,
@@ -48,7 +47,7 @@ const getTimeAgo = (timestamp: string): string => {
 };
 
 const HelpPage: React.FC = () => {
-  const { t } = useTypeSafeTranslation();
+  const { t } = useTypeSafeTranslation(); // Only destructure what we need
   const [posts, setPosts] = useState<UserData[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
