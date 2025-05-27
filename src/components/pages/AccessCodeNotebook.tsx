@@ -1,28 +1,86 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useImperativeHandle, forwardRef } from 'react';
 
 interface NotebookEntry {
   code: string;
   note: string;
 }
 
+export interface AccessCodeNotebookRef {
+  addAccessCode: (code: string, note?: string) => void;
+}
+
 const NOTEBOOK_KEY = 'accessCodeNotebook';
 
-const AccessCodeNotebook: React.FC = () => {
+// Global utility function to save access codes
+export const saveAccessCodeToNotebook = (accessCode: string, note: string = '') => {
+  try {
+    const saved = localStorage.getItem(NOTEBOOK_KEY);
+    const entries: NotebookEntry[] = saved ? JSON.parse(saved) : [];
+    
+    // Check if code already exists
+    const exists = entries.some(entry => entry.code === accessCode);
+    if (!exists && accessCode.trim()) {
+      entries.push({ code: accessCode.trim(), note: note.trim() });
+      localStorage.setItem(NOTEBOOK_KEY, JSON.stringify(entries));
+      
+      // Trigger update event for same-tab refresh
+      window.dispatchEvent(new CustomEvent('notebookUpdate'));
+      console.log('Access code saved to notebook:', accessCode);
+    } else {
+      console.log('Access code already exists in notebook:', accessCode);
+    }
+  } catch (error) {
+    console.error('Error saving access code to notebook:', error);
+  }
+};
+
+const AccessCodeNotebook = forwardRef<AccessCodeNotebookRef>((props, ref) => {
   const [entries, setEntries] = useState<NotebookEntry[]>([]);
   const [code, setCode] = useState('');
   const [note, setNote] = useState('');
   const [open, setOpen] = useState(false);
   const notebookRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    const saved = localStorage.getItem(NOTEBOOK_KEY);
-    if (saved) {
-      setEntries(JSON.parse(saved));
+  const loadEntries = () => {
+    try {
+      const saved = localStorage.getItem(NOTEBOOK_KEY);
+      if (saved) {
+        const parsedEntries = JSON.parse(saved);
+        setEntries(parsedEntries);
+        console.log('Loaded notebook entries:', parsedEntries);
+      } else {
+        setEntries([]);
+        console.log('No notebook entries found');
+      }
+    } catch (error) {
+      console.error('Error loading notebook entries:', error);
+      setEntries([]);
     }
+  };
+
+  useEffect(() => {
+    loadEntries();
+    
+    // Listen for custom events for same-tab updates
+    const handleNotebookUpdate = () => {
+      console.log('Notebook update event received');
+      loadEntries();
+    };
+    
+    window.addEventListener('notebookUpdate', handleNotebookUpdate);
+    
+    return () => {
+      window.removeEventListener('notebookUpdate', handleNotebookUpdate);
+    };
   }, []);
 
   useEffect(() => {
-    localStorage.setItem(NOTEBOOK_KEY, JSON.stringify(entries));
+    try {
+      localStorage.setItem(NOTEBOOK_KEY, JSON.stringify(entries));
+      console.log('Saved notebook entries to localStorage:', entries);
+    } catch (error) {
+      console.error('Error saving notebook entries:', error);
+    }
   }, [entries]);
 
   // Close notebook on outside click
@@ -39,13 +97,50 @@ const AccessCodeNotebook: React.FC = () => {
 
   const addEntry = () => {
     if (!code.trim()) return;
-    setEntries(prev => [...prev, { code: code.trim(), note: note.trim() }]);
+    const newEntry = { code: code.trim(), note: note.trim() };
+    const newEntries = [...entries, newEntry];
+    setEntries(newEntries);
     setCode('');
     setNote('');
+    console.log('Added new entry manually:', newEntry);
   };
 
+  const addAccessCode = (accessCode: string, accessNote: string = '') => {
+    // Check if code already exists
+    const exists = entries.some(entry => entry.code === accessCode);
+    if (!exists && accessCode.trim()) {
+      const newEntry = { code: accessCode.trim(), note: accessNote.trim() };
+      const newEntries = [...entries, newEntry];
+      setEntries(newEntries);
+      console.log('Added new entry via ref:', newEntry);
+    }
+  };
+
+  useImperativeHandle(ref, () => ({
+    addAccessCode
+  }));
+
   const removeEntry = (idx: number) => {
-    setEntries(prev => prev.filter((_, i) => i !== idx));
+    const newEntries = entries.filter((_, i) => i !== idx);
+    setEntries(newEntries);
+    console.log('Removed entry at index:', idx);
+  };
+
+  const debugNotebook = () => {
+    console.log('=== NOTEBOOK DEBUG ===');
+    console.log('Current entries state:', entries);
+    console.log('LocalStorage raw:', localStorage.getItem(NOTEBOOK_KEY));
+    try {
+      const stored = localStorage.getItem(NOTEBOOK_KEY);
+      if (stored) {
+        console.log('LocalStorage parsed:', JSON.parse(stored));
+      } else {
+        console.log('No data in localStorage');
+      }
+    } catch (error) {
+      console.error('Error parsing localStorage:', error);
+    }
+    console.log('=== END DEBUG ===');
   };
 
   return (
@@ -113,6 +208,14 @@ const AccessCodeNotebook: React.FC = () => {
             >+
             </button>
           </div>
+          <div style={{ marginBottom: 8 }}>
+            <button
+              onClick={debugNotebook}
+              style={{ background: '#ff6b6b', color: '#fff', border: 'none', borderRadius: 4, padding: '4px 8px', fontSize: 11, cursor: 'pointer' }}
+              title="Debug"
+            >Debug
+            </button>
+          </div>
           <div style={{ maxHeight: 120, overflowY: 'auto' }}>
             {entries.length === 0 ? (
               <div style={{ color: '#888', fontSize: 13, textAlign: 'center' }}>No codes saved</div>
@@ -136,6 +239,6 @@ const AccessCodeNotebook: React.FC = () => {
       )}
     </div>
   );
-};
+});
 
 export default AccessCodeNotebook; 
