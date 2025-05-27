@@ -6,8 +6,8 @@ import { faCircleCheck, faEye, faCopy, faHome, faHandsHelping, faCircleInfo, faS
 import StorageSystem, { UserData } from '../../utils/StorageSystem';
 import styles from './SuccessPage.module.css';
 import { useTranslation } from 'react-i18next';
-import AccessCodeNotebook from './AccessCodeNotebook';
 import Layout from '../layout/Layout';
+import { saveAccessCodeToNotebook } from './AccessCodeNotebook';
 
 const SuccessPage: React.FC = () => {
   const { t } = useTypeSafeTranslation();
@@ -27,6 +27,9 @@ const SuccessPage: React.FC = () => {
       console.log('Access code from location state:', location.state.accessCode);
       setAccessCode(location.state.accessCode);
       localStorage.setItem('accessCode', location.state.accessCode);
+      // Auto-save to notebook
+      console.log('Auto-saving access code to notebook:', location.state.accessCode);
+      saveAccessCodeToNotebook(location.state.accessCode, 'Auto-saved');
     } else {
       // Fall back to localStorage (when returning to the page)
       const storedAccessCode = localStorage.getItem('accessCode');
@@ -34,6 +37,9 @@ const SuccessPage: React.FC = () => {
       if (storedAccessCode) {
         console.log('Access code from localStorage:', storedAccessCode);
         setAccessCode(storedAccessCode);
+        // Auto-save to notebook if not already saved
+        console.log('Auto-saving stored access code to notebook:', storedAccessCode);
+        saveAccessCodeToNotebook(storedAccessCode, 'Auto-saved');
       } else {
         console.warn('No access code found in state or localStorage');
       }
@@ -145,8 +151,6 @@ const SuccessPage: React.FC = () => {
             </ul>
           </div>
         )}
-        
-        <AccessCodeNotebook />
       </section>
     </Layout>
   );
