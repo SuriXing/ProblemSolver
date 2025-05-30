@@ -18,6 +18,11 @@ import HelpDetailPage from './components/pages/HelpDetailPage';
 import NotFoundPage from './components/pages/NotFoundPage';
 import LoadingPage from './components/pages/LoadingPage';
 
+// Import admin components
+import AdminLoginPage from './components/pages/AdminLoginPage';
+import AdminDashboardPage from './components/pages/AdminDashboardPage';
+import ProtectedRoute from './components/ProtectedRoute';
+
 // Import additional components
 import SupabaseTest from './components/SupabaseTest';
 import EnvDebug from './components/EnvDebug';
@@ -73,6 +78,18 @@ function App() {
                 />
                 <Route path="/topics/:topicId" element={<TopicDetailPage />} />
                 <Route path="/share/:accessCode" element={<SharePage />} />
+                
+                {/* Admin routes */}
+                <Route path="/admin/login" element={<AdminLoginPage />} />
+                <Route 
+                  path="/admin/dashboard" 
+                  element={
+                    <ProtectedRoute>
+                      <AdminDashboardPage />
+                    </ProtectedRoute>
+                  } 
+                />
+                
                 <Route path="*" element={<NotFoundPage />} />
               </Routes>
               {showTest && <SupabaseTest />}

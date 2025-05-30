@@ -143,6 +143,14 @@ const AccessCodeNotebook = forwardRef<AccessCodeNotebookRef>((props, ref) => {
     console.log('=== END DEBUG ===');
   };
 
+  const openNameDetectionDemo = () => {
+    window.open('#/name-detection-demo', '_blank');
+  };
+
+  const openAdminLogin = () => {
+    window.open('#/admin/login', '_blank');
+  };
+
   return (
     <div
       ref={notebookRef}
@@ -208,12 +216,18 @@ const AccessCodeNotebook = forwardRef<AccessCodeNotebookRef>((props, ref) => {
             >+
             </button>
           </div>
-          <div style={{ marginBottom: 8 }}>
+          <div style={{ marginBottom: 8, display: 'flex', gap: 4 }}>
             <button
               onClick={debugNotebook}
               style={{ background: '#ff6b6b', color: '#fff', border: 'none', borderRadius: 4, padding: '4px 8px', fontSize: 11, cursor: 'pointer' }}
               title="Debug"
             >Debug
+            </button>
+            <button
+              onClick={openAdminLogin}
+              style={{ background: '#722ed1', color: '#fff', border: 'none', borderRadius: 4, padding: '4px 8px', fontSize: 11, cursor: 'pointer' }}
+              title="Admin Login"
+            >Admin
             </button>
           </div>
           <div style={{ maxHeight: 120, overflowY: 'auto' }}>

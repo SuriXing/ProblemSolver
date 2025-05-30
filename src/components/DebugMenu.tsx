@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useTranslationContext } from '../context/TranslationContext';
 import { Card, Switch, Space, Button, Divider, Typography, Drawer, message, Collapse, Input } from 'antd';
-import { BugOutlined } from '@ant-design/icons';
+import { BugOutlined, CrownOutlined } from '@ant-design/icons';
 import { DatabaseService } from '../services/database.service';
 import { Post } from '../types/database.types';
 import type { TranslationKey } from '../types/i18n.types';
@@ -30,6 +31,7 @@ const DebugMenu: React.FC<DebugMenuProps> = ({
 }) => {
   const { t } = useTranslation();
   const { changeLanguage, currentLanguage } = useTranslationContext();
+  const navigate = useNavigate();
   const [visible, setVisible] = useState(false);
   const [testAccessCode, setTestAccessCode] = useState('');
   const [foundPost, setFoundPost] = useState<Post | null>(null);
@@ -40,6 +42,12 @@ const DebugMenu: React.FC<DebugMenuProps> = ({
 
   // Helper function to ensure string type from translation
   const translate = (key: TranslationKey): string => String(t(key));
+
+  // Navigate to admin login
+  const goToAdminLogin = () => {
+    navigate('/admin/login');
+    setVisible(false);
+  };
 
   // Test access code
   const testAccessCodeHandler = async () => {
@@ -166,6 +174,22 @@ const DebugMenu: React.FC<DebugMenuProps> = ({
                 style={{ marginRight: 8 }} 
               />
               <Text>{translate('accessCodeTesting')}</Text>
+            </div>
+            
+            <Divider />
+            
+            <div style={{ marginBottom: 16 }}>
+              <Button 
+                type="primary" 
+                icon={<CrownOutlined />}
+                onClick={goToAdminLogin}
+                style={{ 
+                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  border: 'none'
+                }}
+              >
+                管理员登录
+              </Button>
             </div>
             
             {showAccessCodeTest && (
