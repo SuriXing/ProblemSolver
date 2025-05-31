@@ -97,7 +97,8 @@
   position: absolute;
   top: 100%;
   right: 0;
-  margin-top: 0.5rem;
+  margin-top: 0;
+  padding-top: 2px;
   background-color: white;
   border-radius: 4px;
   box-shadow: var(--shadow-md);
@@ -106,7 +107,7 @@
   z-index: 10;
 }
 
-.language-dropdown.show {
+.language-selector:hover .language-dropdown {
   display: block;
 }
 
