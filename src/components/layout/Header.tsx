@@ -59,36 +59,25 @@ const Header: React.FC = () => {
           </Link>
         </div>
         <div className="nav-actions" style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          <Link to="/past-questions" className="history-link">
+          <Link to="/past-questions" className="nav-link">
             <FontAwesomeIcon icon={faHistory} />
             <span>{t('goToPastQuestions')}</span>
           </Link>
           {localStorage.getItem('hideInstruction') !== '1' && (
             <div
-              className="instruction-link"
+              className="instruction-container"
               style={{ position: 'relative', display: 'flex', alignItems: 'center' }}
               onMouseEnter={() => { if (!pinned) setShowInstruction(true); }}
               onMouseLeave={() => { if (!pinned) setShowInstruction(false); }}
             >
               <button
                 type="button"
-                className="instruction-button"
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  color: '#444',
-                  cursor: 'pointer',
-                  fontSize: '1rem',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 4,
-                  fontWeight: 400
-                }}
+                className="nav-link instruction-button"
                 tabIndex={0}
                 onClick={() => { setPinned(true); setShowInstruction(true); }}
               >
                 <span role="img" aria-label="instruction">📖</span>
-                {t('instruction')}
+                <span>{t('instruction')}</span>
               </button>
               {showInstruction && (
                 <div
