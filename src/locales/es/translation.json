@@ -175,5 +175,7 @@
   "replyIn24h": "Espera respuestas dentro de 24 horas de miembros solidarios de la comunidad",
   "emailNotification": "Recibirás notificaciones por correo cuando alguien responda (si está habilitado)",
   "checkWithCode": "Usa tu código de acceso en cualquier momento para revisar respuestas y actualizaciones",
-  "dismiss": "Cerrar"
+  "dismiss": "Cerrar",
+  "privacyWarningTitle": "Aviso Importante de Privacidad",
+  "privacyWarningText": "Sabemos que puedes estar sintiéndote muy emocional en este momento, pero por favor recuerda: NO incluyas nombres reales, ubicaciones específicas, o detalles identificativos sobre ti o sobre otros. Esto protege la privacidad de todos y podría evitarte problemas aún peores. Mantén tu compartir anónimo y seguro."
 }
