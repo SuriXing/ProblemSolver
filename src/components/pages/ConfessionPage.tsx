@@ -144,6 +144,17 @@ const ConfessionPage: React.FC = () => {
           <p className="confession-subtitle">{t('confessionSubtitle')}</p>
           
           <form onSubmit={handleSubmit} className="confession-form">
+            {/* Privacy Warning Box */}
+            <div className="privacy-warning-box">
+              <div className="warning-icon">⚠️</div>
+              <div className="warning-content">
+                <h3 className="warning-title">{safeT('privacyWarningTitle', 'Important Privacy Notice')}</h3>
+                <p className="warning-text">
+                  {safeT('privacyWarningText', 'We know you may be feeling very emotional right now, but please remember: DO NOT include real names, specific locations, or identifying details about yourself or others. This protects everyone\'s privacy and could prevent you from getting into even worse troubles. Keep your sharing anonymous and safe.')}
+                </p>
+              </div>
+            </div>
+            
             <div className="form-group">
               <textarea
                 ref={textareaRef}

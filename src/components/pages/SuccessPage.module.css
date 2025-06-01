@@ -228,7 +228,6 @@
 
 .tooltipHeader {
   display: flex;
-  justify-content: space-between;
   align-items: center;
   margin-bottom: 1rem;
 }
@@ -243,26 +242,6 @@
 
 .tooltipHeader h3 svg {
   margin-right: 0.5rem;
-}
-
-.dismissBtn {
-  background: none;
-  border: none;
-  color: #666;
-  cursor: pointer;
-  padding: 0.5rem;
-  border-radius: 4px;
-  transition: background-color 0.2s, color 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 2rem;
-  height: 2rem;
-}
-
-.dismissBtn:hover {
-  background-color: #e2e8f0;
-  color: #333;
 }
 
 .successInfoBox ul {
@@ -295,9 +274,5 @@
     flex-direction: column;
     align-items: flex-start;
     gap: 0.5rem;
-  }
-
-  .dismissBtn {
-    align-self: flex-end;
   }
 } 
