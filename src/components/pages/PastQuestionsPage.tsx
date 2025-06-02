@@ -43,6 +43,22 @@ const PastQuestionsPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [userData, setUserData] = useState<UserData | null>(null);
   
+  // Clear access code when component unmounts (user navigates away)
+  useEffect(() => {
+    return () => {
+      setAccessCode('');
+      // Also clear from localStorage if you're storing it there
+      localStorage.removeItem('accessCode');
+    };
+  }, []);
+  
+  // Clear access code after successful retrieval
+  useEffect(() => {
+    if (userData) {
+      setAccessCode('');
+    }
+  }, [userData]);
+  
   const fetchQuestions = (code: string) => {
     if (!code) {
       setError(t('errorAccessCode'));
@@ -118,7 +134,7 @@ const PastQuestionsPage: React.FC = () => {
       setAccessCode(codeFromStorage);
       fetchQuestions(codeFromStorage);
     }
-  }, [location, fetchQuestions]);
+  }, [location]);
   
   const handleAccessCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setAccessCode(e.target.value);

@@ -94,12 +94,32 @@ const HelpPage: React.FC = () => {
       const storage = JSON.parse(localStorage.getItem('problemSolver_userData') || '{}');
       const allPosts = Object.values(storage) as UserData[];
       
+      // Initialize view counts if they don't exist
+      const postsWithCounts = allPosts.map(post => {
+        const updatedPost = { ...post };
+        
+        // Initialize views if not present
+        if (!updatedPost.views) {
+          updatedPost.views = Math.floor(Math.random() * 90) + 10;
+        }
+        
+        return updatedPost;
+      });
+      
       // Sort by timestamp (newest first)
-      const sortedPosts = allPosts.sort((a, b) => {
+      const sortedPosts = postsWithCounts.sort((a, b) => {
         return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
       });
       
       setPosts(sortedPosts);
+      
+      // Update the storage with the new counts
+      const updatedStorage: Record<string, UserData> = {};
+      postsWithCounts.forEach(post => {
+        updatedStorage[post.accessCode] = post;
+      });
+      localStorage.setItem('problemSolver_userData', JSON.stringify(updatedStorage));
+      
     } catch (error) {
       console.error('Error loading posts:', error);
       setPosts([]);
@@ -127,6 +147,22 @@ const HelpPage: React.FC = () => {
     // Scroll to top when changing page
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+  
+  // Handle post click to increment view count
+  const handlePostClick = (post: UserData) => {
+    // Increment view count
+    const updatedPost = { ...post, views: (post.views || 0) + 1 };
+    
+    // Update storage
+    const storage = JSON.parse(localStorage.getItem('problemSolver_userData') || '{}');
+    storage[post.accessCode] = updatedPost;
+    localStorage.setItem('problemSolver_userData', JSON.stringify(storage));
+    
+    // Update state
+    setPosts(prevPosts => 
+      prevPosts.map(p => p.accessCode === post.accessCode ? updatedPost : p)
+    );
+  };
 
   return (
     <Layout>
@@ -138,9 +174,11 @@ const HelpPage: React.FC = () => {
       </div>
 
       <div className="container help-container">
-        <Link to="/" className="back-link">
-          <ArrowLeftOutlined /> {t('returnHome')}
-        </Link>
+        <div className="page-header">
+          <Link to="/" className="back-link">
+            <ArrowLeftOutlined /> {t('returnHome')}
+          </Link>
+        </div>
       
         <div className="tag-filters">
           {getTags().map(tag => (
@@ -186,18 +224,14 @@ const HelpPage: React.FC = () => {
               <Card 
                 key={post.accessCode}
                 className="topic-card"
-                actions={[
-                  <div key="replies">
-                    <MessageOutlined /> {t('replies')}: 0
-                  </div>,
-                  <div key="views">
-                    <EyeOutlined /> {t('views')}: 0
-                  </div>
-                ]}
+                actions={[]}
               >
                 <Card.Meta
                   title={
-                    <Link to={`/help/${post.accessCode}`}>
+                    <Link 
+                      to={`/help/${post.accessCode}`} 
+                      onClick={() => handlePostClick(post)}
+                    >
                       {post.confessionText.substring(0, 50)}...
                     </Link>
                   }
@@ -222,6 +256,14 @@ const HelpPage: React.FC = () => {
                             {tag}
                           </span>
                         ))}
+                      </div>
+                      <div className="topic-stats">
+                        <span className="topic-stat">
+                          <MessageOutlined /> {t('replies')}: {post.replies?.length || 0}
+                        </span>
+                        <span className="topic-stat">
+                          <EyeOutlined /> {t('views')}: {post.views || 0}
+                        </span>
                       </div>
                     </>
                   }
