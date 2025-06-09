@@ -192,16 +192,14 @@ const HelpDetailPage: React.FC = () => {
             </div>
           </div>
           
-          <h1 className="post-title">{post.confessionText.substring(0, 50)}...</h1>
+          <div className="post-title">
+            {post.confessionText}
+          </div>
           
           <div className="post-tags">
             {post.selectedTags.map(tag => (
               <span key={tag} className="post-tag">{tag}</span>
             ))}
-          </div>
-          
-          <div className="post-content">
-            {post.confessionText}
           </div>
           
           <Divider>{t('replies')} ({post.replies?.length || 0})</Divider>
