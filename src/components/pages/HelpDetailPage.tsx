@@ -78,30 +78,8 @@ const HelpDetailPage: React.FC = () => {
       const postData = storage[accessCode];
       
       if (postData) {
-        // Check if this is a new page load or a refresh
-        const isNewVisit = sessionStorage.getItem(`visited_${accessCode}`) !== 'true';
-        
-        let updatedPost = { ...postData };
-        
-        // Only increment view count if this is a new visit
-        if (isNewVisit) {
-          const currentViews = postData.views || 0;
-          const newViews = currentViews + 1;
-          
-          updatedPost = { 
-            ...postData,
-            views: newViews
-          };
-          
-          // Update storage
-          storage[accessCode] = updatedPost;
-          localStorage.setItem('problemSolver_userData', JSON.stringify(storage));
-          
-          // Mark this post as visited in this session
-          sessionStorage.setItem(`visited_${accessCode}`, 'true');
-        }
-        
-        setPost(updatedPost);
+        // Don't increment view count here, it's already incremented in HelpPage
+        setPost(postData);
       }
     } catch (error) {
       console.error('Error loading post data:', error);
