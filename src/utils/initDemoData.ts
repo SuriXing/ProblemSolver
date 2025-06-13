@@ -28,7 +28,8 @@ const initDemoData = (): void => {
           replierName: "Helper #2935",
           replyTime: "5分钟前"
         }
-      ]
+      ],
+      views: 0
     };
     
     StorageSystem.storeData('TSZT-VVSM-8F8Y', userData);
@@ -54,7 +55,8 @@ const initDemoData = (): void => {
           replierName: "Helper #4215",
           replyTime: "Just now"
         }
-      ]
+      ],
+      views: 0
     };
     
     StorageSystem.storeData('J23B-F42A-LCRZ', userData);

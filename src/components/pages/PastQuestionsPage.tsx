@@ -75,8 +75,12 @@ const PastQuestionsPage: React.FC = () => {
       if (StorageSystem.checkAccessCode(code)) {
         const data = StorageSystem.retrieveData(code);
         if (data) {
-          setUserData(data);
-          setLoading(false);
+          data.then((result: UserData | null) => {
+            if (result) {
+              setUserData(result);
+              setLoading(false);
+            }
+          });
           return;
         }
       }
@@ -104,7 +108,8 @@ const PastQuestionsPage: React.FC = () => {
               replierName: "Helper #2935",
               replyTime: "5分钟前"
             }
-          ]
+          ],
+          views: 0
         };
         
         // Store data for future retrieval
