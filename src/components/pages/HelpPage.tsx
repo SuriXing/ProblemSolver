@@ -5,7 +5,9 @@ import {
   Input, 
   Card,
   Pagination,
+  Radio
 } from 'antd';
+import type { RadioChangeEvent } from 'antd/es/radio';
 import { 
   EyeOutlined,
   MessageOutlined,
@@ -51,9 +53,24 @@ const HelpPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedTag, setSelectedTag] = useState<string | null>(null);
+  const [activeFilter, setActiveFilter] = useState('全部');
   const [currentPage, setCurrentPage] = useState(1);
   const postsPerPage = 10;
   const [renderError, setRenderError] = useState<Error | null>(null);
+
+  // Get all available tags
+  const availableTags = {
+    'zh-CN': ['焦虑', '社交', '人际关系', '学习', '工作', '健康', '家庭', '感情', '其他'],
+    'en': ['Anxiety', 'Social', 'Relationships', 'Study', 'Work', 'Health', 'Family', 'Love', 'Other']
+  };
+  
+  // Get tags based on current language
+  const getTags = () => {
+    const currentLang = localStorage.getItem('language') || 'zh-CN';
+    const tags = availableTags[currentLang as keyof typeof availableTags] || availableTags['en'];
+    return tags || []; // Ensure we always return an array
+  };
 
   // Load all posts from storage
   useEffect(() => {
@@ -101,11 +118,32 @@ const HelpPage: React.FC = () => {
   }, []);
 
   try {
-    // Filter posts by search term
+    // Handle tag click
+    const handleTagClick = (tag: string) => {
+      if (selectedTag === tag) {
+        setSelectedTag(null); // Deselect if already selected
+      } else {
+        setSelectedTag(tag);
+      }
+      setCurrentPage(1); // Reset to first page
+    };
+    
+    // Handle filter click
+    const handleFilterClick = (filter: string) => {
+      setActiveFilter(filter);
+      // Implement filtering logic here
+      // For now, just update the UI
+    };
+    
+    // Filter posts by search term and tag
     const filteredPosts = posts.filter(post => {
-      return !searchTerm || 
-        post.confessionText.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        post.userId.includes(searchTerm);
+      const matchesSearch = !searchTerm || 
+        (post.confessionText && post.confessionText.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (post.userId && post.userId.includes(searchTerm));
+        
+      const matchesTag = !selectedTag || (post.selectedTags && post.selectedTags.includes(selectedTag));
+      
+      return matchesSearch && matchesTag;
     });
     
     // Calculate pagination
@@ -200,8 +238,32 @@ const HelpPage: React.FC = () => {
               Clear All Posts
             </button>
           </div>
-          
+        
+          <div className="tag-filters">
+            {getTags().map(tag => (
+              <span
+                key={tag}
+                className={`tag ${selectedTag === tag ? 'selected' : ''}`}
+                onClick={() => handleTagClick(tag)}
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+        
           <div className="filter-bar">
+            <Radio.Group 
+              value={activeFilter}
+              onChange={(e: RadioChangeEvent) => handleFilterClick(e.target.value)}
+              optionType="button"
+              buttonStyle="solid"
+            >
+              {['全部', '最新提问', '等待回答', '热门话题'].map(filter => (
+                <Radio.Button key={filter} value={filter}>
+                  {filter}
+                </Radio.Button>
+              ))}
+            </Radio.Group>
             <Input.Search
               placeholder={t('searchPlaceholder')}
               value={searchTerm}
@@ -247,9 +309,19 @@ const HelpPage: React.FC = () => {
                       description={
                         <>
                           <div style={{ marginBottom: 8 }}>
+                            <span className="topic-category">
+                              {post.selectedTags && post.selectedTags.length > 0 ? post.selectedTags[0] : '其他'}
+                            </span>
                             <span className="topic-time" style={{ float: 'right' }}>
                               {post.timestamp ? getTimeAgo(post.timestamp) : 'Unknown time'}
                             </span>
+                          </div>
+                          <div className="topic-tags">
+                            {post.selectedTags && post.selectedTags.slice(0, 3).map(tag => (
+                              <span key={tag} className="topic-tag">
+                                {tag}
+                              </span>
+                            ))}
                           </div>
                           <div className="topic-stats">
                             <span className="topic-stat">
