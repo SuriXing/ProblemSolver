@@ -1,0 +1,8 @@
+---
+description: how to use url and key
+globs: 
+---
+
+# Your rule content
+
+## Always refer my .env for url and key, never hard code url and key, if it's not exist in .env, ask me

@@ -24,9 +24,12 @@
       "./node_modules/@types",
       "./node_modules/antd/types",
       "./node_modules/@ant-design/icons/lib/types"
-    ]
+    ],
+    "types": ["vite/client", "node"]
   },
   "include": [
-    "src"
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "src/**/*.d.ts"
   ]
 }
