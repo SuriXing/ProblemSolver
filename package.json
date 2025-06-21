@@ -37,7 +37,8 @@
     "cy:run:chrome": "cypress run --browser chrome",
     "cy:run:firefox": "cypress run --browser firefox",
     "cy:run:edge": "cypress run --browser edge",
-    "test:browsers": "npm run cy:run:chrome && npm run cy:run:firefox && npm run cy:run:edge"
+    "test:browsers": "npm run cy:run:chrome && npm run cy:run:firefox && npm run cy:run:edge",
+    "dev:pages": "cross-env SIMULATE_GH_PAGES=true vite"
   },
   "devDependencies": {
     "cypress": "^12.5.1",
@@ -61,5 +62,6 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
-  }
+  },
+  "homepage": "https://yourusername.github.io/your-repo-name"
 }
