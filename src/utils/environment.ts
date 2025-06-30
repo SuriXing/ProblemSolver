@@ -68,4 +68,13 @@ export function getEnvironment() {
     SUPABASE_URL,
     SUPABASE_ANON_KEY
   };
-} 
+}
+
+// Example of handling base paths for GitHub Pages
+export const getBasePath = () => {
+  return process.env.NODE_ENV === 'production' 
+    ? '/Problem_solver' 
+    : '';
+};
+
+// Use this when constructing URLs in your app 

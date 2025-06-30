@@ -3,6 +3,7 @@ import { Button, Drawer, Input, Space, Typography, message, Collapse, Switch, Di
 import { BugOutlined, KeyOutlined, CopyOutlined, DatabaseOutlined } from '@ant-design/icons';
 import { DatabaseService } from '../services/database.service';
 import { Post } from '../types/database.types';
+import { useTypeSafeTranslation } from '../utils/translationHelper';
 
 const { Panel } = Collapse;
 const { Text, Title } = Typography;
@@ -24,6 +25,7 @@ const DebugMenu: React.FC<DebugMenuProps> = ({
   showEnvDebug,
   setShowEnvDebug
 }) => {
+  const { t } = useTypeSafeTranslation();
   const [visible, setVisible] = useState(false);
   const [testAccessCode, setTestAccessCode] = useState('');
   const [foundPost, setFoundPost] = useState<Post | null>(null);
@@ -33,7 +35,7 @@ const DebugMenu: React.FC<DebugMenuProps> = ({
   // 测试访问码
   const testAccessCodeHandler = async () => {
     if (!testAccessCode.trim()) {
-      message.error('请输入访问码');
+      message.error(t('pleaseEnterAccessCode'));
       return;
     }
 
@@ -42,13 +44,13 @@ const DebugMenu: React.FC<DebugMenuProps> = ({
       const post = await DatabaseService.getPostByAccessCode(testAccessCode);
       setFoundPost(post);
       if (post) {
-        message.success('成功找到帖子!');
+        message.success(t('postFoundSuccess'));
       } else {
-        message.error('未找到帖子');
+        message.error(t('postNotFound'));
       }
     } catch (error) {
-      message.error('测试过程中发生错误');
-      console.error('Error testing access code:', error);
+      message.error(t('errorTestingAccessCode'));
+      console.error(t('errorTestingAccessCode'), error);
     } finally {
       setLoading(false);
     }
@@ -58,13 +60,11 @@ const DebugMenu: React.FC<DebugMenuProps> = ({
   const generateNewAccessCode = async () => {
     setLoading(true);
     try {
-      // 直接调用 DatabaseService 中的生成函数
-      // 注意：需要将 generateAccessCode 从 DatabaseService 中导出
       const accessCode = await DatabaseService.generateTestAccessCode();
       setTestAccessCode(accessCode);
-      message.success('生成了新的访问码');
+      message.success(t('newAccessCodeGenerated'));
     } catch (error) {
-      message.error('生成访问码时出错');
+      message.error(t('errorGeneratingAccessCode'));
     } finally {
       setLoading(false);
     }
@@ -73,8 +73,8 @@ const DebugMenu: React.FC<DebugMenuProps> = ({
   // 复制访问码到剪贴板
   const copyAccessCode = () => {
     navigator.clipboard.writeText(testAccessCode)
-      .then(() => message.success('访问码已复制到剪贴板'))
-      .catch(() => message.error('复制失败'));
+      .then(() => message.success(t('accessCodeCopied')))
+      .catch(() => message.error(t('copyFailed')));
   };
 
   // 显示环境变量信息
@@ -115,21 +115,21 @@ const DebugMenu: React.FC<DebugMenuProps> = ({
         }}
         onClick={() => setVisible(true)}
       >
-        调试工具
+        {t('debug')}
       </Button>
 
       <Drawer
-        title="调试菜单"
+        title={t('debugMenu')}
         placement="left"
         onClose={() => setVisible(false)}
         visible={visible}
         width={320}
       >
         <Collapse defaultActiveKey={['1']}>
-          <Panel header="访问码测试" key="1">
+          <Panel header={t('accessCodeTest')} key="1">
             <Space direction="vertical" style={{ width: '100%' }}>
               <Input
-                placeholder="输入访问码"
+                placeholder={t('enterAccessCode')}
                 value={testAccessCode}
                 onChange={(e) => setTestAccessCode(e.target.value)}
                 prefix={<KeyOutlined />}
@@ -138,47 +138,47 @@ const DebugMenu: React.FC<DebugMenuProps> = ({
               
               <Space>
                 <Button onClick={testAccessCodeHandler} loading={loading}>
-                  测试访问码
+                  {t('testAccessCode')}
                 </Button>
                 <Button icon={<CopyOutlined />} onClick={copyAccessCode}>
-                  复制
+                  {t('copy')}
                 </Button>
                 <Button icon={<DatabaseOutlined />} onClick={generateNewAccessCode}>
-                  生成新码
+                  {t('generateNewCode')}
                 </Button>
               </Space>
 
               {foundPost && (
                 <div style={{ marginTop: 16 }}>
-                  <Title level={5}>找到的帖子:</Title>
-                  <Text>ID: {foundPost.id}</Text><br />
-                  <Text>标题: {foundPost.title}</Text><br />
-                  <Text>类型: {foundPost.purpose}</Text><br />
-                  <Text>访问码: {foundPost.access_code}</Text>
+                  <Title level={5}>{t('foundPost')}:</Title>
+                  <Text>{t('id')}: {foundPost.id}</Text><br />
+                  <Text>{t('title')}: {foundPost.title}</Text><br />
+                  <Text>{t('type')}: {foundPost.purpose}</Text><br />
+                  <Text>{t('accessCode')}: {foundPost.access_code}</Text>
                 </div>
               )}
             </Space>
           </Panel>
 
-          <Panel header="环境设置" key="2">
+          <Panel header={t('environmentSettings')} key="2">
             <Space direction="vertical" style={{ width: '100%' }}>
               <div>
                 <Switch
                   checked={showEnvironment}
                   onChange={setShowEnvironment}
-                /> 显示环境变量
+                /> {t('showEnvironmentVars')}
               </div>
               {renderEnvironmentInfo()}
             </Space>
           </Panel>
 
-          <Panel header="系统设置" key="3">
+          <Panel header={t('systemSettings')} key="3">
             <Space direction="vertical" style={{ width: '100%' }}>
               <div>
                 <Switch
                   checked={showTest}
                   onChange={setShowTest}
-                /> 显示 Supabase 测试
+                /> {t('showSupabaseTest')}
               </div>
               
               <div>
@@ -188,14 +188,14 @@ const DebugMenu: React.FC<DebugMenuProps> = ({
                     setUseDirectClient(checked);
                     window.location.reload();
                   }}
-                /> 使用直连客户端
+                /> {t('useDirectClient')}
               </div>
               
               <div>
                 <Switch
                   checked={showEnvDebug}
                   onChange={setShowEnvDebug}
-                /> 显示环境调试
+                /> {t('showEnvDebug')}
               </div>
             </Space>
           </Panel>
@@ -203,7 +203,7 @@ const DebugMenu: React.FC<DebugMenuProps> = ({
 
         <Divider />
         <Text type="secondary">
-          调试模式仅在开发环境可用。请勿在生产环境使用。
+          {t('debugModeWarning')}
         </Text>
       </Drawer>
     </>
