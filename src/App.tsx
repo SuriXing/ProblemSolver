@@ -21,7 +21,7 @@ import SupabaseTest from './components/SupabaseTest';
 import { Button } from 'antd';
 import { supabaseDirect } from './lib/supabaseDirectClient';
 import EnvDebug from './components/EnvDebug';
-import { SUPABASE_URL, SUPABASE_ANON_KEY, getEnv, IS_PROD } from './utils/environment';
+import { SUPABASE_URL, SUPABASE_ANON_KEY, getEnv, IS_PROD, getBasePath } from './utils/environment';
 import DebugMenu from './components/DebugMenu';
 
 const App: React.FC = () => {
@@ -313,7 +313,7 @@ REACT_APP_SUPABASE_ANON_KEY=your-anon-key`}
   const activeSupabase = useDirectClient ? supabaseDirect : supabase;
   
   return (
-    <Router basename="/Problem_solver">
+    <Router basename={getBasePath()}>
       {isLoading ? (
         <LoadingPage />
       ) : (
