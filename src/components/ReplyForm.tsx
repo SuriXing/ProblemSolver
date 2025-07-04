@@ -3,7 +3,6 @@ import { Form, Input, Button, Checkbox } from 'antd';
 import { DatabaseService } from '../services/database.service';
 import { InsertTables } from '../types/database.types';
 import { useTypeSafeTranslation } from '../utils/translationHelper';
-import { supabase } from '../lib/supabase';
 import { getCurrentUserId } from '../utils/authHelpers';
 
 interface ReplyFormProps {

@@ -1,15 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useTypeSafeTranslation } from '../../utils/translationHelper';
-import { useLocation } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faExclamationTriangle, faSpinner } from '@fortawesome/free-solid-svg-icons';
-import StorageSystem, { UserData } from '../../utils/StorageSystem';
+import { faSpinner } from '@fortawesome/free-solid-svg-icons';
 import Layout from '../layout/Layout';
-import { supabase } from '../../lib/supabase';
 import { IS_PROD } from '../../utils/environment';
 import DebugMenu from '../DebugMenu';
 import { DatabaseService } from '../../services/database.service';
 import { Input, Button, Form, Card, Alert } from 'antd';
+
+// Import UserData type from StorageSystem
+import { UserData } from '../../utils/StorageSystem';
 
 // Helper function to get time ago
 const getTimeAgo = (timestamp: string): string => {
@@ -39,7 +39,7 @@ const getTimeAgo = (timestamp: string): string => {
   }
 };
 
-// 添加属性接口
+// Add type for PastQuestionsPageProps
 interface PastQuestionsPageProps {
   showDebug?: boolean;
   debugProps?: {
@@ -52,10 +52,8 @@ interface PastQuestionsPageProps {
   };
 }
 
-// 修改组件定义以接受属性
 const PastQuestionsPage: React.FC<PastQuestionsPageProps> = ({ showDebug, debugProps }) => {
   const { t } = useTypeSafeTranslation();
-  const location = useLocation();
   
   const [accessCode, setAccessCode] = useState('');
   const [loading, setLoading] = useState(false);
@@ -63,36 +61,8 @@ const PastQuestionsPage: React.FC<PastQuestionsPageProps> = ({ showDebug, debugP
   const [userData, setUserData] = useState<UserData | null>(null);
   const [activeTab, setActiveTab] = useState<'all' | 'help_needed' | 'help_offered'>('all');
   
-  // Clear access code when component unmounts (user navigates away)
-  useEffect(() => {
-    return () => {
-      setAccessCode('');
-      // Also clear from localStorage if you're storing it there
-      localStorage.removeItem('accessCode');
-    };
-  }, []);
-  
-  // Clear access code after successful retrieval
-  useEffect(() => {
-    if (userData) {
-      setAccessCode('');
-    }
-  }, [userData]);
-  
-  // 在组件内部添加这个 useEffect
-  useEffect(() => {
-    // 检查会话存储中是否有临时访问码
-    const tempAccessCode = sessionStorage.getItem('temp_access_code');
-    if (tempAccessCode) {
-      // 使用这个访问码
-      setAccessCode(tempAccessCode);
-      fetchQuestions(tempAccessCode);
-      // 使用后清除
-      sessionStorage.removeItem('temp_access_code');
-    }
-  }, []);
-  
-  const fetchQuestions = async (code: string) => {
+  // Define fetchQuestions using useCallback
+  const fetchQuestions = useCallback(async (code: string) => {
     if (!code) return;
     
     console.log('Fetching post with access code:', code);
@@ -135,32 +105,40 @@ const PastQuestionsPage: React.FC<PastQuestionsPageProps> = ({ showDebug, debugP
     } finally {
       setLoading(false);
     }
-  };
-
+  }, [t]);
+  
+  // Clear access code when component unmounts (user navigates away)
+  useEffect(() => {
+    return () => {
+      setAccessCode('');
+      // Also clear from localStorage if you're storing it there
+      localStorage.removeItem('accessCode');
+    };
+  }, []);
+  
+  // Clear access code after successful retrieval
+  useEffect(() => {
+    if (userData) {
+      setAccessCode('');
+    }
+  }, [userData]);
+  
+  // 在组件内部添加这个 useEffect
+  useEffect(() => {
+    // Check for access code in session storage first (from SharePage redirect)
+    const tempAccessCode = sessionStorage.getItem('temp_access_code');
+    if (tempAccessCode) {
+      setAccessCode(tempAccessCode);
+      fetchQuestions(tempAccessCode);
+      sessionStorage.removeItem('temp_access_code'); // Clear after use
+    }
+  }, [fetchQuestions]);
+  
   // 替换为表单提交处理函数
   const handleSubmit = (values: { accessCode: string }) => {
     if (values.accessCode.trim()) {
       fetchQuestions(values.accessCode.trim());
     }
-  };
-  
-  const loadDemo = () => {
-    fetchQuestions('demo');
-  };
-  
-  const fetchPosts = async () => {
-    let query = supabase
-      .from('posts')
-      .select('*')
-      .order('created_at', { ascending: false });
-    
-    if (activeTab === 'help_needed') {
-      query = query.eq('purpose', 'need_help');
-    } else if (activeTab === 'help_offered') {
-      query = query.eq('purpose', 'offer_help');
-    }
-    
-    // ... 现有代码 ...
   };
   
   return (
@@ -236,14 +214,15 @@ const PastQuestionsPage: React.FC<PastQuestionsPageProps> = ({ showDebug, debugP
               <p style={{ marginBottom: '15px' }}>{userData.confessionText}</p>
               
               <div style={{ display: 'flex', gap: '8px', marginBottom: '20px', flexWrap: 'wrap' }}>
-                {userData.selectedTags.map((tag, index) => (
+                {userData.selectedTags.map((tag: string, index: number) => (
                   <span 
                     key={index} 
                     style={{ 
-                      backgroundColor: '#e5e7eb', 
-                      padding: '4px 10px', 
-                      borderRadius: '15px', 
-                      fontSize: '12px' 
+                      background: '#f0f5ff', 
+                      color: '#4285F4', 
+                      padding: '4px 8px', 
+                      borderRadius: '4px',
+                      fontSize: '12px'
                     }}
                   >
                     {tag}
@@ -258,27 +237,25 @@ const PastQuestionsPage: React.FC<PastQuestionsPageProps> = ({ showDebug, debugP
                 </h4>
                 
                 {userData.replies.length > 0 ? (
-                  userData.replies.map((reply, index) => (
+                  userData.replies.map((reply: any, index: number) => (
                     <div 
                       key={index} 
                       style={{ 
-                        backgroundColor: '#f9fafb', 
-                        padding: '15px', 
-                        borderRadius: '8px', 
-                        marginBottom: '10px' 
+                        border: '1px solid #eee', 
+                        padding: '10px', 
+                        marginBottom: '10px',
+                        borderRadius: '4px'
                       }}
                     >
-                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                        <span style={{ fontWeight: 500 }}>{reply.replierName}</span>
-                        <span style={{ color: '#6b7280', fontSize: '12px' }}>{reply.replyTime}</span>
+                      <p>{reply.replyText}</p>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', color: '#999', fontSize: '12px' }}>
+                        <span>{reply.replierName}</span>
+                        <span>{getTimeAgo(reply.replyTime)}</span>
                       </div>
-                      <p style={{ margin: 0 }}>{reply.replyText}</p>
                     </div>
                   ))
                 ) : (
-                  <p style={{ color: '#6b7280' }}>
-                    <span>{t('noRepliesYet')}</span>. <span>{t('checkBackLater')}</span>.
-                  </p>
+                  <p>{t('noRepliesYet')}</p>
                 )}
               </div>
             </div>

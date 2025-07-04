@@ -14,11 +14,7 @@ import {
   ArrowLeftOutlined,
   SearchOutlined
 } from '@ant-design/icons';
-import { UserData } from '../../utils/StorageSystem';
 import Layout from '../layout/Layout';
-import StorageSystem from '../../utils/StorageSystem';
-import '../../styles/HelpPage.css';
-import { supabase } from '../../lib/supabase';
 import { Post } from '../../types/database.types';
 import { DatabaseService } from '../../services/database.service';
 
@@ -52,7 +48,6 @@ const getTimeAgo = (timestamp: string): string => {
 
 const HelpPage: React.FC = () => {
   const { t } = useTypeSafeTranslation();
-  const [posts, setPosts] = useState<UserData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
