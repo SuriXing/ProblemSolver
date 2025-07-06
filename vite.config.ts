@@ -1,27 +1,28 @@
 // vite.config.js
-import { defineConfig, loadEnv } from 'vite';
+import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import path from 'path';
 
-const simulateGithubPages = process.env.SIMULATE_GH_PAGES === 'true';
-
-export default defineConfig(({ mode }) => {
-  // Load env variables for the current mode
-  const env = loadEnv(mode, process.cwd());
-  
-  return {
-    plugins: [react()],
-    // Keep default environment variable config
-    envPrefix: 'VITE_',
-    
-    // Define for compatibility with CRA
-    define: {
-      'process.env.NODE_ENV': JSON.stringify(mode),
-      'process.env.REACT_APP_SUPABASE_URL': JSON.stringify(env.VITE_SUPABASE_URL),
-      'process.env.REACT_APP_SUPABASE_ANON_KEY': JSON.stringify(env.VITE_SUPABASE_ANON_KEY),
-      'process.env.REACT_APP_SUPABASE_SERVICE_ROLE_KEY': JSON.stringify(env.VITE_SUPABASE_SERVICE_ROLE_KEY),
+// https://vitejs.dev/config/
+export default defineConfig({
+  plugins: [react()],
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src'),
     },
-    
-    // Conditionally set the base path based on environment
-    base: mode === 'production' || simulateGithubPages ? '/Problem_solver/' : '/',
-  };
+  },
+  // For GitHub Pages deployment
+  base: process.env.SIMULATE_GH_PAGES === 'true' 
+    ? '/Problem_solver/' 
+    : '/',
+  // Configure server options
+  server: {
+    port: 3000,
+    open: true,
+  },
+  // Configure preview server
+  preview: {
+    port: 5000,
+    open: true,
+  },
 });
