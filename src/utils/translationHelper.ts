@@ -1,23 +1,34 @@
 import { useTranslation } from 'react-i18next';
 import i18next, { TOptions } from 'i18next';
 
-// Define a fixed type for the t function that explicitly supports options
-type TypedTranslateFunction = (key: string, options?: TOptions) => string | any;
-
 /**
  * A helper function to properly type translations with parameter support
  */
-export function useTypeSafeTranslation() {
+export const useTypeSafeTranslation = () => {
   const { t, i18n } = useTranslation();
   
-  // Create a properly typed wrapper function
-  const typeSafeT: TypedTranslateFunction = (key, options) => {
-    // @ts-ignore - Ignoring type error as we know this works at runtime
-    return t(key, options);
+  // Define a fallback handler for missing translations
+  const handleMissingKey = (key: string, ns: string) => {
+    console.warn(`Translation key not found: ${key}`);
+    return key; // Return the key itself as fallback
+  };
+  
+  // Create a safer version of t that handles errors and provides fallbacks
+  const typeSafeT = (key: string, options?: any) => {
+    try {
+      const translation = t(key, options);
+      if (translation === key) {
+        handleMissingKey(key, '');
+      }
+      return translation;
+    } catch (error) {
+      console.error(`Error translating key: ${key}`, error);
+      return key; // Return the key itself as fallback
+    }
   };
   
   return { t: typeSafeT, i18n };
-}
+};
 
 /**
  * Get current language from localStorage
@@ -29,7 +40,18 @@ export function getCurrentLanguage(): string {
 /**
  * Direct translate function for non-hook contexts
  */
-export function translate(key: string, options?: TOptions): string {
-  // @ts-ignore - Ignoring type error as we know this works at runtime
-  return i18next.t(key, options);
+export function translate(key: string, options?: any): string {
+  // Use any for options to bypass TypeScript's strict checking
+  const translation = i18next.t(key, options as any);
+  return String(translation);
 }
+
+// A simpler method to just get a translation
+export const getTranslation = (key: string, fallback: string = ''): string => {
+  try {
+    const translation = i18next.t(key);
+    return translation === key ? fallback : translation;
+  } catch (e) {
+    return fallback;
+  }
+};

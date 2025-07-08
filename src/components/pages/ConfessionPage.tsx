@@ -1,269 +1,236 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useTypeSafeTranslation } from '../../utils/translationHelper';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { 
-  faCheck, 
-  faTag, 
-  faPaperPlane, 
-  faLock, 
-  faHandsHelping, 
-  faHistory
-} from '@fortawesome/free-solid-svg-icons';
-import styles from './ConfessionPage.module.css';
+import { supabase } from '../../utils/supabaseClient';
 import Layout from '../layout/Layout';
-// Import the confession image
-import confessionImage from '../../assets/images/confession.avif';
-import { Post } from '../../types/database.types';
-import { supabase } from '../../lib/supabase';
-import { DatabaseService } from '../../services/database.service';
-import { InsertTables } from '../../types/database.types';
-import { getCurrentUserId } from '../../utils/authHelpers';
+import TagSelector from '../ui/TagSelector';
+import '../../styles/ConfessionPage.css';
+import StorageSystem from '../../utils/StorageSystem';
 
 const ConfessionPage: React.FC = () => {
   const { t } = useTypeSafeTranslation();
   const navigate = useNavigate();
-  
-  // Form state
-  const [confessionText, setConfessionText] = useState('');
+  const [confession, setConfession] = useState('');
   const [email, setEmail] = useState('');
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [privacyOption, setPrivacyOption] = useState('public');
-  const [emailNotification, setEmailNotification] = useState(false);
+  const [isAnonymous, setIsAnonymous] = useState(true);
+  const [isPrivate, setIsPrivate] = useState(false);
+  const [notifyViaEmail, setNotifyViaEmail] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [confessions, setConfessions] = useState<any[]>([]);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [loading, setLoading] = useState(false);
-  
-  // Available tags based on current language
-  const availableTags = {
-    'zh-CN': ['压力', '焦虑', '失眠', '人际关系', '工作', '学习'],
-    'en': ['Pressure', 'Anxiety', 'Insomnia', 'Relationships', 'Work', 'Study']
-  };
-  
-  // Get tags based on current language
-  const getTags = () => {
-    const currentLang = localStorage.getItem('language') || 'zh-CN';
-    return availableTags[currentLang as keyof typeof availableTags] || availableTags['en'];
-  };
-  
-  // Toggle tag selection
-  const toggleTag = (tag: string) => {
-    if (selectedTags.includes(tag)) {
-      setSelectedTags(selectedTags.filter(t => t !== tag));
-    } else {
-      setSelectedTags([...selectedTags, tag]);
+  const [errors, setErrors] = useState<{confession?: string; email?: string}>({});
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Safe translation function
+  const safeT = (key: string, fallback: string) => {
+    try {
+      const translation = t(key);
+      return translation === key ? fallback : translation;
+    } catch (e) {
+      console.warn(`Translation error for key '${key}':`, e);
+      return fallback;
     }
   };
-  
-  // Handle form submission
+
+  useEffect(() => {
+    // Focus the textarea when component mounts
+    if (textareaRef.current) {
+      textareaRef.current.focus();
+    }
+  }, []);
+
+  const validateForm = (): boolean => {
+    const newErrors: {confession?: string; email?: string} = {};
+    
+    if (!confession.trim()) {
+      newErrors.confession = safeT('confessionRequired', 'Please enter your confession');
+    }
+    
+    if (notifyViaEmail && (!email || !email.includes('@'))) {
+      newErrors.email = safeT('validEmailRequired', 'Please enter a valid email address');
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!confessionText.trim()) {
-      alert(t('pleaseEnterConfession'));
-      return;
-    }
+    console.log('Submit button clicked');
     
-    if (emailNotification && !email.trim()) {
-      alert(t('enterEmail'));
+    if (!validateForm()) {
+      console.log('Form validation failed');
       return;
     }
     
     setIsSubmitting(true);
     
     try {
-      // Get the current user ID
-      const userId = await getCurrentUserId();
-      console.log('Current user ID:', userId);
+      console.log('Attempting to submit confession to Supabase');
+      // Generate a unique access code 
+      const accessCode = Math.random().toString(36).substring(2, 10).toUpperCase();
       
-      // Create post data
-      const postData: Omit<InsertTables<'posts'>, 'id' | 'created_at' | 'updated_at' | 'views'> = {
-        title: confessionText.substring(0, 50) + (confessionText.length > 50 ? '...' : ''),
-        content: confessionText,
-        purpose: 'need_help' as any,
+      // Log the exact data we're sending to aid debugging
+      const postData = { 
+        title: 'Confession',
+        content: confession,
+        is_anonymous: isAnonymous,
         tags: selectedTags,
-        is_anonymous: privacyOption === 'private',
         status: 'open',
-        user_id: userId
+        access_code: accessCode,
+        purpose: 'need_help',
+        views: 0
       };
       
-      console.log('Submitting post data:', postData);
+      console.log('Sending this data to Supabase:', postData);
       
-      // Store in Supabase
-      const newPost = await DatabaseService.createPost(postData);
+      // Create a new post in the database with only the fields that exist
+      const { data, error } = await supabase
+        .from('posts')
+        .insert([postData])
+        .select();
       
-      if (!newPost) {
-        throw new Error('Failed to create post');
+      if (error) {
+        console.error('Error submitting confession:', error);
+        alert('Error submitting your confession. Please try again.');
+        setIsSubmitting(false);
+        return;
       }
       
-      console.log('Post created successfully:', newPost);
+      console.log('Submission successful:', data);
       
-      // Store the access code in localStorage for easy retrieval
-      localStorage.setItem('accessCode', newPost.access_code || '');
+      // Still track user preferences locally
+      const userData = {
+        userId: isAnonymous ? 'Anonymous' : 'User123',
+        confessionText: confession,
+        selectedTags: selectedTags,
+        timestamp: new Date().toISOString(),
+        accessCode: accessCode,
+        privacyOption: isPrivate ? 'private' : 'public', // Store locally even if not in DB
+        emailNotification: notifyViaEmail,
+        email: notifyViaEmail ? email : '',
+        replies: [],
+        views: 0
+      };
       
-      // Store additional data like email if needed
-      if (emailNotification && email) {
-        localStorage.setItem('userEmail', email);
-      }
+      // Save to localStorage for retrieval on success page
+      localStorage.setItem('accessCode', accessCode);
+      StorageSystem.storeData(accessCode, userData);
       
       // Navigate to success page
-      navigate('/success');
-      
-    } catch (error) {
-      console.error('Error submitting confession:', error);
-      // Show more detailed error message
-      if (error instanceof Error) {
-        alert(`${t('errorSubmittingConfession')}: ${error.message}`);
-      } else {
-        alert(t('errorSubmittingConfession'));
-      }
-    } finally {
+      console.log('Navigating to success page with accessCode:', accessCode);
+      navigate('/success', { 
+        state: { 
+          accessCode: accessCode,
+          postId: data[0]?.id || 'unknown'
+        } 
+      });
+    } catch (err) {
+      console.error('Unexpected error in form submission:', err);
+      alert('An unexpected error occurred. Please try again.');
       setIsSubmitting(false);
     }
   };
-  
-  useEffect(() => {
-    async function fetchConfessions() {
-      try {
-        setLoading(true);
-        const { data, error } = await supabase
-          .from('posts')
-          .select('*')
-          .eq('purpose', 'need_help'); // 从 'sharing_experience' 改为 'need_help'
-          
-        if (error) {
-          throw error;
-        }
-        
-        if (data) {
-          setConfessions(data as Post[]);
-        }
-      } catch (error) {
-        console.error('Error fetching confessions:', error);
-      } finally {
-        setLoading(false);
-      }
-    }
-    
-    fetchConfessions();
-  }, []);
-  
+
+  const handleTagSelection = (tags: string[]) => {
+    setSelectedTags(tags);
+  };
+
   return (
     <Layout>
-      <div className={styles.container}>
-        <div className={styles.mainContent}>
-          <h1 className={styles.pageTitle}>{t('confessionTitle')}</h1>
-          <p className={styles.pageSubtitle}>{t('confessionSubtitle')}</p>
+      <div className="confession-page">
+        <div className="container">
+          <h1 className="confession-title">{safeT('confessionTitle', 'Share Your Concerns')}</h1>
+          <p className="confession-subtitle">{safeT('confessionSubtitle', 'Safely share your troubles and receive warm responses')}</p>
           
-          <div className={styles.storeImage}>
-            <img 
-              src={confessionImage}
-              alt="解忧杂货铺"
-            />
-          </div>
-          
-          <form onSubmit={handleSubmit} className={styles.queryForm}>
-            <textarea
-              className={styles.formTextarea}
-              value={confessionText}
-              onChange={(e) => setConfessionText(e.target.value)}
-              placeholder={t('confessionPlaceholder')}
-              required
-            />
-            
-            <div className={styles.tagSelector}>
-              <p>
-                <FontAwesomeIcon icon={faTag} /> {t('addTags')}
-              </p>
-              <div className={styles.tags}>
-                {getTags().map((tag) => (
-                  <span
-                    key={tag}
-                    className={`${styles.tag} ${selectedTags.includes(tag) ? styles.selected : ''}`}
-                    onClick={() => toggleTag(tag)}
-                  >
-                    {selectedTags.includes(tag) && <FontAwesomeIcon icon={faCheck} />} {tag}
-                  </span>
-                ))}
-              </div>
+          <form onSubmit={handleSubmit} className="confession-form">
+            <div className="form-group">
+              <textarea
+                ref={textareaRef}
+                className={`confession-textarea ${errors.confession ? 'error' : ''}`}
+                value={confession}
+                onChange={(e) => setConfession(e.target.value)}
+                placeholder={safeT('confessionPlaceholder', 'Write down your concerns...')}
+                rows={8}
+              />
+              {errors.confession && <div className="error-message">{errors.confession}</div>}
             </div>
             
-            <div className={styles.confessionOptions}>
-              <div className={styles.privacyOptions}>
-                <p>
-                  <FontAwesomeIcon icon={faLock} /> {t('privacySettings')}
-                </p>
-                <div className={styles.radioOptions}>
-                  <label className={styles.radioLabel}>
-                    <input 
-                      type="radio" 
-                      name="privacy" 
-                      value="public" 
-                      checked={privacyOption === 'public'}
-                      onChange={() => setPrivacyOption('public')}
-                    />
-                    <span>{t('publicQuestion')}</span>
-                  </label>
-                  <label className={styles.radioLabel}>
-                    <input 
-                      type="radio" 
-                      name="privacy" 
-                      value="private"
-                      checked={privacyOption === 'private'}
-                      onChange={() => setPrivacyOption('private')}
-                    />
-                    <span>{t('privateQuestion')}</span>
-                  </label>
-                </div>
+            <TagSelector 
+              onTagsSelected={handleTagSelection} 
+              initialTags={selectedTags}
+              labelText={safeT('addTags', 'Add tags (optional):')}
+            />
+            
+            <div className="form-section">
+              <h3>{safeT('privacySettings', 'Privacy Settings:')}</h3>
+              
+              <div className="checkbox-group">
+                <label className="checkbox-label">
+                  <input
+                    type="checkbox"
+                    checked={isAnonymous}
+                    onChange={(e) => setIsAnonymous(e.target.checked)}
+                  />
+                  {safeT('postAnonymously', 'Post Anonymously')}
+                </label>
               </div>
               
-              <div className={styles.notificationOption}>
-                <label className={styles.checkboxLabel}>
-                  <input 
-                    type="checkbox" 
-                    checked={emailNotification}
-                    onChange={(e) => setEmailNotification(e.target.checked)}
+              <div className="checkbox-group">
+                <label className="checkbox-label">
+                  <input
+                    type="checkbox"
+                    checked={isPrivate}
+                    onChange={(e) => setIsPrivate(e.target.checked)}
                   />
-                  <span>{t('emailNotify')}</span>
+                  {safeT('keepPrivate', 'Keep Private')}
                 </label>
-                
-                {emailNotification && (
-                  <div className={styles.emailInputContainer}>
-                    <input
-                      type="email"
-                      className={styles.emailInput}
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder={t('emailPlaceholder')}
-                      required
-                    />
-                  </div>
-                )}
               </div>
+              
+              <div className="checkbox-group">
+                <label className="checkbox-label">
+                  <input
+                    type="checkbox"
+                    checked={notifyViaEmail}
+                    onChange={(e) => setNotifyViaEmail(e.target.checked)}
+                  />
+                  {safeT('notifyViaEmail', 'Notify me via email')}
+                </label>
+              </div>
+              
+              {notifyViaEmail && (
+                <div className="form-group">
+                  <input
+                    type="email"
+                    className={`email-input ${errors.email ? 'error' : ''}`}
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder={safeT('emailPlaceholder', 'Please enter your email')}
+                  />
+                  {errors.email && <div className="error-message">{errors.email}</div>}
+                </div>
+              )}
             </div>
             
-            <div className={styles.formActions}>
-              <button
-                type="submit"
-                className={styles.submitButton}
-                disabled={isSubmitting || !confessionText.trim()}
+            <div className="form-actions">
+              <button 
+                type="submit" 
+                className="btn-primary" 
+                disabled={isSubmitting}
               >
-                {isSubmitting ? t('submitting') : t('submitConfession')}
-                {!isSubmitting && <FontAwesomeIcon icon={faPaperPlane} style={{ marginLeft: '8px' }} />}
+                {isSubmitting 
+                  ? safeT('submitting', 'Submitting...') 
+                  : safeT('send', 'Send')}
+              </button>
+              <button 
+                type="button" 
+                className="btn-secondary" 
+                onClick={() => navigate('/')}
+              >
+                {safeT('returnHome', 'Return to Home')}
               </button>
             </div>
           </form>
-          
-          <div className={styles.linksContainer}>
-            <Link to="/" className={styles.secondaryLink}>
-              <FontAwesomeIcon icon={faHandsHelping} /> {t('returnHome')}
-            </Link>
-            <Link to="/past-questions" className={styles.secondaryLink}>
-              <FontAwesomeIcon icon={faHistory} /> {t('pastQuestions')}
-            </Link>
-          </div>
         </div>
       </div>
     </Layout>

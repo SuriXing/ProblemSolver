@@ -2,6 +2,11 @@
 description: how to use url and key
 globs: 
 ---
+# RULE 101
+## Never cut my feature or simplify my UI layout without my permission
+## All the testing code or debug code, please put into debug menu
+## Never hard code configuraiton, strings. Put them into right place, or ask me
+### for strings, keep updating all the language files
 
 # Project Rules and Coding Standards
 
