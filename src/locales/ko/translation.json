@@ -17,8 +17,8 @@
   "none": "없음",
   "shareMyPost": "내 게시물 공유",
   "postAnonymously": "익명으로 게시",
-  "keepPrivate": "비공개 유지",
-  "notifyViaEmail": "이메일로 알림",
+  "keepPrivate": "비공개로 유지",
+  "notifyViaEmail": "이메일로 알림 받기",
   "confessionRequired": "고백 내용을 입력해 주세요",
   "validEmailRequired": "유효한 이메일 주소를 입력해 주세요",
   "submitReply": "답변 제출",
@@ -52,7 +52,7 @@
   "errorGeneratingAccessCode": "액세스 코드 생성 중 오류 발생",
   "accessCodeCopied": "액세스 코드가 복사되었습니다",
   "copyFailed": "복사 실패",
-  "footerText": "© 2024 고민 해결사. All rights reserved.",
+  "footerText": "© 2024 고민 해결사 - 모든 권리 보유",
   "views": "조회수",
   "helpPageTitle": "도움말 커뮤니티",
   "helpPageDescription": "커뮤니티의 질문을 탐색하거나 자신의 질문을 올려보세요.",
@@ -68,5 +68,12 @@
   "anonymous": "익명",
   "user": "사용자",
   "errorOccurred": "오류가 발생했습니다",
-  "unknownError": "알 수 없는 오류가 발생했습니다"
-} 
+  "unknownError": "알 수 없는 오류가 발생했습니다",
+  "tagDepression": "우울증",
+  "tagRelationships": "대인관계",
+  "tagFamily": "가족",
+  "tagHealth": "건강",
+  "tagSocial": "사회생활",
+  "tagOther": "기타",
+  "customTagPlaceholder": "사용자 지정 태그 추가..."
+}

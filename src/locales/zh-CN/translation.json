@@ -83,7 +83,7 @@
   "errorGeneratingAccessCode": "生成访问码时出错",
   "accessCodeCopied": "访问码已复制",
   "copyFailed": "复制失败",
-  "footerText": "© 2023 忧虑解决工具。保留所有权利。",
+  "footerText": "© 2024 解忧杂货铺 - 版权所有",
   "views": "浏览",
   "helpPageTitle": "帮助社区",
   "helpPageDescription": "浏览社区问题或提出您自己的问题。",
@@ -99,5 +99,12 @@
   "anonymous": "匿名",
   "user": "用户",
   "errorOccurred": "发生错误",
-  "unknownError": "发生未知错误"
-} 
+  "unknownError": "发生未知错误",
+  "tagDepression": "抑郁",
+  "tagRelationships": "人际关系",
+  "tagFamily": "家庭",
+  "tagHealth": "健康",
+  "tagSocial": "社交",
+  "tagOther": "其他",
+  "customTagPlaceholder": "添加自定义标签..."
+}

@@ -1,7 +1,11 @@
 import React from 'react';
 import { getTranslation } from '../utils/translationHelper';
 
-const Layout: React.FC = ({ children }) => {
+interface LayoutProps {
+  children: React.ReactNode;
+}
+
+const Layout: React.FC<LayoutProps> = ({ children }) => {
   // Use the fallback-enabled translation function
   const footerText = getTranslation('footerText', '© 2023 Worry Solver. All rights reserved.');
   
