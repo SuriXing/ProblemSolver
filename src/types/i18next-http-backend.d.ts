@@ -1,11 +1,11 @@
 declare module 'i18next-http-backend' {
-  import { BackendModule, Services, ReadCallback } from 'i18next';
-  
-  export default class Backend implements BackendModule {
-    constructor(services?: Services, options?: any);
+  import { BackendModule, Services } from 'i18next';
+
+  export default class HttpBackend implements BackendModule {
+    constructor(services: Services, options?: object);
     type: string;
-    init(services: Services, options?: any): void;
-    read(language: string, namespace: string, callback: ReadCallback): void;
+    init(services: Services, options?: object): void;
+    read(language: string, namespace: string, callback: (errorValue: unknown, translations: unknown | null) => void): void;
     create(languages: string[], namespace: string, key: string, fallbackValue: string): void;
   }
-} 
+}

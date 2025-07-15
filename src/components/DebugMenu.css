@@ -1,0 +1,60 @@
+.debug-menu {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 1000;
+}
+
+.language-selector {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.language-selector .ant-btn {
+  min-width: 100px;
+}
+
+.translation-debug {
+  margin-top: 16px;
+  border-top: 1px solid var(--border-color);
+  padding-top: 16px;
+}
+
+.translation-key {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 0;
+}
+
+.translation-key:hover {
+  background-color: var(--hover-bg);
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --border-color: #303030;
+    --hover-bg: #1f1f1f;
+  }
+
+  .debug-menu .ant-card {
+    background-color: #141414;
+  }
+
+  .debug-menu .ant-typography {
+    color: rgba(255, 255, 255, 0.85);
+  }
+
+  .debug-menu .ant-divider {
+    border-color: #303030;
+  }
+}
+
+/* Light mode */
+@media (prefers-color-scheme: light) {
+  :root {
+    --border-color: #f0f0f0;
+    --hover-bg: #fafafa;
+  }
+}

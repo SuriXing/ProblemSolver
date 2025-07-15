@@ -1,11 +1,18 @@
 import 'react-i18next';
-import { TOptions } from 'i18next';
+import { TFunction, TOptions } from 'i18next';
+import type { TranslationKey } from './types/i18n.types';
 
-// Extend the existing module declarations
 declare module 'react-i18next' {
-  // Extend the t function to allow options
+  interface CustomTypeOptions {
+    defaultNS: 'translation';
+    resources: {
+      translation: Record<TranslationKey, string>;
+    };
+  }
+
+  // Override the TFunction to ensure it always returns a string
   export interface TFunction {
-    (key: string, options?: TOptions): string;
+    (key: TranslationKey | (string & {}), options?: TOptions): string;
   }
 
   // Extend the hook response
@@ -16,4 +23,4 @@ declare module 'react-i18next' {
       language: string;
     };
   }
-} 
+}

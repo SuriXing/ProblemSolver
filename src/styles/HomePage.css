@@ -271,4 +271,37 @@
   .option-card {
     width: 100%;
   }
-} 
+}
+
+.hero-title,
+.hero-subtitle,
+.option-card {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+}
+
+.hero-title.visible,
+.hero-subtitle.visible,
+.option-card.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* 添加语言切换时的过渡效果 */
+.hero-title,
+.hero-subtitle,
+.option-card h2,
+.option-card p,
+.btn-primary {
+  transition: opacity 0.3s ease-out;
+}
+
+/* 语言切换时的淡入淡出效果 */
+[data-i18n-loading="true"] .hero-title,
+[data-i18n-loading="true"] .hero-subtitle,
+[data-i18n-loading="true"] .option-card h2,
+[data-i18n-loading="true"] .option-card p,
+[data-i18n-loading="true"] .btn-primary {
+  opacity: 0.5;
+}

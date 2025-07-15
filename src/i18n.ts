@@ -1,7 +1,9 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
-import Backend from 'i18next-http-backend';
+import HttpBackend from 'i18next-http-backend';
 import LanguageDetector from 'i18next-browser-languagedetector';
+import { getCurrentLanguage } from './utils/translationHelper';
+import type { InitOptions, Module } from 'i18next';
 
 import enTranslation from './locales/en/translation.json';
 import zhCNTranslation from './locales/zh-CN/translation.json';
@@ -9,90 +11,82 @@ import jaTranslation from './locales/ja/translation.json';
 import koTranslation from './locales/ko/translation.json';
 import esTranslation from './locales/es/translation.json';
 
-// Function to safely get the saved language or default to zh-CN
-const getSavedLanguage = (): string => {
-  try {
-    const storedLanguage = localStorage.getItem('language');
-    return storedLanguage || 'zh-CN';
-  } catch (error) {
-    console.error('Error getting language from localStorage:', error);
-    return 'zh-CN';
-  }
+const backendOptions = {
+  loadPath: '/locales/{{lng}}/{{ns}}.json',
+  addPath: '/locales/{{lng}}/{{ns}}.missing.json'
 };
 
-i18n
-  .use(Backend as any)
-  .use(LanguageDetector as any)
-  .use(initReactI18next)
-  .init({
-    resources: {
-      en: {
-        translation: enTranslation
-      },
-      'zh-CN': {
-        translation: zhCNTranslation
-      },
-      ja: {
-        translation: jaTranslation
-      },
-      ko: {
-        translation: koTranslation
-      },
-      es: {
-        translation: esTranslation
-      }
+const detectorOptions = {
+  order: ['localStorage', 'navigator'],
+  lookupLocalStorage: 'language'
+};
+
+// 为模块添加必要的类型定义
+const typedHttpBackend = HttpBackend as unknown as Module;
+const typedLanguageDetector = LanguageDetector as unknown as Module;
+
+const i18nInstance = i18n
+  .use(typedHttpBackend)
+  .use(typedLanguageDetector)
+  .use(initReactI18next);
+
+const options: InitOptions = {
+  resources: {
+    en: {
+      translation: enTranslation
     },
-    fallbackLng: 'zh-CN',
-    debug: true,
-    load: 'all',
-    preload: ['en', 'zh-CN', 'ja', 'ko', 'es'],
-    interpolation: {
-      escapeValue: false
+    'zh-CN': {
+      translation: zhCNTranslation
     },
-    react: {
-      useSuspense: false
+    ja: {
+      translation: jaTranslation
     },
-    returnNull: false,
-    returnEmptyString: false,
-    parseMissingKeyHandler: (key) => {
-      console.warn(`Missing translation key: ${key}`);
-      return key;
+    ko: {
+      translation: koTranslation
+    },
+    es: {
+      translation: esTranslation
     }
-  });
+  },
+  lng: getCurrentLanguage(),
+  fallbackLng: ['zh-CN', 'en'],
+  load: 'currentOnly',
+  
+  interpolation: {
+    escapeValue: false
+  },
 
-// Add legacy compatibility for old code
-if (typeof window !== 'undefined') {
-  window.currentLanguage = getSavedLanguage();
-  window.i18n = {
-    init: () => {
-      console.log('Legacy i18n initialized');
-    },
-    changeLanguage: (lang: string) => {
-      i18n.changeLanguage(lang);
-      localStorage.setItem('language', lang);
-      window.currentLanguage = lang;
-    },
-    translatePage: () => {
-      console.log('Legacy translatePage called, no action needed in React implementation');
-    },
-    t: (key: string) => {
-      return i18n.t(key);
-    },
-    currentLanguage: getSavedLanguage()
-  };
-}
+  detection: detectorOptions,
 
-declare global {
-  interface Window {
-    currentLanguage: string;
-    i18n: {
-      init: () => void;
-      changeLanguage: (lang: string) => void;
-      translatePage: () => void;
-      t: (key: string) => string;
-      currentLanguage: string;
-    };
+  backend: backendOptions,
+
+  react: {
+    useSuspense: false,
+    bindI18n: 'languageChanged',
+    bindI18nStore: '',
+    transEmptyNodeValue: '',
+    transSupportBasicHtmlNodes: true,
+    transKeepBasicHtmlNodesFor: ['br', 'strong', 'i', 'p', 'span']
+  },
+
+  debug: process.env.NODE_ENV === 'development'
+};
+
+i18nInstance.init(options);
+
+// 监听语言切换事件
+i18nInstance.on('languageChanged', (lng: string) => {
+  document.documentElement.lang = lng;
+  localStorage.setItem('language', lng);
+  
+  // 更新页面标题和描述
+  const siteNameTranslation = i18nInstance.t('siteName');
+  document.title = siteNameTranslation;
+  
+  const metaDescription = document.querySelector('meta[name="description"]');
+  if (metaDescription) {
+    metaDescription.setAttribute('content', i18nInstance.t('siteDescription'));
   }
-}
+});
 
-export default i18n;
+export default i18nInstance;
