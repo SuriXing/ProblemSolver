@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useTypeSafeTranslation } from '../../utils/translationHelper';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '../../utils/supabaseClient';
 import Layout from '../layout/Layout';
 import TagSelector from '../ui/TagSelector';
@@ -8,7 +8,7 @@ import '../../styles/ConfessionPage.css';
 import StorageSystem from '../../utils/StorageSystem';
 
 const ConfessionPage: React.FC = () => {
-  const { t } = useTypeSafeTranslation();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [confession, setConfession] = useState('');
   const [email, setEmail] = useState('');
@@ -140,8 +140,8 @@ const ConfessionPage: React.FC = () => {
     <Layout>
       <div className="confession-page">
         <div className="container">
-          <h1 className="confession-title">{safeT('confessionTitle', 'Share Your Concerns')}</h1>
-          <p className="confession-subtitle">{safeT('confessionSubtitle', 'Safely share your troubles and receive warm responses')}</p>
+          <h1 className="confession-title">{t('confessionTitle')}</h1>
+          <p className="confession-subtitle">{t('confessionSubtitle')}</p>
           
           <form onSubmit={handleSubmit} className="confession-form">
             <div className="form-group">
@@ -150,7 +150,7 @@ const ConfessionPage: React.FC = () => {
                 className={`confession-textarea ${errors.confession ? 'error' : ''}`}
                 value={confession}
                 onChange={(e) => setConfession(e.target.value)}
-                placeholder={safeT('confessionPlaceholder', 'Write down your concerns...')}
+                placeholder={t('confessionPlaceholder') || 'Type your confession here...'}
                 rows={8}
               />
               {errors.confession && <div className="error-message">{errors.confession}</div>}
@@ -159,11 +159,11 @@ const ConfessionPage: React.FC = () => {
             <TagSelector 
               onTagsSelected={handleTagSelection} 
               initialTags={selectedTags}
-              labelText={safeT('addTags', 'Add tags (optional):')}
+              labelText={t('addTags') || 'Add Tags'}
             />
             
             <div className="form-section">
-              <h3>{safeT('privacySettings', 'Privacy Settings:')}</h3>
+              <h3>{t('privacySettings')}</h3>
               
               <div className="checkbox-group">
                 <label className="checkbox-label">
@@ -172,7 +172,7 @@ const ConfessionPage: React.FC = () => {
                     checked={isAnonymous}
                     onChange={(e) => setIsAnonymous(e.target.checked)}
                   />
-                  {safeT('postAnonymously', 'Post Anonymously')}
+                  {t('postAnonymously')}
                 </label>
               </div>
               
@@ -183,7 +183,7 @@ const ConfessionPage: React.FC = () => {
                     checked={isPrivate}
                     onChange={(e) => setIsPrivate(e.target.checked)}
                   />
-                  {safeT('keepPrivate', 'Keep Private')}
+                  {t('keepPrivate')}
                 </label>
               </div>
               
@@ -194,7 +194,7 @@ const ConfessionPage: React.FC = () => {
                     checked={notifyViaEmail}
                     onChange={(e) => setNotifyViaEmail(e.target.checked)}
                   />
-                  {safeT('notifyViaEmail', 'Notify me via email')}
+                  {t('notifyViaEmail')}
                 </label>
               </div>
               
@@ -205,7 +205,7 @@ const ConfessionPage: React.FC = () => {
                     className={`email-input ${errors.email ? 'error' : ''}`}
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder={safeT('emailPlaceholder', 'Please enter your email')}
+                    placeholder={t('emailPlaceholder') || 'Enter your email'}
                   />
                   {errors.email && <div className="error-message">{errors.email}</div>}
                 </div>
@@ -219,15 +219,15 @@ const ConfessionPage: React.FC = () => {
                 disabled={isSubmitting}
               >
                 {isSubmitting 
-                  ? safeT('submitting', 'Submitting...') 
-                  : safeT('send', 'Send')}
+                  ? t('submitting') 
+                  : t('send')}
               </button>
               <button 
                 type="button" 
                 className="btn-secondary" 
                 onClick={() => navigate('/')}
               >
-                {safeT('returnHome', 'Return to Home')}
+                {t('returnHome')}
               </button>
             </div>
           </form>

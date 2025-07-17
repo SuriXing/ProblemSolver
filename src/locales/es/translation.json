@@ -100,5 +100,11 @@
   "tagHealth": "Salud",
   "tagSocial": "Social",
   "tagOther": "Otro",
-  "customTagPlaceholder": "Agregar etiqueta personalizada..."
+  "customTagPlaceholder": "Agregar etiqueta personalizada...",
+  "reactionSmile": "Reacción de sonrisa",
+  "reactionHeart": "Reacción de corazón",
+  "reactionThumbsUp": "Reacción de me gusta",
+  "confessionTitle": "Comparte tus Preocupaciones",
+  "confessionSubtitle": "Comparte tus inquietudes de forma segura y recibe respuestas reconfortantes",
+  "confessionPlaceholder": "Escribe aquí tus preocupaciones..."
 }
