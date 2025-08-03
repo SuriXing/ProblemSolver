@@ -5,6 +5,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCircleCheck, faEye, faCopy, faHome, faHandsHelping, faCircleInfo, faShare } from '@fortawesome/free-solid-svg-icons';
 import StorageSystem, { UserData } from '../../utils/StorageSystem';
 import styles from './SuccessPage.module.css';
+import { useTranslation } from 'react-i18next';
 
 const SuccessPage: React.FC = () => {
   const { t } = useTypeSafeTranslation();
@@ -74,6 +75,12 @@ const SuccessPage: React.FC = () => {
     });
   };
 
+  const { t: i18nT } = useTranslation();
+
+  function renderTag(tag: string) {
+    return i18nT(`tag${tag.charAt(0).toUpperCase() + tag.slice(1)}`, tag);
+  }
+
   return (
     <section className={styles.successView}>
       <div className={styles.successHeader}>
@@ -119,7 +126,7 @@ const SuccessPage: React.FC = () => {
               </div>
               <div className={styles.messageTags} id="confession-tags">
                 {userData.selectedTags.map((tag, index) => (
-                  <span key={index} className={styles.tag}>{tag}</span>
+                  <span key={index} className={styles.tag}>{renderTag(tag)}</span>
                 ))}
               </div>
             </div>
