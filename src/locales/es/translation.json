@@ -121,5 +121,7 @@
     "health": "Salud",
     "social": "Social",
     "other": "Otro"
-  }
+  },
+  "confessionPlaceholderHint": "Tu confesión se mostrará aquí.",
+  "viewMyPost": "Ver mi publicación"
 }
