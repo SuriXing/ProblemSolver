@@ -23,7 +23,7 @@
   "validEmailRequired": "Please enter a valid email address",
   "submitReply": "Submit Reply",
   "submitting": "Submitting...",
-  "addReply": "Add a Reply",
+  "addReply": "Add Reply",
   "typeYourReply": "Type your reply here...",
   "errorSubmittingReply": "Error submitting reply. Please try again.",
   "creatingPost": "Creating post with data:",
@@ -98,6 +98,7 @@
   "popular": "Popular",
   "solved": "Solved",
   "loadingPosts": "Loading posts...",
+  "loadingPost": "Loading post...",
   "noPostsFound": "No posts found",
   "anonymous": "Anonymous",
   "user": "User",
@@ -159,5 +160,20 @@
     "health": "Health",
     "social": "Social",
     "other": "Other"
-  }
+  },
+  "replies": "Replies",
+  "yourReply": "Your Reply",
+  "replyPlaceholder": "Type your reply here...",
+  "backToHelp": "Back to Help",
+  "postNotFoundDesc": "The post you are looking for could not be found.",
+  "markedAsSolution": "Marked as solution",
+  "errorMarkingSolution": "Error marking as solution",
+  "solution": "Solution",
+  "untitled": "Untitled",
+  "favorite": "Favorite",
+  "share": "Share",
+  "mostHelpful": "Most helpful",
+  "latest": "Latest",
+  "oldest": "Oldest",
+  "beFirstToReply": "Be the first to reply!"
 }

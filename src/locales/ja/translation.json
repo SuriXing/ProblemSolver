@@ -83,6 +83,7 @@
   "popular": "人気",
   "solved": "解決済み",
   "loadingPosts": "投稿を読み込み中...",
+  "loadingPost": "投稿を読み込み中...",
   "noPostsFound": "投稿が見つかりません",
   "anonymous": "匿名",
   "user": "ユーザー",
@@ -123,5 +124,20 @@
     "other": "その他"
   },
   "confessionPlaceholderHint": "あなたの告白がここに表示されます。",
-  "viewMyPost": "自分の投稿を見る"
+  "viewMyPost": "自分の投稿を見る",
+  "replies": "返信",
+  "yourReply": "あなたの返信",
+  "replyPlaceholder": "ここに返信を入力してください...",
+  "backToHelp": "ヘルプに戻る",
+  "postNotFoundDesc": "お探しの投稿が見つかりません。",
+  "markedAsSolution": "解決策としてマークされました",
+  "errorMarkingSolution": "解決策のマーク中にエラーが発生しました",
+  "solution": "解決策",
+  "untitled": "無題",
+  "favorite": "お気に入り",
+  "share": "共有",
+  "mostHelpful": "最も役立つ",
+  "latest": "最新",
+  "oldest": "最も古い",
+  "beFirstToReply": "最初の返信者になりましょう！"
 }
