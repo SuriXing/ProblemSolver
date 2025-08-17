@@ -139,5 +139,18 @@
   "mostHelpful": "最も役立つ",
   "latest": "最新",
   "oldest": "最も古い",
-  "beFirstToReply": "最初の返信者になりましょう！"
+  "beFirstToReply": "最初の返信者になりましょう！",
+  "justNow": "たった今",
+  "minutesAgo": "{{count}}分前",
+  "minutesAgo_plural": "{{count}}分前",
+  "hoursAgo": "{{count}}時間前",
+  "hoursAgo_plural": "{{count}}時間前",
+  "daysAgo": "{{count}}日前",
+  "daysAgo_plural": "{{count}}日前",
+  "weeksAgo": "{{count}}週間前",
+  "weeksAgo_plural": "{{count}}週間前",
+  "monthsAgo": "{{count}}か月前",
+  "monthsAgo_plural": "{{count}}か月前",
+  "yearsAgo": "{{count}}年前",
+  "yearsAgo_plural": "{{count}}年前"
 }
