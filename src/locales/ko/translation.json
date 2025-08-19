@@ -141,5 +141,18 @@
   "backToHelp": "도움으로 돌아가기",
   "addReply": "답글 추가",
   "noRepliesYet": "아직 답글이 없습니다",
-  "beTheFirstToReply": "첫 번째로 답글을 남겨보세요!"
+  "beTheFirstToReply": "첫 번째로 답글을 남겨보세요!",
+  "justNow": "방금 전",
+  "minutesAgo": "{{count}}분 전",
+  "minutesAgo_plural": "{{count}}분 전",
+  "hoursAgo": "{{count}}시간 전",
+  "hoursAgo_plural": "{{count}}시간 전",
+  "daysAgo": "{{count}}일 전",
+  "daysAgo_plural": "{{count}}일 전",
+  "weeksAgo": "{{count}}주 전",
+  "weeksAgo_plural": "{{count}}주 전",
+  "monthsAgo": "{{count}}개월 전",
+  "monthsAgo_plural": "{{count}}개월 전",
+  "yearsAgo": "{{count}}년 전",
+  "yearsAgo_plural": "{{count}}년 전"
 }
