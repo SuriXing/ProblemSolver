@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useTypeSafeTranslation } from '../../utils/translationHelper';
 import Layout from '../layout/Layout';
 import DebugMenu from '../DebugMenu';
@@ -53,6 +53,7 @@ interface PastQuestionsPageProps {
 
 const PastQuestionsPage: React.FC<PastQuestionsPageProps> = ({ showDebug, debugProps }) => {
   const { t } = useTypeSafeTranslation();
+  const navigate = useNavigate();
   const [questions, setQuestions] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -102,6 +103,20 @@ const PastQuestionsPage: React.FC<PastQuestionsPageProps> = ({ showDebug, debugP
     } finally {
       setFetchingPost(false);
     }
+  };
+
+  const handleProblemSolved = () => {
+    message.success(t('problemMarkedSolved'));
+    setTimeout(() => {
+      navigate('/');
+    }, 1000);
+  };
+
+  const handleProblemNotSolved = () => {
+    message.info(t('problemMarkedUnsolved'));
+    setTimeout(() => {
+      navigate('/');
+    }, 1000);
   };
 
   useEffect(() => {
@@ -163,6 +178,17 @@ const PastQuestionsPage: React.FC<PastQuestionsPageProps> = ({ showDebug, debugP
                 ))}
               </ul>
             )}
+            {/* Problem solved buttons */}
+            <div style={{ display: 'flex', gap: 16, marginTop: 24, justifyContent: 'center' }}>
+              <Button type="primary" onClick={handleProblemSolved}>{t('problemSolved')}</Button>
+              <Button onClick={handleProblemNotSolved}>{t('problemNotSolved')}</Button>
+            </div>
+            {/* Back to Home button */}
+            <div style={{ display: 'flex', justifyContent: 'center', marginTop: 16 }}>
+              <Link to="/">
+                <Button type="default">{t('backToHome')}</Button>
+              </Link>
+            </div>
           </Card>
         )}
       </div>
