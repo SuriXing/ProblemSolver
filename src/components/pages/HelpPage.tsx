@@ -155,11 +155,6 @@ const HelpPage: React.FC = () => {
                   {t('backToHome')}
                 </Button>
               </Link>
-              <Link to="/confession" className="new-post-button">
-                <Button type="primary">
-                  {t('createNewPost')}
-                </Button>
-              </Link>
             </div>
           </div>
           
