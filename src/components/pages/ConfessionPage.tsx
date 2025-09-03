@@ -190,6 +190,13 @@ const ConfessionPage: React.FC = () => {
             
             <div className="form-actions">
               <button 
+                type="button" 
+                className="btn-primary-outline" 
+                onClick={() => navigate('/')}
+              >
+                {t('returnHome')}
+              </button>
+              <button 
                 type="submit" 
                 className="btn-primary-outline" 
                 disabled={isSubmitting}
@@ -197,13 +204,6 @@ const ConfessionPage: React.FC = () => {
                 {isSubmitting 
                   ? t('submitting') 
                   : t('send')}
-              </button>
-              <button 
-                type="button" 
-                className="btn-primary-outline" 
-                onClick={() => navigate('/')}
-              >
-                {t('returnHome')}
               </button>
             </div>
           </form>
