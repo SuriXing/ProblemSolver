@@ -9,6 +9,7 @@ import { Post } from '../../types/database.types';
 import { message } from 'antd';
 import ConfessionPlaceholderSVG from '../../assets/placeholder_confession.svg';
 import ErrorPlaceholderSVG from '../../assets/placeholder_error.svg';
+import AccessCodeNotebook from './AccessCodeNotebook';
 
 // Helper function to get time ago
 const getTimeAgo = (timestamp: string): string => {
@@ -204,6 +205,7 @@ const PastQuestionsPage: React.FC<PastQuestionsPageProps> = ({ showDebug, debugP
           </Card>
         )}
       </div>
+      <AccessCodeNotebook />
       {/* 使用传入的 showDebug 属性控制调试菜单的显示 */}
       {showDebug && debugProps && (
         <DebugMenu 

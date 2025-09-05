@@ -6,6 +6,7 @@ import { faCircleCheck, faEye, faCopy, faHome, faHandsHelping, faCircleInfo, faS
 import StorageSystem, { UserData } from '../../utils/StorageSystem';
 import styles from './SuccessPage.module.css';
 import { useTranslation } from 'react-i18next';
+import AccessCodeNotebook from './AccessCodeNotebook';
 
 const SuccessPage: React.FC = () => {
   const { t } = useTypeSafeTranslation();
@@ -159,6 +160,7 @@ const SuccessPage: React.FC = () => {
       <button className={styles.sharePostBtn} onClick={sharePost}>
         <FontAwesomeIcon icon={faShare} /> <span>{t('shareMyPost')}</span>
       </button>
+      <AccessCodeNotebook />
     </section>
   );
 };
