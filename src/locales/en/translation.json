@@ -182,5 +182,21 @@
   "problemMarkedUnsolved": "Marked as not solved.",
   "instruction": "Instruction",
   "hideInstruction": "Do not show the instruction anymore",
-  "keepInstruction": "I'm fine with it still showing up"
+  "keepInstruction": "I'm fine with it still showing up",
+  "thankYouTitle": "Thank You for Sharing!",
+  "thankYouSubtitle": "Your post has been submitted successfully",
+  "yourAccessCode": "Your Access Code",
+  "saveAccessCode": "Save this code to check your post later",
+  "copyAccessCode": "Copy access code",
+  "copied": "Copied!",
+  "yourAnonymousId": "Your Anonymous ID:",
+  "justPosted": "Just posted",
+  "notifyMessage": "You will be notified when someone replies to your post",
+  "helpOthers": "Help Others",
+  "whatHappensNext": "What Happens Next?",
+  "communityWillSee": "Your post will be visible to the community for support",
+  "replyIn24h": "Expect replies within 24 hours from caring community members",
+  "emailNotification": "You'll receive email notifications when someone responds (if enabled)",
+  "checkWithCode": "Use your access code anytime to check replies and updates",
+  "dismiss": "Dismiss"
 }
