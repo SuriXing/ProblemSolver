@@ -2,6 +2,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import Header from './Header';
 import Footer from './Footer';
+import AccessCodeNotebook from '../pages/AccessCodeNotebook';
 import '../../styles/Layout.css';
 
 interface LayoutProps {
@@ -18,6 +19,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         {children}
       </main>
       <Footer />
+      <AccessCodeNotebook />
     </div>
   );
 };
