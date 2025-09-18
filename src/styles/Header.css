@@ -46,24 +46,41 @@
   gap: 1rem;
 }
 
+/* Consistent styling for all nav links */
+.nav-link,
 .history-link {
   display: flex;
   align-items: center;
   text-decoration: none;
   color: #666;
   font-size: 0.9rem;
+  font-weight: 400;
   padding: 0.5rem 1rem;
   border-radius: 4px;
   transition: all 0.2s;
+  background: none;
+  border: none;
+  cursor: pointer;
+  gap: 0.5rem;
 }
 
+.nav-link:hover,
 .history-link:hover {
   background-color: #f5f5f5;
   color: #4f7cff;
 }
 
+.nav-link svg,
 .history-link svg {
-  margin-right: 0.5rem;
+  margin-right: 0;
+  font-size: 1rem;
+}
+
+.nav-link span,
+.history-link span {
+  font-size: 0.9rem;
+  font-weight: 400;
+  color: inherit;
 }
 
 .language-selector {
@@ -79,14 +96,23 @@
   border-radius: 4px;
   cursor: pointer;
   font-size: 0.9rem;
+  font-weight: 400;
   color: #666;
   transition: all 0.2s;
   user-select: none;
+  background: none;
+  border: none;
 }
 
 .language-button:hover {
   background-color: #f5f5f5;
   color: #4f7cff;
+}
+
+.language-button span {
+  font-size: 0.9rem;
+  font-weight: 400;
+  color: inherit;
 }
 
 .language-dropdown {
@@ -114,6 +140,7 @@
   padding: 0.5rem 1rem;
   cursor: pointer;
   font-size: 0.9rem;
+  font-weight: 400;
   color: #666;
   transition: all 0.2s;
   display: flex;
@@ -131,19 +158,49 @@
   background-color: #f0f5ff;
 }
 
+/* Instruction button styling to match other nav elements */
+.instruction-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 400;
+  color: #666;
+  transition: all 0.2s;
+  background: none;
+  border: none;
+  text-decoration: none;
+}
+
+.instruction-button:hover {
+  background-color: #f5f5f5;
+  color: #4f7cff;
+}
+
+.instruction-button span[role="img"] {
+  font-size: 1rem;
+  margin-right: 0;
+}
+
 /* 响应式设计 */
 @media (max-width: 768px) {
   .nav-actions {
     gap: 0.5rem;
   }
 
+  .nav-link span,
   .history-link span,
   .language-button span {
     display: none;
   }
 
+  .nav-link,
+  .history-link,
   .language-button,
-  .history-link {
+  .instruction-button {
     padding: 0.5rem;
   }
 
@@ -163,13 +220,17 @@
     color: #6b8eff;
   }
 
+  .nav-link,
   .history-link,
-  .language-button {
+  .language-button,
+  .instruction-button {
     color: #ccc;
   }
 
+  .nav-link:hover,
   .history-link:hover,
-  .language-button:hover {
+  .language-button:hover,
+  .instruction-button:hover {
     background-color: #2a2a2a;
     color: #6b8eff;
   }
@@ -194,12 +255,14 @@
   }
 }
 
-.instruction-button:hover {
-  background: rgba(255, 255, 255, 0.1) !important;
-  border-color: #ccc !important;
-}
-
-.instruction-button:active {
-  background: rgba(255, 255, 255, 0.2) !important;
-  border-color: #999 !important;
+/* Dark theme instruction button overrides */
+@media (prefers-color-scheme: dark) {
+  .instruction-button:hover {
+    background: rgba(255, 255, 255, 0.1) !important;
+    border-color: #ccc !important;
+  }
+  
+  .instruction-button:active {
+    background: rgba(255, 255, 255, 0.15) !important;
+  }
 }
