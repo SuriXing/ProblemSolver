@@ -198,5 +198,7 @@
   "replyIn24h": "Expect replies within 24 hours from caring community members",
   "emailNotification": "You'll receive email notifications when someone responds (if enabled)",
   "checkWithCode": "Use your access code anytime to check replies and updates",
-  "dismiss": "Dismiss"
+  "dismiss": "Dismiss",
+  "privacyWarningTitle": "Important Privacy Notice",
+  "privacyWarningText": "We know you may be feeling very emotional right now, but please remember: DO NOT include real names, specific locations, or identifying details about yourself or others. This protects everyone's privacy and could prevent you from getting into even worse troubles. Keep your sharing anonymous and safe."
 }
