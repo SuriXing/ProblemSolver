@@ -73,8 +73,15 @@
   color: #3a5a8c;
 }
 
-.copyCodeBtn.copied {
-  color: var(--primary-color);
+.copied {
+  color: #2e7d32;
+}
+
+.copyStatus {
+  margin: -0.4rem 0 0.8rem;
+  color: #2e7d32;
+  font-size: 0.9rem;
+  font-weight: 600;
 }
 
 .accessCodeDesc {
@@ -83,13 +90,21 @@
   margin-bottom: 1.5rem;
 }
 
+.notebookTip {
+  font-size: 0.9rem;
+  color: #4f7cff;
+  margin: -0.8rem auto 1.2rem;
+  max-width: 560px;
+}
+
 .viewPostBtn {
-  background-color: var(--primary-color);
+  background-color: #1f4fbf;
   color: #fff;
   border: none;
   border-radius: 4px;
   padding: 0.7rem 1.5rem;
   font-size: 1rem;
+  font-weight: 600;
   display: inline-flex;
   align-items: center;
   cursor: pointer;
@@ -97,7 +112,7 @@
 }
 
 .viewPostBtn:hover {
-  background-color: #3a5a8c;
+  background-color: #163d97;
 }
 
 .viewPostBtn svg {

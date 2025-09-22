@@ -63,6 +63,8 @@ const SuccessPage: React.FC = () => {
     navigator.clipboard.writeText(accessCode).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
+    }).catch(() => {
+      alert('Copy failed. Please copy manually.');
     });
   };
   
@@ -112,7 +114,11 @@ const SuccessPage: React.FC = () => {
               <FontAwesomeIcon icon={faCopy} />
             </button>
           </div>
+          {copied && <p className={styles.copyStatus}>{t('copied')}</p>}
           <p className={styles.accessCodeDesc}>{t('saveAccessCode')}</p>
+          <p className={styles.notebookTip}>
+            Tip: You can also save this code in the small notebook at the bottom-left corner.
+          </p>
           <button id="view-post-btn" className={styles.viewPostBtn} onClick={viewPost}>
             <FontAwesomeIcon icon={faEye} /> <span>{t('viewMyPost')}</span>
           </button>
