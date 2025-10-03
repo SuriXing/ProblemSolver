@@ -1,0 +1,129 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://anoncafe.life/schemas/mentor-table-response.v1.json",
+  "title": "MentorTableResponseV1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "language", "safety", "mentorReplies", "meta"],
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "const": "mentor_table.v1"
+    },
+    "language": {
+      "type": "string",
+      "enum": ["en", "zh-CN"]
+    },
+    "safety": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["riskLevel", "needsProfessionalHelp", "emergencyMessage"],
+      "properties": {
+        "riskLevel": {
+          "type": "string",
+          "enum": ["none", "low", "medium", "high"]
+        },
+        "needsProfessionalHelp": {
+          "type": "boolean"
+        },
+        "emergencyMessage": {
+          "type": "string",
+          "maxLength": 600
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "riskLevel": {
+                "const": "high"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "needsProfessionalHelp": {
+                "const": true
+              },
+              "emergencyMessage": {
+                "minLength": 10
+              }
+            }
+          }
+        }
+      ]
+    },
+    "mentorReplies": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "mentorId",
+          "mentorName",
+          "likelyResponse",
+          "whyThisFits",
+          "oneActionStep",
+          "confidenceNote"
+        ],
+        "properties": {
+          "mentorId": {
+            "type": "string",
+            "pattern": "^[a-z0-9_-]{2,64}$"
+          },
+          "mentorName": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          },
+          "likelyResponse": {
+            "type": "string",
+            "minLength": 20,
+            "maxLength": 1600
+          },
+          "whyThisFits": {
+            "type": "string",
+            "minLength": 10,
+            "maxLength": 600
+          },
+          "oneActionStep": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 300
+          },
+          "confidenceNote": {
+            "type": "string",
+            "minLength": 10,
+            "maxLength": 400
+          }
+        }
+      }
+    },
+    "meta": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["disclaimer", "generatedAt"],
+      "properties": {
+        "disclaimer": {
+          "type": "string",
+          "minLength": 10,
+          "maxLength": 400
+        },
+        "generatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "provider": {
+          "type": "string",
+          "maxLength": 100
+        },
+        "model": {
+          "type": "string",
+          "maxLength": 100
+        }
+      }
+    }
+  }
+}
