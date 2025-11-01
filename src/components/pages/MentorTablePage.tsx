@@ -55,6 +55,20 @@ interface ConversationTurn {
   replies: Array<{ mentorName: string; text: string }>;
 }
 
+interface ExpandedSuggestionCard {
+  mentorName: string;
+  likelyResponse: string;
+  oneActionStep: string;
+}
+
+interface SuggestionDeckEntry {
+  key: string;
+  displayName: string;
+  likelyResponse: string;
+  oneActionStep: string;
+  replyId?: string;
+}
+
 const MAX_PEOPLE = 10;
 const COORDINATE_PASS_NOTE_WITH_ALL = (import.meta.env.VITE_MENTOR_NOTE_COORDINATE_ALL ?? '1') !== '0';
 const ONBOARDING_KEY = 'mentorTableOnboardingHiddenV2';
@@ -196,6 +210,7 @@ const MentorTablePage: React.FC = () => {
   const [conversationTurns, setConversationTurns] = useState<ConversationTurn[]>([]);
   const [imageAttemptByKey, setImageAttemptByKey] = useState<Record<string, number>>({});
   const [expandedReplyId, setExpandedReplyId] = useState('');
+  const [expandedSuggestion, setExpandedSuggestion] = useState<ExpandedSuggestionCard | null>(null);
   const [isRoundGenerating, setIsRoundGenerating] = useState(false);
   const [hoveredDebugMentorId, setHoveredDebugMentorId] = useState('');
   const [openDebugMentorId, setOpenDebugMentorId] = useState('');
@@ -240,7 +255,6 @@ const MentorTablePage: React.FC = () => {
     source: isZh ? '来源' : 'Source',
     llmApi: isZh ? 'LLM 接口' : 'LLM API',
     localFallback: isZh ? '本地回退' : 'Local Fallback',
-    fallbackReason: isZh ? '回退原因' : 'Fallback reason',
     youFrontRow: isZh ? '你 · 第一视角' : 'You · Front row',
     concernHint: isZh ? '把你的问题放在桌面上。' : 'Place your concern artifact on the table.',
     tableListening: isZh ? '圆桌正在聆听。' : 'The table is listening.',
@@ -269,7 +283,7 @@ const MentorTablePage: React.FC = () => {
     noMemories: isZh ? '还没有保存内容。' : 'No saved memories yet.',
     chatWindow: isZh ? '聊天窗口' : 'Conversation',
     backToTable: isZh ? '返回上一页' : 'Back to previous view',
-    clickToExpand: isZh ? '点击放大查看' : 'Click to expand',
+    clickToExpand: isZh ? '点开看完整建议' : 'Open full advice',
     debugPrompt: isZh ? 'Prompt 调试' : 'Prompt Debug',
     closeDebug: isZh ? '关闭' : 'Close',
     inspectPrompt: isZh ? '查看 Prompt' : 'Inspect Prompt',
@@ -687,6 +701,7 @@ const MentorTablePage: React.FC = () => {
     setNoteDrafts({});
     setNoteReplies({});
     setExpandedReplyId('');
+    setExpandedSuggestion(null);
     setOpenDebugMentorId('');
     setHoveredDebugMentorId('');
     setDebugPromptByMentorId({});
@@ -751,29 +766,69 @@ const MentorTablePage: React.FC = () => {
     return result?.mentorReplies.find((reply) => normalizeMentorKey(reply.mentorName) === key);
   };
 
-  const previewPlacement = (index: number, total: number): { className: string; style: React.CSSProperties } => {
-    if (total <= 1) {
-      return {
-        className: styles.mentorReplyPreviewCenter,
-        style: { top: 'calc(100% + 12px)' }
-      };
+  const truncateWithEllipsis = (text: string, maxChars: number): { text: string; isTruncated: boolean } => {
+    const compact = text.replace(/\s+/g, ' ').trim();
+    if (compact.length <= maxChars) return { text: compact, isTruncated: false };
+    return { text: `${compact.slice(0, maxChars).trimEnd()}...`, isTruncated: true };
+  };
+
+  const simplifyLikelyResponse = (text: string) => {
+    const compact = text.replace(/\s+/g, ' ').trim();
+    if (!compact) return compact;
+    if (isZh) {
+      return compact
+        .replace(/^我(?:会|建议)?先(?:把这个)?拆成可执行步骤(?:先)?[:：]?\s*/u, '')
+        .replace(/^我(?:会|建议)(?:先)?[:：]?\s*/u, '')
+        .replace(/^可以先[:：]?\s*/u, '')
+        .trim();
     }
-    const mid = (total - 1) / 2;
-    if (Math.abs(index - mid) < 0.45) {
-      return {
-        className: styles.mentorReplyPreviewCenter,
-        style: { top: 'calc(100% + 12px)' }
-      };
+    return compact
+      .replace(/^i\s+(?:would|will|suggest|recommend)\s+break\s+this\s+into\s+executable\s+steps\s+first[:,]?\s*/iu, '')
+      .replace(/^i\s+(?:would|will|suggest|recommend)\s+/iu, '')
+      .replace(/^let'?s\s+/iu, '')
+      .trim();
+  };
+
+  const simplifyActionStep = (text: string) => {
+    const compact = text.replace(/\s+/g, ' ').trim();
+    if (!compact) return compact;
+    if (isZh) {
+      return compact.replace(/^下一步[:：]\s*/u, '').trim();
     }
-    return index < mid
-      ? {
-          className: styles.mentorReplyPreviewRight,
-          style: { top: `calc(50% + ${index % 2 === 0 ? -10 : 10}px)` }
-        }
-      : {
-          className: styles.mentorReplyPreviewLeft,
-          style: { top: `calc(50% + ${index % 2 === 0 ? -10 : 10}px)` }
-        };
+    return compact.replace(/^next\s+step(?:\s*\(today\))?[:：]\s*/iu, '').trim();
+  };
+
+  const floatingCardPlacement = (index: number, total: number): React.CSSProperties => {
+    const rotateOffsets = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+    const anchorMap: Record<number, Array<{ left: number; top: number }>> = {
+      1: [{ left: 50, top: 15 }],
+      2: [{ left: 26, top: 18 }, { left: 74, top: 18 }],
+      3: [{ left: 16, top: 22 }, { left: 50, top: 15 }, { left: 84, top: 22 }],
+      4: [{ left: 12, top: 23 }, { left: 38, top: 16 }, { left: 64, top: 16 }, { left: 90, top: 23 }],
+      5: [{ left: 10, top: 24 }, { left: 30, top: 19 }, { left: 50, top: 14 }, { left: 70, top: 19 }, { left: 90, top: 24 }],
+      6: [{ left: 8, top: 24 }, { left: 24, top: 20 }, { left: 40, top: 16 }, { left: 60, top: 16 }, { left: 76, top: 20 }, { left: 92, top: 24 }],
+      7: [{ left: 6, top: 24 }, { left: 20, top: 21 }, { left: 34, top: 18 }, { left: 50, top: 14 }, { left: 66, top: 18 }, { left: 80, top: 21 }, { left: 94, top: 24 }],
+      8: [{ left: 5, top: 24 }, { left: 17, top: 22 }, { left: 29, top: 19 }, { left: 41, top: 16 }, { left: 59, top: 16 }, { left: 71, top: 19 }, { left: 83, top: 22 }, { left: 95, top: 24 }]
+    };
+    const generatedAnchors = Array.from({ length: Math.max(total, 1) }, (_, idx) => {
+      const ratio = total <= 1 ? 0.5 : idx / (total - 1);
+      const left = 4 + ratio * 92;
+      const centerDist = Math.abs(ratio - 0.5);
+      const wave = idx % 2 === 0 ? 0 : 0.8;
+      const top = 14 + centerDist * 10 + wave;
+      return { left, top };
+    });
+    const anchorSet = anchorMap[total] || generatedAnchors;
+    const anchor = anchorSet[Math.min(index, anchorSet.length - 1)] || { left: 50, top: 22 };
+    const width = total <= 2 ? 250 : total === 3 ? 210 : total === 4 ? 168 : total === 5 ? 148 : total === 6 ? 134 : total === 7 ? 120 : 110;
+    const rotate = rotateOffsets[index % rotateOffsets.length];
+
+    return {
+      ['--mentor-card-left' as string]: `${anchor.left}%`,
+      ['--mentor-card-top' as string]: `${anchor.top}%`,
+      ['--mentor-card-rotate' as string]: `${rotate}deg`,
+      ['--mentor-card-width' as string]: `${width}px`
+    };
   };
 
   const activeReply = result?.mentorReplies?.[activeResultIndex];
@@ -795,14 +850,6 @@ const MentorTablePage: React.FC = () => {
     });
     return lines.join(' | ');
   }, [result?.mentorReplies, selectedPeople]);
-
-  const debugHintText = useMemo(() => {
-    const raw = result?.meta.debugMessage || '';
-    if (!raw) return '';
-    const compact = raw.split('Preview:')[0].trim();
-    if (compact.length <= 160) return compact;
-    return `${compact.slice(0, 157)}...`;
-  }, [result?.meta.debugMessage]);
 
   const openDebugMentor = selectedMentors.find((mentor) => mentor.id === openDebugMentorId) || null;
   const openDebugMentorDisplayName = openDebugMentor ? localizeName(openDebugMentor.displayName) : '';
@@ -876,6 +923,7 @@ const MentorTablePage: React.FC = () => {
       setConversationTurns([]);
       setReplyAllDraft('');
       setExpandedReplyId('');
+      setExpandedSuggestion(null);
       setOpenDebugMentorId('');
       navigate('/');
       return;
@@ -938,6 +986,36 @@ const MentorTablePage: React.FC = () => {
         }
       ];
 
+  const suggestionDeckEntries: SuggestionDeckEntry[] = selectedMentors
+    .map((mentor, index) => {
+      const person = selectedPeople[index];
+      const displayName = localizeName(person?.name || mentor.displayName);
+      const reply = getReplyByMentorName(displayName) || getReplyByMentorName(mentor.displayName);
+      const visibleReply = reply ? visibleReplies.find((item) => item.mentorId === reply.mentorId) : undefined;
+
+      if (phase !== 'session' && reply) {
+        return {
+          key: `suggestion-${mentor.id}-${index}`,
+          displayName,
+          likelyResponse: reply.likelyResponse,
+          oneActionStep: reply.oneActionStep
+        };
+      }
+
+      if (phase === 'session' && sessionMode === 'live' && visibleReply) {
+        return {
+          key: `preview-${mentor.id}-${index}`,
+          displayName,
+          likelyResponse: visibleReply.likelyResponse,
+          oneActionStep: visibleReply.oneActionStep,
+          replyId: visibleReply.mentorId
+        };
+      }
+
+      return null;
+    })
+    .filter((item): item is SuggestionDeckEntry => Boolean(item));
+
   return (
     <Layout>
       <section className={styles.roomPage}>
@@ -964,6 +1042,7 @@ const MentorTablePage: React.FC = () => {
                       setResult(null);
                       setSessionMode('idle');
                       setExpandedReplyId('');
+                      setExpandedSuggestion(null);
                       setOpenDebugMentorId('');
                       setHoveredDebugMentorId('');
                     }
@@ -982,6 +1061,7 @@ const MentorTablePage: React.FC = () => {
                 onClick={() => {
                   setPhase('invite');
                   setExpandedReplyId('');
+                  setExpandedSuggestion(null);
                   setOpenDebugMentorId('');
                   setHoveredDebugMentorId('');
                 }}
@@ -1006,6 +1086,7 @@ const MentorTablePage: React.FC = () => {
                   setConversationTurns([]);
                   setReplyAllDraft('');
                   setExpandedReplyId('');
+                  setExpandedSuggestion(null);
                   setOpenDebugMentorId('');
                   setHoveredDebugMentorId('');
                 }}
@@ -1159,13 +1240,19 @@ const MentorTablePage: React.FC = () => {
                   <div className={styles.disclaimer}>
                     <div className={styles.disclaimerLine}><FontAwesomeIcon icon={faCircleInfo} /> {result?.meta.disclaimer || t.sessionInProgress}</div>
                     <div className={styles.sourceTag}>{t.source}: {result?.meta.source === 'llm' ? t.llmApi : t.localFallback}</div>
-                    {debugHintText && <div className={styles.debugHint}>{t.fallbackReason}: {debugHintText}</div>}
                   </div>
 
                   <div className={styles.sessionChatHeader}>
                     <span>{t.chatWindow}</span>
                     {expandedReply && (
-                      <button type="button" className={styles.chatBackBtn} onClick={() => setExpandedReplyId('')}>
+                      <button
+                        type="button"
+                        className={styles.chatBackBtn}
+                        onClick={() => {
+                          setExpandedReplyId('');
+                          setExpandedSuggestion(null);
+                        }}
+                      >
                         <FontAwesomeIcon icon={faChevronLeft} /> {t.backToTable}
                       </button>
                     )}
@@ -1360,6 +1447,7 @@ const MentorTablePage: React.FC = () => {
                             setConversationTurns([]);
                             setReplyAllDraft('');
                             setExpandedReplyId('');
+                            setExpandedSuggestion(null);
                             setOpenDebugMentorId('');
                             setHoveredDebugMentorId('');
                           }}
@@ -1424,9 +1512,6 @@ const MentorTablePage: React.FC = () => {
                 {selectedMentors.map((mentor: MentorProfile, index: number) => {
                   const person = selectedPeople[index];
                   const displayName = localizeName(person?.name || mentor.displayName);
-                  const reply = getReplyByMentorName(displayName) || getReplyByMentorName(mentor.displayName);
-                  const visibleReply = visibleReplies.find((item) => item.mentorId === reply?.mentorId);
-                  const preview = previewPlacement(index, selectedMentors.length);
                   const isSpeaker = activeReplyName === displayName && sessionMode === 'live';
                   const flipped = Boolean(flippedCards[displayName]);
                   const marker = scene === 'cute' ? '★' : scene === 'nature' ? '🍃' : scene === 'spooky' ? '✦' : scene === 'cyber' ? '▣' : '✎';
@@ -1475,36 +1560,101 @@ const MentorTablePage: React.FC = () => {
                         )}
                       </div>
                       <div className={styles.seatProp}>{marker}</div>
-                      {phase !== 'session' && reply && (
-                        <div className={`${styles.suggestionCard} ${styleClassForCard(scene)}`}>
-                          <h3>{displayName}</h3>
-                          <p>{reply.likelyResponse}</p>
-                        </div>
-                      )}
-
-                      {phase === 'session' && sessionMode === 'live' && visibleReply && (
-                        <article
-                          className={`${styles.tableReplyCard} ${styles.mentorReplyPreview} ${preview.className} ${styleClassForCard(scene)} ${expandedReplyId === visibleReply.mentorId ? styles.tableReplyCardActive : ''}`}
-                          style={preview.style}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setExpandedReplyId(visibleReply.mentorId);
-                          }}
-                        >
-                          <header>{displayName}</header>
-                          <p>{visibleReply.likelyResponse}</p>
-                          <footer>{isZh ? '下一步：' : 'Next move: '} {visibleReply.oneActionStep}</footer>
-                          <span className={styles.replyExpandHint}>{t.clickToExpand}</span>
-                        </article>
-                      )}
                     </div>
                   );
                 })}
 
+                <div className={styles.suggestionDeck}>
+                  {suggestionDeckEntries.map((entry, slotIndex) => {
+                    const cardStyle = floatingCardPlacement(slotIndex, suggestionDeckEntries.length);
+                    const actionPreview = truncateWithEllipsis(
+                      simplifyActionStep(entry.oneActionStep),
+                      suggestionDeckEntries.length > 6 ? 24 : suggestionDeckEntries.length > 3 ? 32 : 44
+                    );
+                    const reasonPreview = truncateWithEllipsis(
+                      simplifyLikelyResponse(entry.likelyResponse),
+                      suggestionDeckEntries.length > 6 ? 28 : suggestionDeckEntries.length > 3 ? 36 : 50
+                    );
+                    const hasTrimmed = reasonPreview.isTruncated || actionPreview.isTruncated;
+
+                    if (!entry.replyId) {
+                      return (
+                        <button
+                          type="button"
+                          key={entry.key}
+                          className={styles.suggestionCard}
+                          style={cardStyle}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setExpandedReplyId('');
+                            setExpandedSuggestion({
+                              mentorName: entry.displayName,
+                              likelyResponse: entry.likelyResponse,
+                              oneActionStep: entry.oneActionStep
+                            });
+                          }}
+                        >
+                          <h3>{entry.displayName}</h3>
+                          <p className={styles.suggestionPrimary}>{actionPreview.text}</p>
+                          <p className={styles.suggestionSecondary}>{reasonPreview.text}</p>
+                          {hasTrimmed && <span className={styles.replyExpandHint}>{t.clickToExpand}</span>}
+                        </button>
+                      );
+                    }
+
+                    return (
+                      <article
+                        key={entry.key}
+                        className={`${styles.tableReplyCard} ${styles.mentorReplyPreview} ${expandedReplyId === entry.replyId ? styles.tableReplyCardActive : ''}`}
+                        style={cardStyle}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setExpandedSuggestion(null);
+                          setExpandedReplyId(entry.replyId || '');
+                        }}
+                      >
+                        <header>{entry.displayName}</header>
+                        <p className={styles.suggestionPrimary}>{actionPreview.text}</p>
+                        <footer className={styles.suggestionSecondary}>{reasonPreview.text}</footer>
+                        {hasTrimmed && <span className={styles.replyExpandHint}>{t.clickToExpand}</span>}
+                      </article>
+                    );
+                  })}
+                </div>
+
+                {expandedSuggestion && (
+                  <div
+                    className={styles.replyExpandOverlay}
+                    onClick={() => setExpandedSuggestion(null)}
+                  >
+                    <button
+                      type="button"
+                      className={styles.expandBackTopLeft}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setExpandedSuggestion(null);
+                      }}
+                    >
+                      <FontAwesomeIcon icon={faChevronLeft} /> {t.backToTable}
+                    </button>
+                    <article
+                      className={`${styles.replyExpandedCard} ${styleClassForCard(scene)}`}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <header>{expandedSuggestion.mentorName}</header>
+                      <p>{expandedSuggestion.likelyResponse}</p>
+                      <footer>{isZh ? '下一步：' : 'Next move: '} {expandedSuggestion.oneActionStep}</footer>
+                    </article>
+                  </div>
+                )}
+
                 {phase === 'session' && sessionMode === 'live' && expandedReply && (
                   <div
                     className={styles.replyExpandOverlay}
-                    onClick={() => setExpandedReplyId('')}
+                    onClick={() => {
+                      setExpandedReplyId('');
+                      setExpandedSuggestion(null);
+                    }}
                   >
                     <button
                       type="button"
@@ -1512,6 +1662,7 @@ const MentorTablePage: React.FC = () => {
                       onClick={(e) => {
                         e.stopPropagation();
                         setExpandedReplyId('');
+                        setExpandedSuggestion(null);
                       }}
                     >
                       <FontAwesomeIcon icon={faChevronLeft} /> {t.backToTable}
