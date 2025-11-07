@@ -995,7 +995,8 @@
 }
 
 .conversationBubble {
-  width: min(450px, calc(100% - 22px));
+  max-width: min(450px, 78%);
+  width: fit-content;
   border-radius: 16px;
   border: 1px solid rgba(255, 255, 255, 0.35);
   padding: 10px 12px;
@@ -1042,6 +1043,8 @@
   background: linear-gradient(140deg, rgba(83, 141, 242, 0.95) 0%, rgba(51, 94, 185, 0.95) 100%);
   color: #fff;
   border-color: rgba(178, 209, 255, 0.7);
+  margin-left: auto;
+  border-radius: 16px 16px 4px 16px;
 }
 
 .conversationRightBubble header,
@@ -1052,6 +1055,8 @@
 
 .conversationLeftBubble {
   background: var(--message-bg);
+  margin-right: auto;
+  border-radius: 16px 16px 16px 4px;
 }
 
 .conversationLoading {
