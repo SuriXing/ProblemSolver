@@ -3,8 +3,8 @@ import { initReactI18next } from 'react-i18next';
 import HttpBackend from 'i18next-http-backend';
 import LanguageDetector from 'i18next-browser-languagedetector';
 import { getCurrentLanguage } from './utils/translationHelper';
+import { withLocalSuffix } from './utils/environmentLabel';
 import type { InitOptions, Module } from 'i18next';
-import { DefaultTFuncReturn } from 'react-i18next';
 
 import enTranslation from './locales/en/translation.json';
 import zhCNTranslation from './locales/zh-CN/translation.json';
@@ -89,7 +89,7 @@ i18nInstance.on('languageChanged', (lng: string) => {
   
   // 更新页面标题和描述
   const siteNameTranslation = i18nInstance.t('siteName');
-  document.title = siteNameTranslation;
+  document.title = withLocalSuffix(siteNameTranslation);
   
   const metaDescription = document.querySelector('meta[name="description"]');
   if (metaDescription) {
