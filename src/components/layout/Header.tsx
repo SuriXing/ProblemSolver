@@ -5,6 +5,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faGlobe, faHistory, faHandsHelping, faUsers } from '@fortawesome/free-solid-svg-icons';
 import { useTranslationContext } from '../../context/TranslationContext';
 import type { SupportedLanguages } from '../../types/i18n.types';
+import { withLocalSuffix } from '../../utils/environmentLabel';
 import '../../styles/Header.css';
 
 const Header: React.FC = () => {
@@ -25,6 +26,8 @@ const Header: React.FC = () => {
   const handleLanguageChange = async (languageCode: SupportedLanguages) => {
     await changeLanguage(languageCode);
   };
+  const siteNameLabel = withLocalSuffix(t('siteName'));
+  const mentorTableLabel = t('mentorTableNav');
 
   // Close the instruction box when clicking outside if pinned
   useEffect(() => {
@@ -55,7 +58,7 @@ const Header: React.FC = () => {
         <div className="logo">
           <Link to="/">
             <FontAwesomeIcon icon={faHandsHelping} className="logo-icon" />
-            <span>{t('siteName')}</span>
+            <span>{siteNameLabel}</span>
           </Link>
         </div>
         <div className="nav-actions" style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
@@ -65,7 +68,7 @@ const Header: React.FC = () => {
           </Link>
           <Link to="/mentor-table" className="nav-link">
             <FontAwesomeIcon icon={faUsers} />
-            <span>名人桌</span>
+            <span>{mentorTableLabel}</span>
           </Link>
           {localStorage.getItem('hideInstruction') !== '1' && (
             <div
@@ -110,37 +113,20 @@ const Header: React.FC = () => {
                   }}
                 >
                   <div style={{ fontWeight: 600, marginBottom: 10, fontSize: '1.08rem', color: '#fff' }}>
-                    🌱 Welcome to {t('siteName')}
+                    🌱 {siteNameLabel}
                   </div>
                   <div style={{ marginBottom: 12 }}>
-                    A private place to share your worries, feel heard, and find comfort.
+                    {t('siteDescription')}
                   </div>
-                  <div style={{ marginBottom: 8, fontWeight: 500 }}>🫶 What This Website Is For</div>
-                  <div style={{ marginBottom: 8 }}>
-                    Everyone has moments when things feel too heavy. This website is a safe space where you can:
-                  </div>
+                  <div style={{ marginBottom: 8, fontWeight: 500 }}>{t('instruction')}</div>
                   <ul style={{ marginBottom: 8, paddingLeft: 22 }}>
-                    <li>💬 Talk about your worries—anything that's been bothering you, big or small.</li>
-                    <li>🤝 Receive kind words and comfort from others who understand.</li>
-                    <li>✨ Know you're not alone.</li>
+                    <li>{t('confessCardDesc')}</li>
+                    <li>{t('helpCardDesc')}</li>
+                    <li>{t('saveAccessCode')}</li>
                   </ul>
-                  <div style={{ marginBottom: 10 }}>
-                    There's no need to keep it all bottled up. You can share here anonymously, safely, and without judgment.
-                  </div>
-                  <div style={{ marginBottom: 8, fontWeight: 500 }}>🔐 How It Works: The Access Code System</div>
-                  <div style={{ marginBottom: 8 }}>
-                    Whenever you share a problem or post something on the site, you'll be given a unique access code.
-                  </div>
-                  <div style={{ marginBottom: 8, fontWeight: 500 }}>Why is this important?</div>
-                  <div style={{ marginBottom: 6 }}>
-                    <b>Privacy First:</b><br />
-                    We don't show a list of your past posts on the homepage or any account page. Why?<br />
-                    Because we care about your privacy.<br />
-                    Let's say your parent or someone else checks your phone—you don't have to worry. You can just tell them this is a website your school teacher recommended to help others. There's nothing obvious that shows what you've posted.
-                  </div>
+                  <div style={{ marginBottom: 8, fontWeight: 500 }}>{t('privacyWarningTitle')}</div>
                   <div>
-                    <b>Easy to Find Your Post Again:</b><br />
-                    Just save or remember the access code. When you want to check replies or updates, you can simply enter your code to go straight to your post—quietly, securely, and whenever you're ready.
+                    {t('privacyWarningText')}
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'center', gap: 12, marginTop: 18 }}>
                     <button
