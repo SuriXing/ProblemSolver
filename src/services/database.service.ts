@@ -171,29 +171,21 @@ export const DatabaseService = {
    */
   async incrementViewCount(postId: string): Promise<boolean> {
     try {
-      // First get the current view count
-      const { data: post, error: fetchError } = await supabase
-        .from('posts')
-        .select('views')
-        .eq('id', postId)
-        .single();
-      
-      if (fetchError || !post) {
-        console.error('Error fetching post for view increment:', fetchError);
-        return false;
+      const { error } = await supabase.rpc('increment_views', { post_id: postId });
+      if (error) {
+        // Fallback: non-atomic update if RPC not available
+        const { data: post, error: fetchError } = await supabase
+          .from('posts')
+          .select('views')
+          .eq('id', postId)
+          .single();
+        if (fetchError || !post) return false;
+        const { error: updateError } = await supabase
+          .from('posts')
+          .update({ views: (post.views || 0) + 1 })
+          .eq('id', postId);
+        if (updateError) return false;
       }
-      
-      // Increment the view count
-      const { error: updateError } = await supabase
-        .from('posts')
-        .update({ views: (post.views || 0) + 1 })
-        .eq('id', postId);
-      
-      if (updateError) {
-        console.error('Error incrementing view count:', updateError);
-        return false;
-      }
-      
       return true;
     } catch (error) {
       console.error('Exception incrementing view count:', error);
@@ -281,43 +273,6 @@ export const DatabaseService = {
       console.error('Exception marking reply as solution:', error);
       return false;
     }
-  },
-  
-  /**
-   * Generate a test access code (for debugging purposes only)
-   */
-  async generateTestAccessCode(): Promise<string> {
-    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    const length = 8;
-    let result = '';
-    let isUnique = false;
-    
-    // 最多尝试10次，以避免无限循环
-    for (let attempts = 0; attempts < 10 && !isUnique; attempts++) {
-      // 生成一个新的随机代码
-      result = '';
-      for (let i = 0; i < length; i++) {
-        result += characters.charAt(Math.floor(Math.random() * characters.length));
-      }
-      
-      // 检查这个代码是否已经存在
-      const { data, error } = await supabase
-        .from('posts')
-        .select('access_code')
-        .eq('access_code', result)
-        .maybeSingle();
-      
-      // 如果没有结果，表示这个代码是唯一的
-      isUnique = !data && !error;
-    }
-    
-    if (!isUnique) {
-      // 如果10次尝试后都没有找到唯一的代码，使用时间戳来确保唯一性
-      result = `${result}-${Date.now()}`;
-    }
-    
-    console.log("Generated test access code:", result);
-    return result;
   },
   
   /**

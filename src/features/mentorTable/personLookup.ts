@@ -488,6 +488,22 @@ async function searchWikipediaPeople(query: string, limit: number): Promise<Pers
     .map((item) => withAvatarFallback(item));
 }
 
+/**
+ * Get the Chinese display name for a verified person, or return the canonical name.
+ */
+export function getChineseDisplayName(name: string): string {
+  const key = normalizeName(name).replace(/_/g, ' ');
+  for (const person of VERIFIED_PEOPLE) {
+    const haystack = [normalizeName(person.canonical), ...person.aliases.map((a) => normalizeName(a).replace(/_/g, ' '))];
+    if (haystack.some((text) => text === key || (key.length >= 2 && text.includes(key)))) {
+      // Find the first Chinese alias
+      const zhAlias = person.aliases.find((a) => /[\u3400-\u9fff]/.test(a));
+      return zhAlias || person.canonical;
+    }
+  }
+  return name;
+}
+
 export function findVerifiedPerson(name: string): { canonical: string; imageUrl: string; candidateImageUrls?: string[] } | undefined {
   const key = normalizeName(name).replace(/_/g, ' ');
   const makeResult = (person: typeof VERIFIED_PEOPLE[number]) => ({
@@ -613,8 +629,7 @@ export async function searchPeopleWithPhotos(query: string, limit = 6): Promise<
     .map((code) => buildMbtiOption(code));
 
   const wikiMatches = await searchWikipediaPeople(q, limit);
-  const typedOption = withAvatarFallback({ name: q });
-  const merged = [...verifiedMatches, ...mbtiMatches, ...wikiMatches, typedOption];
+  const merged = [...verifiedMatches, ...mbtiMatches, ...wikiMatches];
   const unique = new Map<string, PersonOption>();
   const score = (person: PersonOption) => {
     const generated = (url: string) => url.startsWith('data:image/svg+xml') || url.includes('ui-avatars.com/api');
@@ -632,5 +647,10 @@ export async function searchPeopleWithPhotos(query: string, limit = 6): Promise<
       unique.set(key, next);
     }
   }
+
+  if (!unique.has(normalizeName(q))) {
+    unique.set(normalizeName(q), withAvatarFallback({ name: q }));
+  }
+
   return Array.from(unique.values()).slice(0, Math.max(1, limit));
 }
