@@ -84,6 +84,30 @@ const ConfessionPage: React.FC = () => {
       
       console.log('Sending this data to Supabase:', postData);
       
+      const userData = {
+        userId: isAnonymous ? 'Anonymous' : 'User123',
+        confessionText: confession,
+        selectedTags: selectedTags,
+        timestamp: new Date().toISOString(),
+        accessCode: accessCode,
+        privacyOption: isPrivate ? 'private' : 'public',
+        emailNotification: notifyViaEmail,
+        email: notifyViaEmail ? email : '',
+        replies: [],
+        views: 0
+      };
+
+      const saveLocallyAndContinue = () => {
+        localStorage.setItem('accessCode', accessCode);
+        StorageSystem.storeData(accessCode, userData);
+        navigate('/success', {
+          state: {
+            accessCode,
+            postId: 'local-fallback'
+          }
+        });
+      };
+
       // Create a new post in the database with only the fields that exist
       const { data, error } = await supabase
         .from('posts')
@@ -91,27 +115,20 @@ const ConfessionPage: React.FC = () => {
         .select();
       
       if (error) {
+        if (String(error.message || '').toLowerCase().includes('failed to fetch')) {
+          console.warn('Supabase unreachable, saving submission locally:', error);
+          saveLocallyAndContinue();
+          return;
+        }
+        const errorCode = error.code ? ` [${error.code}]` : '';
+        const errorDetails = error.details ? `\nDetails: ${error.details}` : '';
         console.error('Error submitting confession:', error);
-        alert('Error submitting your confession. Please try again.');
+        alert(`Error submitting your confession${errorCode}: ${error.message}${errorDetails}`);
         setIsSubmitting(false);
         return;
       }
       
       console.log('Submission successful:', data);
-      
-      // Still track user preferences locally
-      const userData = {
-        userId: isAnonymous ? 'Anonymous' : 'User123',
-        confessionText: confession,
-        selectedTags: selectedTags,
-        timestamp: new Date().toISOString(),
-        accessCode: accessCode,
-        privacyOption: isPrivate ? 'private' : 'public', // Store locally even if not in DB
-        emailNotification: notifyViaEmail,
-        email: notifyViaEmail ? email : '',
-        replies: [],
-        views: 0
-      };
       
       // Save to localStorage for retrieval on success page
       localStorage.setItem('accessCode', accessCode);
@@ -126,8 +143,34 @@ const ConfessionPage: React.FC = () => {
         } 
       });
     } catch (err) {
+      if (err instanceof Error && err.message.toLowerCase().includes('failed to fetch')) {
+        console.warn('Unexpected network error while submitting:', err);
+        const accessCode = Math.random().toString(36).substring(2, 10).toUpperCase();
+        const userData = {
+          userId: isAnonymous ? 'Anonymous' : 'User123',
+          confessionText: confession,
+          selectedTags: selectedTags,
+          timestamp: new Date().toISOString(),
+          accessCode: accessCode,
+          privacyOption: isPrivate ? 'private' : 'public',
+          emailNotification: notifyViaEmail,
+          email: notifyViaEmail ? email : '',
+          replies: [],
+          views: 0
+        };
+        localStorage.setItem('accessCode', accessCode);
+        StorageSystem.storeData(accessCode, userData);
+        navigate('/success', {
+          state: {
+            accessCode,
+            postId: 'local-fallback'
+          }
+        });
+        return;
+      }
+      const message = err instanceof Error ? err.message : 'Unknown error';
       console.error('Unexpected error in form submission:', err);
-      alert('An unexpected error occurred. Please try again.');
+      alert(`An unexpected error occurred: ${message}`);
       setIsSubmitting(false);
     }
   };
