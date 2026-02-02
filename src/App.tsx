@@ -17,6 +17,7 @@ import SharePage from './components/pages/SharePage';
 import HelpDetailPage from './components/pages/HelpDetailPage';
 import NotFoundPage from './components/pages/NotFoundPage';
 import LoadingPage from './components/pages/LoadingPage';
+import MentorTablePage from './components/pages/MentorTablePage';
 
 // Import admin components
 import AdminLoginPage from './components/pages/AdminLoginPage';
@@ -78,6 +79,9 @@ function App() {
                 />
                 <Route path="/topics/:topicId" element={<TopicDetailPage />} />
                 <Route path="/share/:accessCode" element={<SharePage />} />
+                <Route path="/mentor-table" element={<MentorTablePage />} />
+                <Route path="/mentor-table/" element={<MentorTablePage />} />
+                <Route path="/名人桌" element={<MentorTablePage />} />
                 
                 {/* Admin routes */}
                 <Route path="/admin/login" element={<AdminLoginPage />} />
