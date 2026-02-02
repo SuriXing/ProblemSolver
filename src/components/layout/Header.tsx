@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faGlobe, faHistory, faHandsHelping } from '@fortawesome/free-solid-svg-icons';
+import { faGlobe, faHistory, faHandsHelping, faUsers } from '@fortawesome/free-solid-svg-icons';
 import { useTranslationContext } from '../../context/TranslationContext';
 import type { SupportedLanguages } from '../../types/i18n.types';
 import '../../styles/Header.css';
@@ -62,6 +62,10 @@ const Header: React.FC = () => {
           <Link to="/past-questions" className="nav-link">
             <FontAwesomeIcon icon={faHistory} />
             <span>{t('goToPastQuestions')}</span>
+          </Link>
+          <Link to="/mentor-table" className="nav-link">
+            <FontAwesomeIcon icon={faUsers} />
+            <span>名人桌</span>
           </Link>
           {localStorage.getItem('hideInstruction') !== '1' && (
             <div
