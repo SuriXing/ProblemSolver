@@ -10,6 +10,8 @@ export const MENTOR_RESPONSE_SCHEMA = {
   type: 'object',
   additionalProperties: false,
   properties: {
+    schemaVersion: { type: 'string', enum: ['mentor_table.v1'] },
+    language: { type: 'string', enum: ['en', 'zh-CN'] },
     safety: {
       type: 'object',
       additionalProperties: false,
@@ -47,12 +49,15 @@ export const MENTOR_RESPONSE_SCHEMA = {
       type: 'object',
       additionalProperties: false,
       properties: {
-        disclaimer: { type: 'string' }
+        disclaimer: { type: 'string' },
+        generatedAt: { type: 'string' },
+        provider: { type: 'string' },
+        model: { type: 'string' }
       },
-      required: ['disclaimer']
+      required: ['disclaimer', 'generatedAt']
     }
   },
-  required: ['safety', 'mentorReplies', 'meta']
+  required: ['schemaVersion', 'language', 'safety', 'mentorReplies', 'meta']
 } as const;
 
 export function buildMentorSystemPrompt(): string {
@@ -63,12 +68,13 @@ export function buildMentorSystemPrompt(): string {
     '1) Never claim to be the real person.',
     '2) Never fabricate direct quotes.',
     '3) Never invent private facts, private conversations, or exact historical details unless explicitly provided.',
-    '4) Use language like "they might say" or "a likely perspective".',
-    '5) Write likelyResponse in first-person style while staying clearly simulated.',
+    '4) Write likelyResponse in direct first-person style.',
+    '5) Do not use wording such as "if I were", "as X", or "from X perspective".',
     '6) Keep practical and empathetic. Give exactly one concrete next action per mentor.',
     '7) If user content suggests self-harm, violence, abuse, or severe mental distress, set safety.riskLevel to high and include clear emergency guidance.',
     '8) This is not medical, legal, or financial professional advice.',
-    '9) Output must strictly match the provided JSON schema.'
+    '9) Output must strictly match the provided JSON schema.',
+    '10) Always set schemaVersion = "mentor_table.v1".'
   ].join('\n');
 }
 
