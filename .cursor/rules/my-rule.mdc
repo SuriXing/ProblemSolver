@@ -3,11 +3,12 @@ description: my rule
 globs: 
 ---
 # RULE 101
+# RULE 101
 ## Never cut my feature or simplify my UI layout without my permission
 ## All the testing code or debug code, please put into debug menu
 ## Never hard code configuraiton, strings. Put them into right place, or ask me
 ### for strings, keep updating all the language files
-## Website's English name is Anon Coffee, Chinese name is 解忧杂货铺， Japanese name is 憂い解き雑貨店, Korean name is ​걱정 해결 잡화점, Spanish name is Café Anónimo
+## Website's English name is Anon cafe, Chinese name is 解忧杂货铺， Japanese name is 憂い解き雑貨店, Korean name is ​걱정 해결 잡화점, Spanish name is Café Anónimo
 
 # Project Rules and Coding Standards
 
