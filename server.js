@@ -1,5 +1,6 @@
 const express = require('express');
 const mentorTableHandler = require('./api/mentor-table.js');
+const mentorDebugPromptHandler = require('./api/mentor-debug-prompt.js');
 
 const app = express();
 const port = Number(process.env.MENTOR_API_PORT || 8787);
@@ -23,6 +24,10 @@ app.get('/api/health', (_req, res) => {
 
 app.all('/api/mentor-table', async (req, res) => {
   await mentorTableHandler(req, res);
+});
+
+app.all('/api/mentor-debug-prompt', async (req, res) => {
+  await mentorDebugPromptHandler(req, res);
 });
 
 app.listen(port, host, () => {
