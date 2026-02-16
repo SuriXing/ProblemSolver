@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
@@ -20,15 +21,17 @@ import {
   faDice,
   faCamera,
   faBell,
-  faBookOpen
+  faBookOpen,
+  faBug
 } from '@fortawesome/free-solid-svg-icons';
 import Layout from '../layout/Layout';
 import { MentorProfile, createCustomMentorProfile, getSuggestedPeople } from '../../features/mentorTable/mentorProfiles';
 import { MentorSimulationResult } from '../../features/mentorTable/mentorEngine';
-import { generateMentorAdvice } from '../../features/mentorTable/mentorApi';
+import { fetchMentorDebugPrompt, generateMentorAdvice, MentorConversationMessage } from '../../features/mentorTable/mentorApi';
 import {
   PersonOption,
   fetchPersonImage,
+  fetchPersonImageCandidates,
   getVerifiedPlaceholderImage,
   searchPeopleWithPhotos
 } from '../../features/mentorTable/personLookup';
@@ -53,38 +56,30 @@ interface ConversationTurn {
 }
 
 const MAX_PEOPLE = 10;
-const ONBOARDING_KEY = 'mentorTableOnboardingDone';
+const COORDINATE_PASS_NOTE_WITH_ALL = (import.meta.env.VITE_MENTOR_NOTE_COORDINATE_ALL ?? '1') !== '0';
+const ONBOARDING_KEY = 'mentorTableOnboardingHiddenV2';
 const DEFAULT_PLACEHOLDER_AVATAR = getVerifiedPlaceholderImage();
-
-const defaultPeople: PersonOption[] = [
-  {
-    name: 'Bill Gates',
-    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a0/Bill_Gates_2018.jpg/512px-Bill_Gates_2018.jpg'
-  },
-  {
-    name: 'Oprah Winfrey',
-    imageUrl:
-      'https://upload.wikimedia.org/wikipedia/commons/thumb/2/22/Oprah_Winfrey_2014.jpg/512px-Oprah_Winfrey_2014.jpg'
-  },
-  {
-    name: 'Kobe Bryant',
-    imageUrl:
-      'https://upload.wikimedia.org/wikipedia/commons/thumb/3/31/Kobe_Bryant_2019.jpg/512px-Kobe_Bryant_2019.jpg'
-  }
-];
 
 const onboardingSlides = [
   {
-    title: '欢迎来到 名人桌',
-    body: '这里不是普通页面，是一个可互动的“房间舞台”。'
+    title: '名人桌功能说明',
+    body: '你可以选择咨询对象并输入问题，然后查看每位对象给出的建议。'
   },
   {
-    title: 'Ritual Flow',
-    body: 'Summon Guests → Pick Portal → Place Your Note → Open Session。'
+    title: '支持对象类型',
+    body: '支持：名人、MBTI（如 INTJ）、动漫角色、游戏角色、电影角色（如钢铁侠）。'
   },
   {
-    title: 'Collect Memories',
-    body: '每次会话结束会生成一张 Memory Card，保存在右下角抽屉。'
+    title: '如何使用',
+    body: '步骤：选择对象 → 选择场景 → 输入问题 → 开始查看回复。'
+  },
+  {
+    title: '回复与记录',
+    body: '你可以给单个人留言，也可以回复所有人。会话总结可以保存到右下角记忆抽屉。'
+  },
+  {
+    title: '说明显示设置',
+    body: '最后一步你可以选择“下次继续显示”或“下次不再显示”本说明。'
   }
 ];
 
@@ -133,6 +128,15 @@ const sceneOptions: Array<{
 ];
 
 const vibeTags = ['Builder', 'Storyteller', 'Competitor', 'Strategist', 'Dreamer', 'Rebel'];
+const vibeTagsZh = ['构建者', '讲述者', '行动派', '战略派', '梦想家', '突破者'];
+
+const mentorNameZhMap: Record<string, string> = {
+  'Bill Gates': '比尔·盖茨',
+  'Oprah Winfrey': '奥普拉',
+  'Kobe Bryant': '科比·布莱恩特',
+  'Hayao Miyazaki': '宫崎骏',
+  'Elon Musk': '埃隆·马斯克'
+};
 
 function getMentorCategory(name: string): 'tech' | 'sports' | 'artist' | 'leader' {
   const normalized = name.toLowerCase();
@@ -151,12 +155,14 @@ function styleClassForCard(style: SceneStyle): string {
 }
 
 const MentorTablePage: React.FC = () => {
+  const navigate = useNavigate();
   const { i18n } = useTranslation();
+  const isZh = i18n.language?.toLowerCase().startsWith('zh');
   const [phase, setPhase] = useState<RitualPhase>('invite');
   const [sessionMode, setSessionMode] = useState<SessionMode>('idle');
   const [problem, setProblem] = useState('');
   const [personQuery, setPersonQuery] = useState('');
-  const [selectedPeople, setSelectedPeople] = useState<PersonOption[]>(defaultPeople);
+  const [selectedPeople, setSelectedPeople] = useState<PersonOption[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const [soundOn, setSoundOn] = useState(false);
@@ -166,6 +172,10 @@ const MentorTablePage: React.FC = () => {
   const [showOnboarding, setShowOnboarding] = useState<boolean>(() => {
     if (typeof window === 'undefined') return true;
     return localStorage.getItem(ONBOARDING_KEY) !== '1';
+  });
+  const [dontShowOnboardingAgain, setDontShowOnboardingAgain] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return true;
+    return localStorage.getItem(ONBOARDING_KEY) === '1';
   });
   const [currentSlide, setCurrentSlide] = useState(0);
   const [scene, setScene] = useState<SceneStyle>('cute');
@@ -184,6 +194,14 @@ const MentorTablePage: React.FC = () => {
   const [showGroupSolve, setShowGroupSolve] = useState(false);
   const [replyAllDraft, setReplyAllDraft] = useState('');
   const [conversationTurns, setConversationTurns] = useState<ConversationTurn[]>([]);
+  const [imageAttemptByKey, setImageAttemptByKey] = useState<Record<string, number>>({});
+  const [expandedReplyId, setExpandedReplyId] = useState('');
+  const [isRoundGenerating, setIsRoundGenerating] = useState(false);
+  const [hoveredDebugMentorId, setHoveredDebugMentorId] = useState('');
+  const [openDebugMentorId, setOpenDebugMentorId] = useState('');
+  const [debugPromptByMentorId, setDebugPromptByMentorId] = useState<Record<string, string>>({});
+  const [debugPromptLoadingByMentorId, setDebugPromptLoadingByMentorId] = useState<Record<string, boolean>>({});
+  const [debugPromptErrorByMentorId, setDebugPromptErrorByMentorId] = useState<Record<string, string>>({});
   const conversationPanelRef = useRef<HTMLDivElement | null>(null);
 
   const selectedMentors = useMemo(
@@ -194,10 +212,314 @@ const MentorTablePage: React.FC = () => {
   const ritualStep = phase === 'invite' ? 0 : phase === 'scene' ? 1 : phase === 'wish' ? 2 : 3;
   const sceneIndex = sceneOptions.findIndex((s) => s.id === scene);
   const currentScene = sceneOptions[sceneIndex] || sceneOptions[0];
+  const localizedVibeTags = isZh ? vibeTagsZh : vibeTags;
 
-  const generateMentorFollowup = (mentorName: string, userText: string) => {
+  const t = {
+    heroTitle: isZh ? '名人桌 · 召唤房间' : 'Celebrity Mentor Table · Summoning Room',
+    heroSub: isZh ? '这不是普通页面，而是一个互动舞台。' : 'Not a page. A stage.',
+    summonGuests: isZh ? '召唤人物' : 'Summon Guests',
+    portalPicker: isZh ? '传送门风格' : 'Portal Picker',
+    placeArtifact: isZh ? '放下你的问题卡' : 'Place Your Artifact',
+    openCircle: isZh ? '开启圆桌' : 'Open Circle',
+    edit: isZh ? '编辑' : 'Edit',
+    shuffle: isZh ? '换座位' : 'Shuffle',
+    polaroid: isZh ? '拍立得' : 'Polaroid',
+    soundOn: isZh ? '声音开' : 'Sound On',
+    soundOff: isZh ? '声音关' : 'Sound Off',
+    restart: isZh ? '重新开始' : 'Restart',
+    summoningRitual: isZh ? '召唤仪式' : 'Summoning Ritual',
+    invitePlaceholder: isZh ? '输入对象（名人/MBTI/角色）' : 'Enter target (celebrity/MBTI/character)',
+    flip: isZh ? '翻面' : 'flip',
+    keepGoing: isZh ? '继续加油' : 'keep going',
+    continueToPortal: isZh ? '继续到传送门' : 'Continue to Portal',
+    randomVibe: isZh ? '随机风格' : 'Random vibe',
+    lockWorld: isZh ? '锁定这个世界' : 'Lock this World',
+    artifactPlaceholder: isZh ? '写下你现在最困扰的问题，圆桌会听见。' : 'Write what’s weighing on you. The table will listen.',
+    openingPortal: isZh ? '正在开启传送门...' : 'Opening portal...',
+    sessionInProgress: isZh ? '会话进行中。' : 'Session in progress.',
+    source: isZh ? '来源' : 'Source',
+    llmApi: isZh ? 'LLM 接口' : 'LLM API',
+    localFallback: isZh ? '本地回退' : 'Local Fallback',
+    fallbackReason: isZh ? '回退原因' : 'Fallback reason',
+    youFrontRow: isZh ? '你 · 第一视角' : 'You · Front row',
+    concernHint: isZh ? '把你的问题放在桌面上。' : 'Place your concern artifact on the table.',
+    tableListening: isZh ? '圆桌正在聆听。' : 'The table is listening.',
+    clothPattern: isZh ? '桌布纹理浮现' : 'cloth pattern appears',
+    ambientOn: isZh ? '环境粒子启动' : 'ambient particles activate',
+    cardsGlow: isZh ? '人物卡开始发光' : 'guest cards glow',
+    hoverPause: isZh ? '鼠标停留会暂停滚动，方便阅读。' : 'Hover to pause and read carefully.',
+    you: isZh ? '你' : 'You',
+    passNoteTo: isZh ? '给' : 'Pass a note to',
+    replyTo: isZh ? '回复给' : 'Reply to',
+    send: isZh ? '发送' : 'Send',
+    typing: isZh ? '正在输入...' : 'typing...',
+    hideGroup: isZh ? '隐藏共同讨论' : 'Hide group solve',
+    showGroup: isZh ? '共同讨论方案' : 'Group solve together',
+    jointStrategy: isZh ? '全员讨论 · 联合方案' : 'All mentors · Joint strategy',
+    replyToAllHeader: isZh ? '你 · 回复所有导师' : 'You · Reply to all mentors',
+    replyAllPlaceholder: isZh ? '回复给所有人...' : 'Reply to all...',
+    sendToAll: isZh ? '发送给所有人' : 'Send to all',
+    showWrap: isZh ? '显示总结' : 'Show session wrap',
+    sessionComplete: isZh ? '会话完成。' : 'Session complete.',
+    tonightTakeaway: isZh ? '今晚总结' : 'Tonight’s takeaway',
+    save: isZh ? '保存' : 'Save',
+    newTable: isZh ? '开启新圆桌' : 'Start a new table',
+    memories: isZh ? '记忆抽屉' : 'Memories',
+    memoryDrawer: isZh ? '记忆抽屉' : 'Memory Drawer',
+    noMemories: isZh ? '还没有保存内容。' : 'No saved memories yet.',
+    chatWindow: isZh ? '聊天窗口' : 'Conversation',
+    backToTable: isZh ? '返回上一页' : 'Back to previous view',
+    clickToExpand: isZh ? '点击放大查看' : 'Click to expand',
+    debugPrompt: isZh ? 'Prompt 调试' : 'Prompt Debug',
+    closeDebug: isZh ? '关闭' : 'Close',
+    inspectPrompt: isZh ? '查看 Prompt' : 'Inspect Prompt',
+    loading: isZh ? '加载中...' : 'Loading...',
+    debugLoadFailed: isZh ? '加载失败' : 'Failed to load',
+    back: isZh ? '上一步' : 'Back',
+    next: isZh ? '下一步' : 'Next',
+    getStarted: isZh ? '开始' : 'Get Started',
+    dontShowAgain: isZh ? '下次不再显示' : "Don't show this again",
+    keepShowing: isZh ? '下次继续显示' : 'Keep showing on startup'
+  };
+
+  const uiLanguage: 'zh-CN' | 'en' = isZh ? 'zh-CN' : 'en';
+
+  const detectLanguageFromText = (text: string): 'zh-CN' | 'en' | null => {
+    const value = text.trim();
+    if (!value) return null;
+    const cjkCount = (value.match(/[\u3400-\u9fff]/g) || []).length;
+    const latinCount = (value.match(/[A-Za-z]/g) || []).length;
+    if (cjkCount === 0 && latinCount === 0) return null;
+    if (cjkCount >= latinCount * 0.8) return 'zh-CN';
+    if (latinCount >= cjkCount * 0.8) return 'en';
+    return cjkCount >= latinCount ? 'zh-CN' : 'en';
+  };
+
+  const getOutputLanguage = (userText: string) => detectLanguageFromText(userText) || uiLanguage;
+
+  const normalizeNameKey = (name: string) => name.trim().toLowerCase().replace(/\s+/g, ' ');
+
+  const localizeName = (name: string) => {
+    if (!isZh) return name;
+    return mentorNameZhMap[name] || name;
+  };
+
+  const createInitialAvatar = (name: string) => {
+    const text = name
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((s) => s[0]?.toUpperCase() || '')
+      .join('') || '?';
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#eff5ff"/><stop offset="100%" stop-color="#d6e5ff"/></linearGradient></defs><rect width="96" height="96" fill="url(#g)"/><circle cx="48" cy="48" r="44" fill="#ffffff" opacity="0.72"/><text x="50%" y="53%" text-anchor="middle" dominant-baseline="middle" font-family="Arial,sans-serif" font-size="34" font-weight="700" fill="#2b4f90">${text}</text></svg>`;
+    return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+  };
+
+  const imageSrcFor = (name: string, imageUrl?: string, candidateImageUrls?: string[]) => {
+    const key = normalizeNameKey(name);
+    const person = selectedPeople.find((p) => normalizeNameKey(p.name) === key);
+    const candidates = Array.from(
+      new Set([imageUrl, ...(candidateImageUrls || []), ...(person?.candidateImageUrls || [])].filter(Boolean))
+    ) as string[];
+    const idx = imageAttemptByKey[key] || 0;
+    const chosen = candidates[idx] || '';
+    return chosen || createInitialAvatar(name) || DEFAULT_PLACEHOLDER_AVATAR;
+  };
+
+  const markImageBroken = (name: string, candidateImageUrls?: string[]) => {
+    const key = normalizeNameKey(name);
+    const person = selectedPeople.find((p) => normalizeNameKey(p.name) === key);
+    const candidates = Array.from(
+      new Set([person?.imageUrl, ...(candidateImageUrls || []), ...(person?.candidateImageUrls || [])].filter(Boolean))
+    );
+    const maxIndex = Math.max(0, candidates.length - 1);
+    setImageAttemptByKey((prev) => {
+      const current = prev[key] || 0;
+      if (current >= maxIndex) return { ...prev, [key]: current + 1 };
+      return { ...prev, [key]: current + 1 };
+    });
+  };
+
+  const localizedSceneText = (style: SceneStyle) => {
+    if (!isZh) {
+      return sceneOptions.find((s) => s.id === style) || currentScene;
+    }
+    const zhMap: Record<SceneStyle, { label: string; desc: string; vibeLine: string; cta: string }> = {
+      cute: { label: '可爱美学', desc: '粉彩闪光 + 贴纸便签', vibeLine: '柔和、温暖、闪闪发光。', cta: '发送便签 ✨' },
+      nature: { label: '自然', desc: '户外草地 + 手帐纸感', vibeLine: '清新、扎实、自然开阔。', cta: '释放想法 🍃' },
+      spooky: { label: '诡秘', desc: '烛光薄雾 + 旧纸信笺', vibeLine: '安静、微诡、烛光氛围。', cta: '向圆桌低语 🕯️' },
+      cyber: { label: '赛博夜色', desc: '霓虹雨幕 + 全息面板', vibeLine: '霓虹、未来、科技感。', cta: '发送信号 ▣' },
+      library: { label: '书房', desc: '暖灯书桌 + 笔记本', vibeLine: '暖光、专注、沉静思考。', cta: '翻开章节 📚' }
+    };
+    return zhMap[style];
+  };
+
+  const localizedSceneName = (style: SceneStyle) => localizedSceneText(style).label;
+
+  const generateMentorFollowup = (_mentorName: string, userText: string) => {
     const excerpt = userText.slice(0, 56).trim();
-    return `收到你的补充（“${excerpt}${userText.length > 56 ? '...' : ''}”）。我会先给你一个最小可执行动作，你做完后我们再迭代下一步。`;
+    if (getOutputLanguage(userText) === 'zh-CN') {
+      return `收到你的补充（“${excerpt}${userText.length > 56 ? '...' : ''}”）。我会先给你一个最小可执行动作，你做完后我们再迭代下一步。`;
+    }
+    return `I got your follow-up (“${excerpt}${userText.length > 56 ? '...' : ''}”). I would start with one smallest executable step, then iterate with you from there.`;
+  };
+
+  const mentorThreadKey = (rawName: string) => normalizeMentorKey(resolveMentorName(rawName));
+
+  const buildConversationHistory = (latestUserText?: string): MentorConversationMessage[] => {
+    const history: MentorConversationMessage[] = [];
+    const baseProblem = problem.trim();
+    if (baseProblem) {
+      history.push({
+        role: 'user',
+        speaker: t.you,
+        text: baseProblem
+      });
+    }
+
+    for (const reply of visibleReplies) {
+      const mentorName = localizeName(resolveMentorName(reply.mentorName));
+      history.push({
+        role: 'mentor',
+        speaker: mentorName,
+        text: `${reply.likelyResponse} ${reply.oneActionStep}`.trim()
+      });
+    }
+
+    for (const turn of conversationTurns) {
+      if (turn.user?.trim()) {
+        history.push({
+          role: 'user',
+          speaker: t.you,
+          text: turn.user.trim()
+        });
+      }
+      for (const reply of turn.replies || []) {
+        if (!reply?.text?.trim()) continue;
+        history.push({
+          role: 'mentor',
+          speaker: localizeName(reply.mentorName || 'Mentor'),
+          text: reply.text.trim()
+        });
+      }
+    }
+
+    for (const mentor of selectedMentors) {
+      const key = mentorThreadKey(mentor.displayName);
+      const notes = noteReplies[key] || [];
+      const speakerName = localizeName(resolveMentorName(mentor.displayName));
+      for (const note of notes) {
+        if (!note?.text?.trim()) continue;
+        history.push({
+          role: note.role === 'user' ? 'user' : 'mentor',
+          speaker: note.role === 'user' ? t.you : speakerName,
+          text: note.text.trim()
+        });
+      }
+    }
+
+    if (latestUserText?.trim()) {
+      history.push({
+        role: 'user',
+        speaker: t.you,
+        text: latestUserText.trim()
+      });
+    }
+
+    return history;
+  };
+
+  const submitNoteToMentor = async (rawName: string) => {
+    const threadKey = mentorThreadKey(rawName);
+    const mentorName = localizeName(resolveMentorName(rawName));
+    const targetKey = normalizeMentorKey(rawName);
+    const text = (noteDrafts[threadKey] || '').trim();
+    if (!text) return;
+    if (isRoundGenerating) return;
+
+    setIsRoundGenerating(true);
+    let mentorReply = generateMentorFollowup(mentorName, text);
+    const targetMentor = selectedMentors.find((mentor) => {
+      return normalizeMentorKey(mentor.displayName) === targetKey || normalizeMentorKey(mentor.id) === targetKey;
+    });
+    const coordinatedMentorSet =
+      COORDINATE_PASS_NOTE_WITH_ALL && selectedMentors.length > 1
+        ? selectedMentors
+        : targetMentor
+          ? [targetMentor]
+          : selectedMentors.slice(0, 1);
+
+    try {
+      const aiResult = await generateMentorAdvice({
+        problem: text,
+        language: getOutputLanguage(text),
+        mentors: coordinatedMentorSet,
+        conversationHistory: buildConversationHistory(text)
+      });
+
+      const targetMentorIdKey = targetMentor ? normalizeMentorKey(targetMentor.id) : '';
+      const targetMentorNameKey = targetMentor ? normalizeMentorKey(targetMentor.displayName) : targetKey;
+      const aiReply =
+        aiResult.mentorReplies.find((reply) => targetMentorIdKey && normalizeMentorKey(reply.mentorId) === targetMentorIdKey) ||
+        aiResult.mentorReplies.find((reply) => normalizeMentorKey(reply.mentorName) === targetMentorNameKey) ||
+        aiResult.mentorReplies.find((reply) => normalizeMentorKey(reply.mentorName) === targetKey) ||
+        aiResult.mentorReplies[0];
+      if (aiReply?.likelyResponse) {
+        mentorReply = aiReply.likelyResponse;
+      }
+    } finally {
+      setIsRoundGenerating(false);
+    }
+
+    setNoteReplies((prev) => ({
+      ...prev,
+      [threadKey]: [
+        ...(prev[threadKey] || []),
+        { role: 'user', text },
+        { role: 'mentor', text: mentorReply }
+      ]
+    }));
+    setNoteDrafts((prev) => ({ ...prev, [threadKey]: '' }));
+    setOpenNoteFor(threadKey);
+    scrollConversationToBottom();
+  };
+
+  const handleReplyAll = async () => {
+    const text = replyAllDraft.trim();
+    if (!text || isRoundGenerating || selectedMentors.length === 0) return;
+
+    setIsRoundGenerating(true);
+    try {
+      const aiResult = await generateMentorAdvice({
+        problem: text,
+        language: getOutputLanguage(text),
+        mentors: selectedMentors,
+        conversationHistory: buildConversationHistory(text)
+      });
+
+      const replies = selectedMentors.map((mentor) => {
+        const matched =
+          aiResult.mentorReplies.find((reply) => normalizeMentorKey(reply.mentorId) === normalizeMentorKey(mentor.id)) ||
+          aiResult.mentorReplies.find((reply) => normalizeMentorKey(reply.mentorName) === normalizeMentorKey(mentor.displayName));
+        return {
+          mentorName: mentor.displayName,
+          text: matched?.likelyResponse || generateMentorFollowup(mentor.displayName, text)
+        };
+      });
+
+      setConversationTurns((prev) => [
+        ...prev,
+        {
+          id: `${Date.now()}-${prev.length}`,
+          user: text,
+          replies
+        }
+      ]);
+      setReplyAllDraft('');
+      scrollConversationToBottom();
+    } finally {
+      setIsRoundGenerating(false);
+    }
   };
 
   const scrollConversationToBottom = () => {
@@ -207,25 +529,6 @@ const MentorTablePage: React.FC = () => {
       node.scrollTop = node.scrollHeight;
     });
   };
-
-  useEffect(() => {
-    const run = async () => {
-      const enriched = await Promise.all(
-        defaultPeople.map(async (person) => ({
-          ...person,
-          imageUrl: (await fetchPersonImage(person.name)) || person.imageUrl
-        }))
-      );
-      setSelectedPeople((prev) => {
-        if (prev.length !== defaultPeople.length) return prev;
-        const prevNames = prev.map((p) => p.name).join('|');
-        const defaultNames = defaultPeople.map((p) => p.name).join('|');
-        if (prevNames !== defaultNames) return prev;
-        return enriched;
-      });
-    };
-    run();
-  }, []);
 
   useEffect(() => {
     const query = personQuery.trim();
@@ -282,6 +585,15 @@ const MentorTablePage: React.FC = () => {
     scrollConversationToBottom();
   }, [phase, sessionMode, visibleReplyCount, noteReplies, conversationTurns, showGroupSolve, showSessionWrap]);
 
+  useEffect(() => {
+    if (!expandedReplyId) return;
+    const replyList = (result?.mentorReplies || []).slice(0, visibleReplyCount);
+    const stillVisible = replyList.some((reply) => reply.mentorId === expandedReplyId);
+    if (!stillVisible) {
+      setExpandedReplyId('');
+    }
+  }, [expandedReplyId, result?.mentorReplies, visibleReplyCount]);
+
   const normalizeMentorKey = (value: string) => value.trim().toLowerCase().replace(/\s+/g, '_');
 
   const resolveMentorName = (rawName: string): string => {
@@ -298,9 +610,13 @@ const MentorTablePage: React.FC = () => {
     const resolvedName = resolveMentorName(rawName);
     const key = normalizeMentorKey(rawName);
     const match = selectedPeople.find(
-      (p) => normalizeMentorKey(p.name) === key || normalizeMentorKey(p.name) === normalizeMentorKey(resolvedName)
+      (p) =>
+        normalizeMentorKey(p.name) === key ||
+        normalizeMentorKey(p.name) === normalizeMentorKey(resolvedName) ||
+        normalizeMentorKey(localizeName(p.name)) === key ||
+        normalizeMentorKey(localizeName(p.name)) === normalizeMentorKey(resolvedName)
     );
-    return match?.imageUrl || DEFAULT_PLACEHOLDER_AVATAR;
+    return imageSrcFor(resolvedName, match?.imageUrl, match?.candidateImageUrls);
   };
 
   const addPerson = async (person: PersonOption | string) => {
@@ -309,20 +625,25 @@ const MentorTablePage: React.FC = () => {
     if (!trimmed) return;
 
     const initialImage = typeof person === 'string' ? undefined : person.imageUrl;
+    const initialCandidates = typeof person === 'string' ? undefined : person.candidateImageUrls;
     setSelectedPeople((prev) => {
       if (prev.some((p) => p.name.toLowerCase() === trimmed.toLowerCase())) return prev;
       if (prev.length >= MAX_PEOPLE) return prev;
-      return [...prev, { name: trimmed, imageUrl: initialImage }];
+      return [...prev, { name: trimmed, imageUrl: initialImage, candidateImageUrls: initialCandidates }];
     });
     setLastSummonedName(trimmed);
     window.setTimeout(() => setLastSummonedName(''), 1800);
     setPersonQuery('');
 
     if (!initialImage) {
-      const fetchedImage = await fetchPersonImage(trimmed);
-      if (fetchedImage) {
+      const [fetchedImage, fetchedCandidates] = await Promise.all([fetchPersonImage(trimmed), fetchPersonImageCandidates(trimmed)]);
+      if (fetchedImage || fetchedCandidates) {
         setSelectedPeople((prev) =>
-          prev.map((p) => (p.name.toLowerCase() === trimmed.toLowerCase() ? { ...p, imageUrl: fetchedImage } : p))
+          prev.map((p) =>
+            p.name.toLowerCase() === trimmed.toLowerCase()
+              ? { ...p, imageUrl: fetchedImage || p.imageUrl, candidateImageUrls: fetchedCandidates || p.candidateImageUrls }
+              : p
+          )
         );
       }
     }
@@ -346,13 +667,13 @@ const MentorTablePage: React.FC = () => {
   const finishOnboarding = () => {
     setShowOnboarding(false);
     if (typeof window !== 'undefined') {
-      localStorage.setItem(ONBOARDING_KEY, '1');
+      localStorage.setItem(ONBOARDING_KEY, dontShowOnboardingAgain ? '1' : '0');
     }
   };
 
   const handleGenerate = async () => {
     if (!problem.trim() || selectedMentors.length === 0) return;
-    const language = i18n.language?.toLowerCase().startsWith('zh') ? 'zh-CN' : 'en';
+    const language = getOutputLanguage(problem.trim());
 
     setIsGenerating(true);
     setPhase('session');
@@ -365,6 +686,12 @@ const MentorTablePage: React.FC = () => {
     setOpenNoteFor('');
     setNoteDrafts({});
     setNoteReplies({});
+    setExpandedReplyId('');
+    setOpenDebugMentorId('');
+    setHoveredDebugMentorId('');
+    setDebugPromptByMentorId({});
+    setDebugPromptLoadingByMentorId({});
+    setDebugPromptErrorByMentorId({});
 
     const bootTimer = window.setTimeout(() => {
       setSessionMode('live');
@@ -374,7 +701,8 @@ const MentorTablePage: React.FC = () => {
       const aiResult = await generateMentorAdvice({
         problem: problem.trim(),
         language,
-        mentors: selectedMentors
+        mentors: selectedMentors,
+        conversationHistory: buildConversationHistory(problem.trim())
       });
       setResult(aiResult);
       setActiveResultIndex(0);
@@ -387,10 +715,11 @@ const MentorTablePage: React.FC = () => {
   };
 
   const takeSnapshotMemory = () => {
-    const takeaways = result?.mentorReplies?.slice(0, 3).map((r) => r.oneActionStep) || [problem || 'Session snapshot'];
+    const takeaways =
+      result?.mentorReplies?.slice(0, 3).map((r) => r.oneActionStep) || [problem || (isZh ? '会话快照' : 'Session snapshot')];
     const memory: MemoryCard = {
       id: `${Date.now()}`,
-      title: 'Polaroid Snapshot',
+      title: isZh ? '拍立得快照' : 'Polaroid Snapshot',
       style: scene,
       createdAt: new Date().toLocaleString(),
       takeaways
@@ -399,16 +728,21 @@ const MentorTablePage: React.FC = () => {
     setMemoryDrawerOpen(true);
   };
 
-  const seatStyle = (index: number, total: number) => {
-    if (total <= 1) return { left: '50%', top: '26%' };
-    const angleStart = 210;
-    const angleEnd = -30;
+  const seatPoint = (index: number, total: number) => {
+    if (total <= 1) return { x: 50, y: 34 };
+    const angleStart = 200;
+    const angleEnd = 340;
     const angle = angleStart + ((angleEnd - angleStart) * index) / Math.max(total - 1, 1);
     const rad = (angle * Math.PI) / 180;
-    const rX = total > 6 ? 40 : 34;
-    const rY = total > 6 ? 24 : 20;
+    const rX = total > 6 ? 42 : 38;
+    const rY = total > 6 ? 13 : 11;
     const x = 50 + rX * Math.cos(rad);
-    const y = 56 + rY * Math.sin(rad);
+    const y = 48 + rY * Math.sin(rad);
+    return { x, y };
+  };
+
+  const seatStyle = (index: number, total: number) => {
+    const { x, y } = seatPoint(index, total);
     return { left: `${x}%`, top: `${y}%` };
   };
 
@@ -417,20 +751,46 @@ const MentorTablePage: React.FC = () => {
     return result?.mentorReplies.find((reply) => normalizeMentorKey(reply.mentorName) === key);
   };
 
+  const previewPlacement = (index: number, total: number): { className: string; style: React.CSSProperties } => {
+    if (total <= 1) {
+      return {
+        className: styles.mentorReplyPreviewCenter,
+        style: { top: 'calc(100% + 12px)' }
+      };
+    }
+    const mid = (total - 1) / 2;
+    if (Math.abs(index - mid) < 0.45) {
+      return {
+        className: styles.mentorReplyPreviewCenter,
+        style: { top: 'calc(100% + 12px)' }
+      };
+    }
+    return index < mid
+      ? {
+          className: styles.mentorReplyPreviewRight,
+          style: { top: `calc(50% + ${index % 2 === 0 ? -10 : 10}px)` }
+        }
+      : {
+          className: styles.mentorReplyPreviewLeft,
+          style: { top: `calc(50% + ${index % 2 === 0 ? -10 : 10}px)` }
+        };
+  };
+
   const activeReply = result?.mentorReplies?.[activeResultIndex];
-  const activeReplyName = resolveMentorName(activeReply?.mentorName || '');
+  const activeReplyName = localizeName(resolveMentorName(activeReply?.mentorName || ''));
   const visibleReplies = (result?.mentorReplies || []).slice(0, visibleReplyCount);
   const pendingReply = result?.mentorReplies?.[visibleReplyCount] || null;
-  const pendingMentorName = pendingReply ? resolveMentorName(pendingReply.mentorName) : '';
+  const pendingMentorName = pendingReply ? localizeName(resolveMentorName(pendingReply.mentorName)) : '';
 
   const sessionComplete = Boolean(
     result?.mentorReplies?.length && visibleReplyCount >= result.mentorReplies.length && sessionMode === 'live'
   );
+  const expandedReply = visibleReplies.find((reply) => reply.mentorId === expandedReplyId) || null;
 
   const groupSolveText = useMemo(() => {
     if (!result?.mentorReplies?.length) return '';
     const lines = result.mentorReplies.slice(0, 4).map((reply) => {
-      const name = resolveMentorName(reply.mentorName);
+      const name = localizeName(resolveMentorName(reply.mentorName));
       return `${name}: ${reply.oneActionStep}`;
     });
     return lines.join(' | ');
@@ -444,17 +804,82 @@ const MentorTablePage: React.FC = () => {
     return `${compact.slice(0, 157)}...`;
   }, [result?.meta.debugMessage]);
 
-  const saveTakeawayMemory = () => {
+  const openDebugMentor = selectedMentors.find((mentor) => mentor.id === openDebugMentorId) || null;
+  const openDebugMentorDisplayName = openDebugMentor ? localizeName(openDebugMentor.displayName) : '';
+  const openDebugPromptText = openDebugMentor ? debugPromptByMentorId[openDebugMentor.id] || '' : '';
+  const openDebugPromptLoading = openDebugMentor ? Boolean(debugPromptLoadingByMentorId[openDebugMentor.id]) : false;
+  const openDebugPromptError = openDebugMentor ? debugPromptErrorByMentorId[openDebugMentor.id] || '' : '';
+
+  useEffect(() => {
+    if (!openDebugMentorId && !hoveredDebugMentorId) return;
+    const validMentorIds = new Set(selectedMentors.map((mentor) => mentor.id));
+    if (openDebugMentorId && !validMentorIds.has(openDebugMentorId)) {
+      setOpenDebugMentorId('');
+    }
+    if (hoveredDebugMentorId && !validMentorIds.has(hoveredDebugMentorId)) {
+      setHoveredDebugMentorId('');
+    }
+  }, [openDebugMentorId, hoveredDebugMentorId, selectedMentors]);
+
+  useEffect(() => {
+    if (!openDebugMentorId) return;
+    const mentor = selectedMentors.find((item) => item.id === openDebugMentorId);
+    if (!mentor) return;
+    if (debugPromptByMentorId[mentor.id]) return;
+    if (debugPromptLoadingByMentorId[mentor.id]) return;
+
+    let cancelled = false;
+    setDebugPromptLoadingByMentorId((prev) => ({ ...prev, [mentor.id]: true }));
+    setDebugPromptErrorByMentorId((prev) => ({ ...prev, [mentor.id]: '' }));
+
+    fetchMentorDebugPrompt({
+      mentor,
+      language: uiLanguage
+    })
+      .then((prompt) => {
+        if (cancelled) return;
+        setDebugPromptByMentorId((prev) => ({ ...prev, [mentor.id]: prompt }));
+      })
+      .catch((error) => {
+        if (cancelled) return;
+        const message = error instanceof Error ? error.message : String(error);
+        setDebugPromptErrorByMentorId((prev) => ({ ...prev, [mentor.id]: message }));
+      })
+      .finally(() => {
+        if (cancelled) return;
+        setDebugPromptLoadingByMentorId((prev) => ({ ...prev, [mentor.id]: false }));
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [openDebugMentorId, selectedMentors, uiLanguage]);
+
+  const saveTakeawayMemory = (goHomeAfterSave = false) => {
     if (!result?.mentorReplies?.length) return;
     const takeaways = result.mentorReplies.slice(0, 3).map((reply) => reply.oneActionStep);
     const memory: MemoryCard = {
       id: `${Date.now()}`,
-      title: 'Tonight\'s takeaway',
+      title: isZh ? '今晚总结' : 'Tonight\'s takeaway',
       style: scene,
       createdAt: new Date().toLocaleString(),
       takeaways
     };
     setMemories((prev) => [memory, ...prev]);
+    if (goHomeAfterSave) {
+      setShowSessionWrap(false);
+      setResult(null);
+      setPhase('invite');
+      setSessionMode('idle');
+      setVisibleReplyCount(0);
+      setShowGroupSolve(false);
+      setConversationTurns([]);
+      setReplyAllDraft('');
+      setExpandedReplyId('');
+      setOpenDebugMentorId('');
+      navigate('/');
+      return;
+    }
     setMemoryDrawerOpen(true);
   };
 
@@ -482,11 +907,36 @@ const MentorTablePage: React.FC = () => {
   }[scene];
 
   const phaseTitles: Array<{ id: RitualPhase; label: string }> = [
-    { id: 'invite', label: 'Summon Guests' },
-    { id: 'scene', label: 'Portal Picker' },
-    { id: 'wish', label: 'Place Artifact' },
-    { id: 'session', label: 'Open Circle' }
+    { id: 'invite', label: t.summonGuests },
+    { id: 'scene', label: t.portalPicker },
+    { id: 'wish', label: t.placeArtifact },
+    { id: 'session', label: t.openCircle }
   ];
+
+  const localizedOnboardingSlides = isZh
+    ? onboardingSlides
+    : [
+        {
+          title: 'What This Feature Does',
+          body: 'Choose who to consult, describe your problem, and receive individual advice.'
+        },
+        {
+          title: 'Supported Targets',
+          body: 'You can add celebrities, MBTI types (e.g., INTJ), cartoon characters, game characters, and movie characters.'
+        },
+        {
+          title: 'How to Use',
+          body: 'Steps: Pick targets → Pick a scene → Enter your problem → Start the session.'
+        },
+        {
+          title: 'Replies and Notes',
+          body: 'You can reply to one target or all targets. Save key takeaways in the memory drawer.'
+        },
+        {
+          title: 'Instruction Display Setting',
+          body: 'At the end, choose whether this instruction should appear the next time.'
+        }
+      ];
 
   return (
     <Layout>
@@ -498,8 +948,8 @@ const MentorTablePage: React.FC = () => {
           <div className={styles.vignette} />
 
           <div className={styles.heroBar}>
-            <h1>名人桌 · Summoning Room</h1>
-            <p>Not a page. A stage.</p>
+            <h1>{t.heroTitle}</h1>
+            <p>{t.heroSub}</p>
           </div>
 
           <div className={styles.topBar}>
@@ -513,6 +963,9 @@ const MentorTablePage: React.FC = () => {
                       setPhase(p.id);
                       setResult(null);
                       setSessionMode('idle');
+                      setExpandedReplyId('');
+                      setOpenDebugMentorId('');
+                      setHoveredDebugMentorId('');
                     }
                   }}
                   className={`${styles.phasePill} ${idx <= ritualStep ? styles.phasePillDone : ''}`}
@@ -522,12 +975,23 @@ const MentorTablePage: React.FC = () => {
               ))}
             </div>
             <div className={styles.topBarActions}>
-              <div className={styles.guestCount}>Guests: {selectedPeople.length}</div>
-              <button type="button" className={styles.ghostBtn} onClick={() => setPhase('invite')}>Edit</button>
-              <button type="button" className={styles.ghostBtn} onClick={shuffleSeating}><FontAwesomeIcon icon={faShuffle} /> Shuffle</button>
-              <button type="button" className={styles.ghostBtn} onClick={takeSnapshotMemory}><FontAwesomeIcon icon={faCamera} /> Polaroid</button>
+              <div className={styles.guestCount}>{isZh ? '人物数' : 'Guests'}: {selectedPeople.length}</div>
+              <button
+                type="button"
+                className={styles.ghostBtn}
+                onClick={() => {
+                  setPhase('invite');
+                  setExpandedReplyId('');
+                  setOpenDebugMentorId('');
+                  setHoveredDebugMentorId('');
+                }}
+              >
+                {t.edit}
+              </button>
+              <button type="button" className={styles.ghostBtn} onClick={shuffleSeating}><FontAwesomeIcon icon={faShuffle} /> {t.shuffle}</button>
+              <button type="button" className={styles.ghostBtn} onClick={takeSnapshotMemory}><FontAwesomeIcon icon={faCamera} /> {t.polaroid}</button>
               <button type="button" className={styles.ghostBtn} onClick={() => setSoundOn((v) => !v)}>
-                <FontAwesomeIcon icon={soundOn ? faVolumeHigh : faVolumeXmark} /> {soundOn ? 'Sound On' : 'Sound Off'}
+                <FontAwesomeIcon icon={soundOn ? faVolumeHigh : faVolumeXmark} /> {soundOn ? t.soundOn : t.soundOff}
               </button>
               <button
                 type="button"
@@ -541,9 +1005,12 @@ const MentorTablePage: React.FC = () => {
                   setShowGroupSolve(false);
                   setConversationTurns([]);
                   setReplyAllDraft('');
+                  setExpandedReplyId('');
+                  setOpenDebugMentorId('');
+                  setHoveredDebugMentorId('');
                 }}
               >
-                <FontAwesomeIcon icon={faRotate} /> Restart
+                <FontAwesomeIcon icon={faRotate} /> {t.restart}
               </button>
             </div>
           </div>
@@ -552,7 +1019,7 @@ const MentorTablePage: React.FC = () => {
             <aside className={styles.panel}>
               {phase === 'invite' && (
                 <div className={styles.block}>
-                  <h2><FontAwesomeIcon icon={faUsers} /> Summoning Ritual</h2>
+                  <h2><FontAwesomeIcon icon={faUsers} /> {t.summoningRitual}</h2>
                   <div className={styles.searchBox}>
                     <FontAwesomeIcon icon={faMagnifyingGlass} className={styles.searchIcon} />
                     <input
@@ -564,7 +1031,7 @@ const MentorTablePage: React.FC = () => {
                           addPerson(personQuery);
                         }
                       }}
-                      placeholder="Invite someone you admire"
+                      placeholder={t.invitePlaceholder}
                       className={styles.personInput}
                     />
                     <button type="button" className={styles.addBtn} onClick={() => addPerson(personQuery)}>
@@ -574,11 +1041,16 @@ const MentorTablePage: React.FC = () => {
 
                   {personQuery.trim() && (
                     <div className={styles.suggestionMenu}>
-                      {isSearching && <div className={styles.searchingRow}>Searching...</div>}
+                      {isSearching && <div className={styles.searchingRow}>{isZh ? '搜索中...' : 'Searching...'}</div>}
                       {!isSearching && suggestions.map((s) => (
                         <button type="button" key={s.name} className={styles.suggestionItem} onClick={() => addPerson(s)}>
-                          <img src={s.imageUrl || DEFAULT_PLACEHOLDER_AVATAR} alt={s.name} className={styles.suggestionAvatar} />
-                          <span>{s.name}</span>
+                          <img
+                            src={imageSrcFor(s.name, s.imageUrl, s.candidateImageUrls)}
+                            alt={s.name}
+                            className={styles.suggestionAvatar}
+                            onError={() => markImageBroken(s.name, s.candidateImageUrls)}
+                          />
+                          <span>{localizeName(s.name)}</span>
                         </button>
                       ))}
                     </div>
@@ -596,17 +1068,26 @@ const MentorTablePage: React.FC = () => {
                           style={{ animationDelay: `${idx * 70}ms` }}
                         >
                           <div className={`${styles.summonRing} ${styles[`summon${category[0].toUpperCase()}${category.slice(1)}`]}`} />
-                          <img src={person.imageUrl || DEFAULT_PLACEHOLDER_AVATAR} alt={person.name} className={styles.guestAvatar} />
+                          <img
+                            src={imageSrcFor(person.name, person.imageUrl, person.candidateImageUrls)}
+                            alt={person.name}
+                            className={styles.guestAvatar}
+                            onError={() => markImageBroken(person.name, person.candidateImageUrls)}
+                          />
                           <div className={styles.guestMeta}>
-                            <strong>{person.name}</strong>
-                            <span>{flipped ? `${vibeTags[idx % vibeTags.length]} · “keep going”` : vibeTags[idx % vibeTags.length]}</span>
+                            <strong>{localizeName(person.name)}</strong>
+                            <span>
+                              {flipped
+                                ? `${localizedVibeTags[idx % localizedVibeTags.length]} · “${t.keepGoing}”`
+                                : localizedVibeTags[idx % localizedVibeTags.length]}
+                            </span>
                           </div>
                           <button
                             type="button"
                             className={styles.flipMiniBtn}
                             onClick={() => setFlippedCards((prev) => ({ ...prev, [person.name]: !prev[person.name] }))}
                           >
-                            flip
+                            {t.flip}
                           </button>
                           <button type="button" className={styles.removeGuestBtn} onClick={() => removePerson(person.name)}>
                             <FontAwesomeIcon icon={faXmark} />
@@ -617,48 +1098,48 @@ const MentorTablePage: React.FC = () => {
                   </div>
 
                   <button type="button" className={styles.primaryCta} onClick={() => setPhase('scene')}>
-                    Continue to Portal
+                    {t.continueToPortal}
                   </button>
                 </div>
               )}
 
               {phase === 'scene' && (
                 <div className={styles.block}>
-                  <h2><FontAwesomeIcon icon={faWandMagicSparkles} /> Portal Picker</h2>
+                  <h2><FontAwesomeIcon icon={faWandMagicSparkles} /> {t.portalPicker}</h2>
                   <div className={styles.portalPicker}>
                     <button type="button" className={styles.portalNav} onClick={goPrevStyle}><FontAwesomeIcon icon={faChevronLeft} /></button>
                     <div className={styles.portalCenter}>
-                      <div className={styles.portalMain}>{currentScene.label}</div>
-                      <p>{currentScene.desc}</p>
-                      <em>{currentScene.vibeLine}</em>
+                      <div className={styles.portalMain}>{localizedSceneText(scene).label}</div>
+                      <p>{localizedSceneText(scene).desc}</p>
+                      <em>{localizedSceneText(scene).vibeLine}</em>
                     </div>
                     <button type="button" className={styles.portalNav} onClick={goNextStyle}><FontAwesomeIcon icon={faChevronRight} /></button>
                   </div>
 
                   <div className={styles.portalPeekRow}>
-                    <span>{sceneOptions[(sceneIndex - 1 + sceneOptions.length) % sceneOptions.length].label}</span>
-                    <span>{sceneOptions[(sceneIndex + 1) % sceneOptions.length].label}</span>
+                    <span>{localizedSceneText(sceneOptions[(sceneIndex - 1 + sceneOptions.length) % sceneOptions.length].id).label}</span>
+                    <span>{localizedSceneText(sceneOptions[(sceneIndex + 1) % sceneOptions.length].id).label}</span>
                   </div>
 
                   <button type="button" className={styles.ghostBtn} onClick={randomStyle}>
-                    <FontAwesomeIcon icon={faDice} /> Random vibe
+                    <FontAwesomeIcon icon={faDice} /> {t.randomVibe}
                   </button>
 
                   <button type="button" className={styles.primaryCta} onClick={() => setPhase('wish')}>
-                    Lock this World
+                    {t.lockWorld}
                   </button>
                 </div>
               )}
 
               {phase === 'wish' && (
                 <div className={styles.block}>
-                  <h2><FontAwesomeIcon icon={faBookOpen} /> Place Your Artifact</h2>
+                  <h2><FontAwesomeIcon icon={faBookOpen} /> {t.placeArtifact}</h2>
                   <div className={`${styles.artifactInput} ${styles[`artifact${scene[0].toUpperCase()}${scene.slice(1)}`]}`}>
                     <textarea
                       className={styles.problemInput}
                       value={problem}
                       onChange={(e) => setProblem(e.target.value)}
-                      placeholder="Write what’s weighing on you. The table will listen."
+                      placeholder={t.artifactPlaceholder}
                       rows={7}
                     />
                   </div>
@@ -668,16 +1149,226 @@ const MentorTablePage: React.FC = () => {
                     disabled={isGenerating || !problem.trim() || selectedMentors.length === 0}
                     onClick={handleGenerate}
                   >
-                    <FontAwesomeIcon icon={faLightbulb} /> {isGenerating ? 'Opening portal...' : currentScene.cta}
+                    <FontAwesomeIcon icon={faLightbulb} /> {isGenerating ? t.openingPortal : localizedSceneText(scene).cta}
                   </button>
                 </div>
               )}
 
               {phase === 'session' && (
-                <div className={styles.disclaimer}>
-                  <div className={styles.disclaimerLine}><FontAwesomeIcon icon={faCircleInfo} /> {result?.meta.disclaimer || 'Session in progress.'}</div>
-                  <div className={styles.sourceTag}>Source: {result?.meta.source === 'llm' ? 'LLM API' : 'Local Fallback'}</div>
-                  {debugHintText && <div className={styles.debugHint}>Fallback reason: {debugHintText}</div>}
+                <div className={styles.sessionSidebarStack}>
+                  <div className={styles.disclaimer}>
+                    <div className={styles.disclaimerLine}><FontAwesomeIcon icon={faCircleInfo} /> {result?.meta.disclaimer || t.sessionInProgress}</div>
+                    <div className={styles.sourceTag}>{t.source}: {result?.meta.source === 'llm' ? t.llmApi : t.localFallback}</div>
+                    {debugHintText && <div className={styles.debugHint}>{t.fallbackReason}: {debugHintText}</div>}
+                  </div>
+
+                  <div className={styles.sessionChatHeader}>
+                    <span>{t.chatWindow}</span>
+                    {expandedReply && (
+                      <button type="button" className={styles.chatBackBtn} onClick={() => setExpandedReplyId('')}>
+                        <FontAwesomeIcon icon={faChevronLeft} /> {t.backToTable}
+                      </button>
+                    )}
+                  </div>
+
+                  <div
+                    ref={conversationPanelRef}
+                    className={styles.conversationPanel}
+                    onMouseEnter={() => setIsConversationHovered(true)}
+                    onMouseLeave={() => setIsConversationHovered(false)}
+                  >
+                    <div className={styles.conversationHint}>{t.hoverPause}</div>
+
+                    {sessionMode !== 'live' && (
+                      <div className={styles.conversationRowLeft}>
+                        <article className={`${styles.conversationBubble} ${styles.conversationLoading}`}>
+                          <header>{t.sessionInProgress}</header>
+                          <p>{t.typing}</p>
+                        </article>
+                      </div>
+                    )}
+
+                    {sessionMode === 'live' && (
+                      <>
+                        <div className={styles.conversationRowRight}>
+                          <article className={`${styles.conversationBubble} ${styles.conversationRightBubble}`}>
+                            <header>{t.you}</header>
+                            <p>{problem.trim() || '...'}</p>
+                          </article>
+                        </div>
+
+                        {visibleReplies.map((reply) => {
+                          const mentorName = localizeName(resolveMentorName(reply.mentorName));
+                          const threadKey = mentorThreadKey(reply.mentorName);
+                          const notes = noteReplies[threadKey] || [];
+                          return (
+                            <div key={`${mentorName}-${reply.mentorId}`} className={styles.conversationRowLeft}>
+                              <article className={`${styles.conversationBubble} ${styles.conversationLeftBubble} ${styleClassForCard(scene)}`}>
+                                <header>{mentorName}</header>
+                                <p>{reply.likelyResponse}</p>
+                                <footer>{isZh ? '下一步：' : 'Next move: '} {reply.oneActionStep}</footer>
+                                <button
+                                  type="button"
+                                  className={styles.passNoteBtn}
+                                  onClick={() => setOpenNoteFor((prev) => (prev === threadKey ? '' : threadKey))}
+                                >
+                                  {t.passNoteTo} {mentorName}
+                                </button>
+                                {openNoteFor === threadKey && (
+                                  <div className={styles.inlineNoteBox}>
+                                    <textarea
+                                      value={noteDrafts[threadKey] || ''}
+                                      onChange={(e) =>
+                                        setNoteDrafts((prev) => ({ ...prev, [threadKey]: e.target.value }))
+                                      }
+                                      placeholder={`${t.replyTo} ${mentorName}...`}
+                                      rows={2}
+                                    />
+                                    <div className={styles.inlineNoteActions}>
+                                      <button
+                                        type="button"
+                                        className={styles.ghostBtn}
+                                        disabled={isRoundGenerating}
+                                        onClick={() => submitNoteToMentor(reply.mentorName)}
+                                      >
+                                        {isRoundGenerating ? t.typing : t.send}
+                                      </button>
+                                    </div>
+                                  </div>
+                                )}
+                                {notes.map((note, idx) => (
+                                  <div key={`${threadKey}-note-${idx}`} className={styles.noteThread}>
+                                    {note.role === 'user' ? `${t.you}: ${note.text}` : `${mentorName}: ${note.text}`}
+                                  </div>
+                                ))}
+                              </article>
+                            </div>
+                          );
+                        })}
+
+                        {!sessionComplete && pendingMentorName && (
+                          <div className={styles.conversationRowLeft}>
+                            <article className={`${styles.conversationBubble} ${styles.conversationLoading}`}>
+                              <header>{pendingMentorName}</header>
+                              <p>{t.typing}</p>
+                            </article>
+                          </div>
+                        )}
+
+                        {isRoundGenerating && (
+                          <div className={styles.conversationRowLeft}>
+                            <article className={`${styles.conversationBubble} ${styles.conversationLoading}`}>
+                              <header>{isZh ? '导师们' : 'Mentors'}</header>
+                              <p>{t.typing}</p>
+                            </article>
+                          </div>
+                        )}
+
+                        {sessionComplete && (
+                          <div className={styles.groupActions}>
+                            <button
+                              type="button"
+                              className={styles.secondaryCta}
+                              onClick={() => setShowGroupSolve((v) => !v)}
+                            >
+                              {showGroupSolve ? t.hideGroup : t.showGroup}
+                            </button>
+                          </div>
+                        )}
+
+                        {sessionComplete && showGroupSolve && (
+                          <div className={styles.conversationRowLeft}>
+                            <article className={`${styles.conversationBubble} ${styles.groupSolveCard}`}>
+                              <header>{t.jointStrategy}</header>
+                              <p>{groupSolveText}</p>
+                            </article>
+                          </div>
+                        )}
+
+                        {sessionComplete && (
+                          <div className={styles.conversationRowRight}>
+                            <article className={`${styles.conversationBubble} ${styles.conversationRightBubble}`}>
+                              <header>{t.replyToAllHeader}</header>
+                              <textarea
+                                value={replyAllDraft}
+                                onChange={(e) => setReplyAllDraft(e.target.value)}
+                                placeholder={t.replyAllPlaceholder}
+                                rows={2}
+                              />
+                              <div className={styles.inlineNoteActions}>
+                                <button
+                                  type="button"
+                                  className={styles.ghostBtn}
+                                  disabled={isRoundGenerating}
+                                  onClick={handleReplyAll}
+                                >
+                                  {isRoundGenerating ? t.typing : t.sendToAll}
+                                </button>
+                              </div>
+                            </article>
+                          </div>
+                        )}
+
+                        {conversationTurns.map((turn) => (
+                          <div key={turn.id} className={styles.turnGroup}>
+                            <div className={styles.conversationRowRight}>
+                              <article className={`${styles.conversationBubble} ${styles.conversationRightBubble}`}>
+                                <header>{t.you}</header>
+                                <p>{turn.user}</p>
+                              </article>
+                            </div>
+                            {turn.replies.map((reply, idx) => (
+                              <div key={`${turn.id}-${reply.mentorName}-${idx}`} className={styles.conversationRowLeft}>
+                                <article className={`${styles.conversationBubble} ${styles.conversationLeftBubble} ${styleClassForCard(scene)}`}>
+                                  <header>{localizeName(reply.mentorName)}</header>
+                                  <p>{reply.text}</p>
+                                </article>
+                              </div>
+                            ))}
+                          </div>
+                        ))}
+
+                        {sessionComplete && !showSessionWrap && (
+                          <div className={styles.conversationRowRight}>
+                            <button type="button" className={styles.secondaryCta} onClick={() => setShowSessionWrap(true)}>
+                              {t.showWrap}
+                            </button>
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
+
+                  {sessionComplete && showSessionWrap && (
+                    <div className={styles.sessionWrap}>
+                      <h3>{t.sessionComplete}</h3>
+                      <p>{t.tonightTakeaway}</p>
+                      <ul>
+                        {(result?.mentorReplies || []).slice(0, 3).map((reply) => (
+                          <li key={reply.mentorName}>{reply.oneActionStep}</li>
+                        ))}
+                      </ul>
+                      <div className={styles.wrapActions}>
+                        <button type="button" className={styles.secondaryCta} onClick={() => saveTakeawayMemory(true)}>{t.save}</button>
+                        <button
+                          type="button"
+                          className={styles.secondaryCta}
+                          onClick={() => {
+                            setResult(null);
+                            setPhase('invite');
+                            setSessionMode('idle');
+                            setConversationTurns([]);
+                            setReplyAllDraft('');
+                            setExpandedReplyId('');
+                            setOpenDebugMentorId('');
+                            setHoveredDebugMentorId('');
+                          }}
+                        >
+                          {t.newTable}
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </aside>
@@ -726,14 +1417,16 @@ const MentorTablePage: React.FC = () => {
 
                 <div className={styles.userSeat}>
                   <div className={styles.userAvatar}><FontAwesomeIcon icon={faUser} /></div>
-                  <div className={styles.userLabel}>You · Front row</div>
-                  <p className={styles.userPrompt}>{problem.trim() || 'Place your concern artifact on the table.'}</p>
+                  <div className={styles.userLabel}>{t.youFrontRow}</div>
+                  <p className={styles.userPrompt}>{problem.trim() || t.concernHint}</p>
                 </div>
 
                 {selectedMentors.map((mentor: MentorProfile, index: number) => {
                   const person = selectedPeople[index];
-                  const displayName = person?.name || mentor.displayName;
+                  const displayName = localizeName(person?.name || mentor.displayName);
                   const reply = getReplyByMentorName(displayName) || getReplyByMentorName(mentor.displayName);
+                  const visibleReply = visibleReplies.find((item) => item.mentorId === reply?.mentorId);
+                  const preview = previewPlacement(index, selectedMentors.length);
                   const isSpeaker = activeReplyName === displayName && sessionMode === 'live';
                   const flipped = Boolean(flippedCards[displayName]);
                   const marker = scene === 'cute' ? '★' : scene === 'nature' ? '🍃' : scene === 'spooky' ? '✦' : scene === 'cyber' ? '▣' : '✎';
@@ -750,11 +1443,37 @@ const MentorTablePage: React.FC = () => {
                         className={`${styles.namePlate} ${isSpeaker ? styles.namePlateActive : ''}`}
                         onClick={() => setFlippedCards((prev) => ({ ...prev, [displayName]: !prev[displayName] }))}
                       >
-                        {flipped ? `${displayName} · ${vibeTags[index % vibeTags.length]}` : displayName}
+                        {flipped ? `${displayName} · ${localizedVibeTags[index % localizedVibeTags.length]}` : displayName}
                       </button>
-                      <button type="button" className={`${styles.mentorAvatar} ${isSpeaker ? styles.mentorAvatarActive : ''}`}>
-                        <img src={findImage(displayName)} alt={displayName} />
-                      </button>
+                      <div
+                        className={styles.mentorAvatarWrap}
+                        onMouseEnter={() => setHoveredDebugMentorId(mentor.id)}
+                        onMouseLeave={() => setHoveredDebugMentorId((prev) => (prev === mentor.id ? '' : prev))}
+                      >
+                        <button
+                          type="button"
+                          className={`${styles.mentorAvatar} ${isSpeaker ? styles.mentorAvatarActive : ''}`}
+                        >
+                          <img
+                            src={findImage(displayName)}
+                            alt={displayName}
+                            onError={() => markImageBroken(resolveMentorName(displayName), selectedPeople[index]?.candidateImageUrls)}
+                          />
+                        </button>
+                        {(hoveredDebugMentorId === mentor.id || openDebugMentorId === mentor.id) && (
+                          <button
+                            type="button"
+                            className={styles.debugIconBtn}
+                            title={t.inspectPrompt}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setOpenDebugMentorId((prev) => (prev === mentor.id ? '' : mentor.id));
+                            }}
+                          >
+                            <FontAwesomeIcon icon={faBug} />
+                          </button>
+                        )}
+                      </div>
                       <div className={styles.seatProp}>{marker}</div>
                       {phase !== 'session' && reply && (
                         <div className={`${styles.suggestionCard} ${styleClassForCard(scene)}`}>
@@ -762,9 +1481,109 @@ const MentorTablePage: React.FC = () => {
                           <p>{reply.likelyResponse}</p>
                         </div>
                       )}
+
+                      {phase === 'session' && sessionMode === 'live' && visibleReply && (
+                        <article
+                          className={`${styles.tableReplyCard} ${styles.mentorReplyPreview} ${preview.className} ${styleClassForCard(scene)} ${expandedReplyId === visibleReply.mentorId ? styles.tableReplyCardActive : ''}`}
+                          style={preview.style}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setExpandedReplyId(visibleReply.mentorId);
+                          }}
+                        >
+                          <header>{displayName}</header>
+                          <p>{visibleReply.likelyResponse}</p>
+                          <footer>{isZh ? '下一步：' : 'Next move: '} {visibleReply.oneActionStep}</footer>
+                          <span className={styles.replyExpandHint}>{t.clickToExpand}</span>
+                        </article>
+                      )}
                     </div>
                   );
                 })}
+
+                {phase === 'session' && sessionMode === 'live' && expandedReply && (
+                  <div
+                    className={styles.replyExpandOverlay}
+                    onClick={() => setExpandedReplyId('')}
+                  >
+                    <button
+                      type="button"
+                      className={styles.expandBackTopLeft}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setExpandedReplyId('');
+                      }}
+                    >
+                      <FontAwesomeIcon icon={faChevronLeft} /> {t.backToTable}
+                    </button>
+                    <article
+                      className={`${styles.replyExpandedCard} ${styleClassForCard(scene)}`}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {(() => {
+                        const mentorName = localizeName(resolveMentorName(expandedReply.mentorName));
+                        const threadKey = mentorThreadKey(expandedReply.mentorName);
+                        const notes = noteReplies[threadKey] || [];
+                        return (
+                          <>
+                            <header>{mentorName}</header>
+                            <p>{expandedReply.likelyResponse}</p>
+                            <footer>{isZh ? '下一步：' : 'Next move: '} {expandedReply.oneActionStep}</footer>
+                            <button
+                              type="button"
+                              className={styles.passNoteBtn}
+                              onClick={() => setOpenNoteFor((prev) => (prev === threadKey ? '' : threadKey))}
+                            >
+                              {t.passNoteTo} {mentorName}
+                            </button>
+                            {openNoteFor === threadKey && (
+                              <div className={styles.inlineNoteBox}>
+                                <textarea
+                                  value={noteDrafts[threadKey] || ''}
+                                  onChange={(e) =>
+                                    setNoteDrafts((prev) => ({ ...prev, [threadKey]: e.target.value }))
+                                  }
+                                  placeholder={`${t.replyTo} ${mentorName}...`}
+                                  rows={2}
+                                />
+                                <div className={styles.inlineNoteActions}>
+                                  <button
+                                    type="button"
+                                    className={styles.ghostBtn}
+                                    disabled={isRoundGenerating}
+                                    onClick={() => submitNoteToMentor(expandedReply.mentorName)}
+                                  >
+                                    {isRoundGenerating ? t.typing : t.send}
+                                  </button>
+                                </div>
+                              </div>
+                            )}
+                            {notes.map((note, idx) => (
+                              <div key={`${threadKey}-expanded-note-${idx}`} className={styles.noteThread}>
+                                {note.role === 'user' ? `${t.you}: ${note.text}` : `${mentorName}: ${note.text}`}
+                              </div>
+                            ))}
+                          </>
+                        );
+                      })()}
+                    </article>
+                  </div>
+                )}
+
+                {openDebugMentor && (
+                  <aside className={styles.debugPromptPanel}>
+                    <div className={styles.debugPromptHeader}>
+                      <strong>{t.debugPrompt}</strong>
+                      <span>{openDebugMentorDisplayName}</span>
+                    </div>
+                    <pre className={styles.debugPromptBody}>
+                      {openDebugPromptLoading ? t.loading : openDebugPromptText || openDebugPromptError || t.debugLoadFailed}
+                    </pre>
+                    <button type="button" className={styles.debugPromptCloseBtn} onClick={() => setOpenDebugMentorId('')}>
+                      {t.closeDebug}
+                    </button>
+                  </aside>
+                )}
               </div>
 
               {phase === 'session' && (
@@ -772,216 +1591,17 @@ const MentorTablePage: React.FC = () => {
                   {sessionMode === 'booting' && (
                     <div className={styles.bootSequence}>
                       <div className={styles.sessionBell}><FontAwesomeIcon icon={faBell} /></div>
-                      <div className={styles.bootLine}>The table is listening.</div>
+                      <div className={styles.bootLine}>{t.tableListening}</div>
                       <div className={styles.bootSteps}>
-                        <span>cloth pattern appears</span>
-                        <span>ambient particles activate</span>
-                        <span>guest cards glow</span>
+                        <span>{t.clothPattern}</span>
+                        <span>{t.ambientOn}</span>
+                        <span>{t.cardsGlow}</span>
                       </div>
                     </div>
                   )}
 
                   {sessionMode === 'live' && (
-                    <div
-                      ref={conversationPanelRef}
-                      className={styles.conversationPanel}
-                      onMouseEnter={() => setIsConversationHovered(true)}
-                      onMouseLeave={() => setIsConversationHovered(false)}
-                    >
-                      <div className={styles.conversationHint}>Hover to pause and read carefully.</div>
-                      <div className={styles.conversationRowRight}>
-                        <article className={`${styles.conversationBubble} ${styles.conversationRightBubble}`}>
-                          <header>You</header>
-                          <p>{problem.trim() || '...'}</p>
-                        </article>
-                      </div>
-
-                      {visibleReplies.map((reply) => {
-                        const mentorName = resolveMentorName(reply.mentorName);
-                        const notes = noteReplies[mentorName] || [];
-                        return (
-                          <div key={`${mentorName}-${reply.mentorId}`} className={styles.conversationRowLeft}>
-                            <article className={`${styles.conversationBubble} ${styles.conversationLeftBubble} ${styleClassForCard(scene)}`}>
-                              <header>{mentorName}</header>
-                              <p>{reply.likelyResponse}</p>
-                              <footer>Next move: {reply.oneActionStep}</footer>
-                              <button
-                                type="button"
-                                className={styles.passNoteBtn}
-                                onClick={() => setOpenNoteFor((prev) => (prev === mentorName ? '' : mentorName))}
-                              >
-                                Pass a note to {mentorName}
-                              </button>
-                              {openNoteFor === mentorName && (
-                                <div className={styles.inlineNoteBox}>
-                                  <textarea
-                                    value={noteDrafts[mentorName] || ''}
-                                    onChange={(e) =>
-                                      setNoteDrafts((prev) => ({ ...prev, [mentorName]: e.target.value }))
-                                    }
-                                    placeholder={`Reply to ${mentorName}...`}
-                                    rows={2}
-                                  />
-                                  <div className={styles.inlineNoteActions}>
-                                    <button
-                                      type="button"
-                                      className={styles.ghostBtn}
-                                      onClick={() => {
-                                        const text = (noteDrafts[mentorName] || '').trim();
-                                        if (!text) return;
-                                        const mentorReply = generateMentorFollowup(mentorName, text);
-                                        setNoteReplies((prev) => ({
-                                          ...prev,
-                                          [mentorName]: [
-                                            ...(prev[mentorName] || []),
-                                            { role: 'user', text },
-                                            { role: 'mentor', text: mentorReply }
-                                          ]
-                                        }));
-                                        setNoteDrafts((prev) => ({ ...prev, [mentorName]: '' }));
-                                        scrollConversationToBottom();
-                                      }}
-                                    >
-                                      Send
-                                    </button>
-                                  </div>
-                                </div>
-                              )}
-                              {notes.map((note, idx) => (
-                                <div key={`${mentorName}-note-${idx}`} className={styles.noteThread}>
-                                  {note.role === 'user' ? `You: ${note.text}` : `${mentorName}: ${note.text}`}
-                                </div>
-                              ))}
-                            </article>
-                          </div>
-                        );
-                      })}
-
-                      {!sessionComplete && pendingMentorName && (
-                        <div className={styles.conversationRowLeft}>
-                          <article className={`${styles.conversationBubble} ${styles.conversationLoading}`}>
-                            <header>{pendingMentorName}</header>
-                            <p>typing...</p>
-                          </article>
-                        </div>
-                      )}
-
-                      {sessionComplete && (
-                        <div className={styles.groupActions}>
-                          <button
-                            type="button"
-                            className={styles.secondaryCta}
-                            onClick={() => setShowGroupSolve((v) => !v)}
-                          >
-                            {showGroupSolve ? 'Hide group solve' : 'Group solve together'}
-                          </button>
-                        </div>
-                      )}
-
-                      {sessionComplete && showGroupSolve && (
-                        <div className={styles.conversationRowLeft}>
-                          <article className={`${styles.conversationBubble} ${styles.groupSolveCard}`}>
-                            <header>All mentors · Joint strategy</header>
-                            <p>{groupSolveText}</p>
-                          </article>
-                        </div>
-                      )}
-
-                      {sessionComplete && (
-                        <div className={styles.conversationRowRight}>
-                          <article className={`${styles.conversationBubble} ${styles.conversationRightBubble}`}>
-                            <header>You · Reply to all mentors</header>
-                            <textarea
-                              value={replyAllDraft}
-                              onChange={(e) => setReplyAllDraft(e.target.value)}
-                              placeholder="Reply to all..."
-                              rows={2}
-                            />
-                            <div className={styles.inlineNoteActions}>
-                              <button
-                                type="button"
-                                className={styles.ghostBtn}
-                                onClick={() => {
-                                  const text = replyAllDraft.trim();
-                                  if (!text) return;
-                                  const replies = selectedMentors.map((mentor) => ({
-                                    mentorName: mentor.displayName,
-                                    text: generateMentorFollowup(mentor.displayName, text)
-                                  }));
-                                  setConversationTurns((prev) => [
-                                    ...prev,
-                                    {
-                                      id: `${Date.now()}-${prev.length}`,
-                                      user: text,
-                                      replies
-                                    }
-                                  ]);
-                                  setReplyAllDraft('');
-                                  scrollConversationToBottom();
-                                }}
-                              >
-                                Send to all
-                              </button>
-                            </div>
-                          </article>
-                        </div>
-                      )}
-
-                      {conversationTurns.map((turn) => (
-                        <div key={turn.id} className={styles.turnGroup}>
-                          <div className={styles.conversationRowRight}>
-                            <article className={`${styles.conversationBubble} ${styles.conversationRightBubble}`}>
-                              <header>You</header>
-                              <p>{turn.user}</p>
-                            </article>
-                          </div>
-                          {turn.replies.map((reply, idx) => (
-                            <div key={`${turn.id}-${reply.mentorName}-${idx}`} className={styles.conversationRowLeft}>
-                              <article className={`${styles.conversationBubble} ${styles.conversationLeftBubble} ${styleClassForCard(scene)}`}>
-                                <header>{reply.mentorName}</header>
-                                <p>{reply.text}</p>
-                              </article>
-                            </div>
-                          ))}
-                        </div>
-                      ))}
-
-                      {sessionComplete && !showSessionWrap && (
-                        <div className={styles.conversationRowRight}>
-                          <button type="button" className={styles.secondaryCta} onClick={() => setShowSessionWrap(true)}>
-                            Show session wrap
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {sessionComplete && showSessionWrap && (
-                    <div className={styles.sessionWrap}>
-                      <h3>Session complete.</h3>
-                      <p>Tonight’s takeaway</p>
-                      <ul>
-                        {(result?.mentorReplies || []).slice(0, 3).map((reply) => (
-                          <li key={reply.mentorName}>{reply.oneActionStep}</li>
-                        ))}
-                      </ul>
-                      <div className={styles.wrapActions}>
-                        <button type="button" className={styles.secondaryCta} onClick={saveTakeawayMemory}>Save</button>
-                        <button
-                          type="button"
-                          className={styles.secondaryCta}
-                          onClick={() => {
-                            setResult(null);
-                            setPhase('invite');
-                            setSessionMode('idle');
-                            setConversationTurns([]);
-                            setReplyAllDraft('');
-                          }}
-                        >
-                          Start a new table
-                        </button>
-                      </div>
-                    </div>
+                    <div className={styles.stageLiveHint}>{t.tableListening}</div>
                   )}
                 </div>
               )}
@@ -997,17 +1617,17 @@ const MentorTablePage: React.FC = () => {
         </div>
 
         <button type="button" className={styles.memoryFab} onClick={() => setMemoryDrawerOpen((v) => !v)}>
-          <FontAwesomeIcon icon={faCamera} /> Memories ({memories.length})
+          <FontAwesomeIcon icon={faCamera} /> {t.memories} ({memories.length})
         </button>
 
         {memoryDrawerOpen && (
           <div className={styles.memoryDrawer}>
-            <h3>Memory Drawer</h3>
-            {memories.length === 0 && <p className={styles.emptyMemory}>No saved memories yet.</p>}
+            <h3>{t.memoryDrawer}</h3>
+            {memories.length === 0 && <p className={styles.emptyMemory}>{t.noMemories}</p>}
             {memories.map((memory) => (
               <article key={memory.id} className={styles.memoryCard}>
                 <header>{memory.title}</header>
-                <small>{memory.createdAt} · {memory.style}</small>
+                <small>{memory.createdAt} · {localizedSceneName(memory.style)}</small>
                 <ul>
                   {memory.takeaways.slice(0, 3).map((item, idx) => (
                     <li key={`${memory.id}-${idx}`}>{item}</li>
@@ -1021,10 +1641,28 @@ const MentorTablePage: React.FC = () => {
         {showOnboarding && (
           <div className={styles.onboardingOverlay}>
             <div className={styles.onboardingCard}>
-              <h3>{onboardingSlides[currentSlide].title}</h3>
-              <p>{onboardingSlides[currentSlide].body}</p>
+              <h3>{localizedOnboardingSlides[currentSlide].title}</h3>
+              <p>{localizedOnboardingSlides[currentSlide].body}</p>
+              {currentSlide === localizedOnboardingSlides.length - 1 && (
+                <div className={styles.onboardingChoiceBoxes}>
+                  <button
+                    type="button"
+                    className={`${styles.onboardingChoiceBox} ${dontShowOnboardingAgain ? styles.onboardingChoiceBoxActive : ''}`}
+                    onClick={() => setDontShowOnboardingAgain(true)}
+                  >
+                    {t.dontShowAgain}
+                  </button>
+                  <button
+                    type="button"
+                    className={`${styles.onboardingChoiceBox} ${!dontShowOnboardingAgain ? styles.onboardingChoiceBoxActive : ''}`}
+                    onClick={() => setDontShowOnboardingAgain(false)}
+                  >
+                    {t.keepShowing}
+                  </button>
+                </div>
+              )}
               <div className={styles.slideDots}>
-                {onboardingSlides.map((_, idx) => (
+                {localizedOnboardingSlides.map((_, idx) => (
                   <span key={idx} className={`${styles.slideDot} ${currentSlide === idx ? styles.slideDotActive : ''}`} />
                 ))}
               </div>
@@ -1035,19 +1673,19 @@ const MentorTablePage: React.FC = () => {
                   onClick={() => setCurrentSlide((s) => Math.max(0, s - 1))}
                   disabled={currentSlide === 0}
                 >
-                  Back
+                  {t.back}
                 </button>
-                {currentSlide < onboardingSlides.length - 1 ? (
+                {currentSlide < localizedOnboardingSlides.length - 1 ? (
                   <button
                     type="button"
                     className={styles.onboardingBtnPrimary}
-                    onClick={() => setCurrentSlide((s) => Math.min(onboardingSlides.length - 1, s + 1))}
+                    onClick={() => setCurrentSlide((s) => Math.min(localizedOnboardingSlides.length - 1, s + 1))}
                   >
-                    Next
+                    {t.next}
                   </button>
                 ) : (
                   <button type="button" className={styles.onboardingBtnPrimary} onClick={finishOnboarding}>
-                    Get Started
+                    {t.getStarted}
                   </button>
                 )}
               </div>
