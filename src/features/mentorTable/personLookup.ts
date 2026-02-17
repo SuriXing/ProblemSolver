@@ -196,6 +196,13 @@ const SUPPORTED_ENTITY_DESCRIPTION_KEYWORDS = [
   'producer',
   'politician',
   'scientist',
+  'philosopher',
+  'historian',
+  'inventor',
+  'composer',
+  'poet',
+  'novelist',
+  'chef',
   'philanthropist',
   'comedian',
   'journalist',
@@ -215,6 +222,37 @@ const SUPPORTED_ENTITY_DESCRIPTION_KEYWORDS = [
   'mbti'
 ];
 
+const EXCLUDED_NON_MENTOR_DESCRIPTION_KEYWORDS = [
+  'city',
+  'capital',
+  'country',
+  'state',
+  'province',
+  'district',
+  'county',
+  'town',
+  'village',
+  'municipality',
+  'river',
+  'lake',
+  'mountain',
+  'island',
+  'ocean',
+  'sea',
+  'airport',
+  'railway station',
+  'subway station',
+  'bridge',
+  'building',
+  'museum',
+  'company',
+  'corporation',
+  'brand',
+  'consumer product',
+  'software',
+  'programming language'
+];
+
 function isMbtiCode(value: string): boolean {
   return /^(?:[IE][NS][FT][JP])$/i.test(value.trim());
 }
@@ -226,10 +264,12 @@ function isLikelyEntityTitle(title: string): boolean {
 }
 
 function isLikelyEntityDescription(description?: string): boolean {
-  if (!description) return true;
+  if (!description) return false;
   const lower = description.toLowerCase();
   if (EXCLUDED_TITLE_PATTERNS.some((pattern) => lower.includes(pattern))) return false;
-  return SUPPORTED_ENTITY_DESCRIPTION_KEYWORDS.some((keyword) => lower.includes(keyword));
+  const hasSupportedKeyword = SUPPORTED_ENTITY_DESCRIPTION_KEYWORDS.some((keyword) => lower.includes(keyword));
+  if (EXCLUDED_NON_MENTOR_DESCRIPTION_KEYWORDS.some((keyword) => lower.includes(keyword))) return false;
+  return hasSupportedKeyword;
 }
 
 async function fetchWikiImageByTitle(title: string): Promise<PersonOption | undefined> {
