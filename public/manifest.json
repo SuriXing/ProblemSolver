@@ -3,20 +3,21 @@
   "name": "解忧杂货铺 - 在这里，你的故事有人倾听",
   "icons": [
     {
-      "src": "assets/images/favicon.ico",
-      "sizes": "64x64 32x32 24x24 16x16",
-      "type": "image/x-icon"
+      "src": "favicon.ico",
+      "sizes": "16x16 32x32 48x48 64x64 128x128 256x256",
+      "type": "image/x-icon",
+      "purpose": "any"
     },
     {
-      "src": "assets/icons/favicon.svg",
+      "src": "favicon-192.png",
       "sizes": "192x192",
-      "type": "image/svg+xml",
+      "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "assets/icons/favicon.svg",
+      "src": "favicon-512.png",
       "sizes": "512x512",
-      "type": "image/svg+xml",
+      "type": "image/png",
       "purpose": "any maskable"
     }
   ],
