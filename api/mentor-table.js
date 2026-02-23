@@ -499,6 +499,24 @@ function buildUserPrompt(problem, language, mentors, compactedConversation) {
     '',
     'Use this context as part of reasoning. Respond to the latest user concern while aligning with conversation flow.',
     '',
+    'Required output JSON shape (single object, no markdown):',
+    '{',
+    '  "schemaVersion": "mentor_table.v1",',
+    '  "language": "en|zh-CN",',
+    '  "safety": { "riskLevel": "none|low|medium|high", "needsProfessionalHelp": false, "emergencyMessage": "" },',
+    '  "mentorReplies": [',
+    '    {',
+    '      "mentorId": "string",',
+    '      "mentorName": "string",',
+    '      "likelyResponse": "string",',
+    '      "whyThisFits": "string",',
+    '      "oneActionStep": "string",',
+    '      "confidenceNote": "string"',
+    '    }',
+    '  ],',
+    '  "meta": { "disclaimer": "string", "generatedAt": "ISO string" }',
+    '}',
+    '',
     `Global disclaimer must be: ${FALLBACK_DISCLAIMER}`
   ].join('\n');
 }
@@ -824,6 +842,94 @@ function normalizeProviderPayload(raw, { mentors, language }) {
   return null;
 }
 
+function extractLooseStringField(text, keys) {
+  if (!text || typeof text !== 'string') return '';
+  for (const key of keys) {
+    const strictMatch = text.match(
+      new RegExp(
+        `"${key}"\\s*:\\s*"([\\s\\S]*?)"(?=\\s*,\\s*"(?:[^"]+)"\\s*:|\\s*[}\\]])`,
+        'i'
+      )
+    );
+    if (strictMatch && strictMatch[1]) return strictMatch[1].trim();
+
+    const lineMatch = text.match(new RegExp(`"${key}"\\s*:\\s*"([^\\n\\r"]{1,1200})`, 'i'));
+    if (lineMatch && lineMatch[1]) return lineMatch[1].trim();
+
+    const bareMatch = text.match(new RegExp(`${key}\\s*[:=]\\s*([^\\n\\r,}{]{1,800})`, 'i'));
+    if (bareMatch && bareMatch[1]) return bareMatch[1].trim();
+  }
+  return '';
+}
+
+function normalizeProviderPayloadLoose(text, { mentor, language }) {
+  if (!text || typeof text !== 'string') return null;
+  const lang = normalizeLanguage(language);
+  const mentorId =
+    extractLooseStringField(text, ['mentorId', 'MentorId', 'id']) ||
+    String(mentor?.id || '');
+  const mentorName =
+    extractLooseStringField(text, ['mentorName', 'MentorName', 'name']) ||
+    String(mentor?.displayName || mentorId || 'Mentor');
+  const likelyResponse = extractLooseStringField(text, [
+    'likelyResponse',
+    'Response',
+    'response',
+    'Reply',
+    'reply',
+    'message',
+    'advice',
+    'content'
+  ]);
+  if (!likelyResponse) return null;
+
+  const whyThisFits =
+    extractLooseStringField(text, ['whyThisFits', 'WhyThisFits', 'reason', 'rationale']) ||
+    (lang === 'zh-CN'
+      ? `这条建议基于${mentorName}公开风格生成。`
+      : `This guidance is generated from ${mentorName}'s public style.`);
+
+  const oneActionStep =
+    extractLooseStringField(text, [
+      'oneActionStep',
+      'OneActionStep',
+      'nextAction',
+      'NextAction',
+      'next_step',
+      'nextStep',
+      'action'
+    ]) || defaultActionStep(lang);
+
+  const confidenceNote =
+    extractLooseStringField(text, ['confidenceNote', 'ConfidenceNote', 'confidence', 'note']) ||
+    defaultConfidenceNote(lang);
+
+  const disclaimer =
+    extractLooseStringField(text, ['globalDisclaimer', 'GlobalDisclaimer', 'disclaimer']) ||
+    FALLBACK_DISCLAIMER;
+
+  return {
+    safety: {
+      riskLevel: 'low',
+      needsProfessionalHelp: false,
+      emergencyMessage: ''
+    },
+    mentorReplies: [
+      {
+        mentorId,
+        mentorName,
+        likelyResponse,
+        whyThisFits,
+        oneActionStep,
+        confidenceNote
+      }
+    ],
+    meta: {
+      disclaimer
+    }
+  };
+}
+
 function buildServerFallbackNormalized({ mentors, language }) {
   const lang = normalizeLanguage(language);
   return {
@@ -981,7 +1087,9 @@ async function requestMentorReplyFromLLM({
     }
   }
 
-  const normalized = normalizeProviderPayload(parsed, { mentors: [mentor], language });
+  const normalized =
+    normalizeProviderPayload(parsed, { mentors: [mentor], language }) ||
+    normalizeProviderPayloadLoose(String(content || ''), { mentor, language });
   if (!normalized) {
     const preview = String(content || '').slice(0, 180).replace(/\s+/g, ' ');
     throw new Error(`Model returned invalid JSON for ${mentor.id}. Preview: ${preview}`);

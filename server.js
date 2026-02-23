@@ -1,6 +1,38 @@
+const fs = require('fs');
+const path = require('path');
 const express = require('express');
 const mentorTableHandler = require('./api/mentor-table.js');
 const mentorDebugPromptHandler = require('./api/mentor-debug-prompt.js');
+
+function stripWrappingQuotes(value) {
+  if (typeof value !== 'string' || value.length < 2) return value;
+  const first = value[0];
+  const last = value[value.length - 1];
+  if ((first === '"' && last === '"') || (first === "'" && last === "'")) {
+    return value.slice(1, -1);
+  }
+  return value;
+}
+
+function loadDotEnvFile(filename) {
+  const filePath = path.join(__dirname, filename);
+  if (!fs.existsSync(filePath)) return;
+  const content = fs.readFileSync(filePath, 'utf8');
+  for (const rawLine of content.split(/\r?\n/)) {
+    const line = rawLine.trim();
+    if (!line || line.startsWith('#')) continue;
+    const match = line.match(/^([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)$/);
+    if (!match) continue;
+    const key = match[1];
+    if (Object.prototype.hasOwnProperty.call(process.env, key)) continue;
+    const rawValue = match[2].replace(/\s+#.*$/, '');
+    const value = stripWrappingQuotes(rawValue);
+    process.env[key] = value;
+  }
+}
+
+loadDotEnvFile('.env.local');
+loadDotEnvFile('.env');
 
 const app = express();
 const port = Number(process.env.MENTOR_API_PORT || 8787);
