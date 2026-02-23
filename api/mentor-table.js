@@ -1137,13 +1137,27 @@ async function callChatCompletions({ url, apiKey, payload, signal }) {
   });
 }
 
+function firstNonEmptyEnvValue(candidates) {
+  for (const value of candidates) {
+    if (typeof value !== 'string') continue;
+    const trimmed = value.trim();
+    if (trimmed) return trimmed;
+  }
+  return '';
+}
+
 module.exports = async (req, res) => {
   if (req.method !== 'POST') {
     res.status(405).json({ error: 'Method not allowed' });
     return;
   }
 
-  const apiKey = process.env.LLM_API_KEY || process.env.OPENAI_API_KEY;
+  const apiKey = firstNonEmptyEnvValue([
+    process.env.LLM_API_KEY,
+    process.env.OPENAI_API_KEY,
+    process.env.LLM_API_TOKEN,
+    process.env.OPENAI_KEY
+  ]);
   const model = process.env.LLM_MODEL || process.env.OPENAI_MODEL || 'qwen-max';
   const baseUrl = process.env.LLM_API_BASE_URL || process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1';
   const upstreamTimeoutMs = Number(process.env.MENTOR_UPSTREAM_TIMEOUT_MS || 25000);
@@ -1151,7 +1165,18 @@ module.exports = async (req, res) => {
   const isDashscope = /dashscope\.aliyuncs\.com/i.test(baseUrl);
 
   if (!apiKey) {
-    res.status(500).json({ error: 'LLM_API_KEY (or OPENAI_API_KEY) is not configured on server' });
+    res.status(500).json({
+      error: 'LLM_API_KEY (or OPENAI_API_KEY) is not configured on server',
+      diagnostics: {
+        vercelEnv: process.env.VERCEL_ENV || null,
+        hasLLMApiKey: Boolean(firstNonEmptyEnvValue([process.env.LLM_API_KEY])),
+        hasOpenAiApiKey: Boolean(firstNonEmptyEnvValue([process.env.OPENAI_API_KEY])),
+        hasLlmApiToken: Boolean(firstNonEmptyEnvValue([process.env.LLM_API_TOKEN])),
+        hasOpenAiKey: Boolean(firstNonEmptyEnvValue([process.env.OPENAI_KEY])),
+        hasLLMModel: Boolean(firstNonEmptyEnvValue([process.env.LLM_MODEL, process.env.OPENAI_MODEL])),
+        hasLLMBaseUrl: Boolean(firstNonEmptyEnvValue([process.env.LLM_API_BASE_URL, process.env.OPENAI_BASE_URL]))
+      }
+    });
     return;
   }
 
