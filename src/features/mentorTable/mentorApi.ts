@@ -19,13 +19,30 @@ interface MentorDebugPromptRequest {
   language: 'zh-CN' | 'en';
 }
 
+function uniqueNonEmpty(values: Array<string | undefined>): string[] {
+  const seen = new Set<string>();
+  const result: string[] = [];
+  for (const raw of values) {
+    if (!raw) continue;
+    const value = raw.trim();
+    if (!value || seen.has(value)) continue;
+    seen.add(value);
+    result.push(value);
+  }
+  return result;
+}
+
+function allowLocalMentorFallbackEndpoint(): boolean {
+  return Boolean(import.meta.env.DEV);
+}
+
 export async function generateMentorAdvice(input: MentorApiRequest): Promise<MentorSimulationResult> {
   const requestTimeoutMs = Number(import.meta.env.VITE_MENTOR_API_TIMEOUT_MS || 35000);
-  const endpoints = [
+  const endpoints = uniqueNonEmpty([
     import.meta.env.VITE_MENTOR_API_URL as string | undefined,
     '/api/mentor-table',
-    'http://127.0.0.1:8787/api/mentor-table'
-  ].filter((v): v is string => Boolean(v));
+    allowLocalMentorFallbackEndpoint() ? 'http://127.0.0.1:8787/api/mentor-table' : undefined
+  ]);
 
   try {
     let lastError: Error | null = null;
@@ -85,11 +102,11 @@ export async function generateMentorAdvice(input: MentorApiRequest): Promise<Men
 
 export async function fetchMentorDebugPrompt(input: MentorDebugPromptRequest): Promise<string> {
   const requestTimeoutMs = Number(import.meta.env.VITE_MENTOR_API_TIMEOUT_MS || 35000);
-  const endpoints = [
+  const endpoints = uniqueNonEmpty([
     import.meta.env.VITE_MENTOR_DEBUG_API_URL as string | undefined,
     '/api/mentor-debug-prompt',
-    'http://127.0.0.1:8787/api/mentor-debug-prompt'
-  ].filter((v): v is string => Boolean(v));
+    allowLocalMentorFallbackEndpoint() ? 'http://127.0.0.1:8787/api/mentor-debug-prompt' : undefined
+  ]);
 
   let lastError: Error | null = null;
   for (const endpoint of endpoints) {
