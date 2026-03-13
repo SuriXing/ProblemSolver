@@ -51,54 +51,118 @@ const VERIFIED_PEOPLE: Array<{
     ]
   },
   {
+    canonical: 'Steve Jobs',
+    aliases: ['steve jobs', 'jobs', '史蒂夫·乔布斯', '乔布斯'],
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/dc/Steve_Jobs_Headshot_2010-CROP_%28cropped_2%29.jpg/512px-Steve_Jobs_Headshot_2010-CROP_%28cropped_2%29.jpg'
+  },
+  {
     canonical: 'Super Mario',
     aliases: ['super mario', 'mario', '马里奥'],
-    imageUrl: 'https://upload.wikimedia.org/wikipedia/en/a/a9/MarioNSMBUDeluxe.png'
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/en/a/a9/MarioNSMBUDeluxe.png',
+    candidateImageUrls: [
+      'https://upload.wikimedia.org/wikipedia/en/a/a9/MarioNSMBUDeluxe.png',
+      'https://ui-avatars.com/api/?size=512&background=e73a2c&color=ffffff&bold=true&name=Mario'
+    ]
   },
   {
     canonical: 'Iron Man',
     aliases: ['iron man', 'ironman', 'tony stark', '钢铁侠'],
-    imageUrl: 'https://upload.wikimedia.org/wikipedia/en/e/e0/Iron_Man_bleeding_edge.jpg'
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/en/e/e0/Iron_Man_bleeding_edge.jpg',
+    candidateImageUrls: [
+      'https://upload.wikimedia.org/wikipedia/en/e/e0/Iron_Man_bleeding_edge.jpg',
+      'https://ui-avatars.com/api/?size=512&background=b71c1c&color=ffd54f&bold=true&name=IM'
+    ]
   },
   {
     canonical: 'Pikachu',
     aliases: ['pikachu', '皮卡丘'],
-    imageUrl: 'https://upload.wikimedia.org/wikipedia/en/a/a9/Pikachu.png'
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/en/a/a9/Pikachu.png',
+    candidateImageUrls: [
+      'https://upload.wikimedia.org/wikipedia/en/a/a9/Pikachu.png',
+      'https://ui-avatars.com/api/?size=512&background=fdd835&color=795548&bold=true&name=Pk'
+    ]
   },
   {
     canonical: 'Naruto Uzumaki',
     aliases: ['naruto', 'naruto uzumaki', '鸣人'],
-    imageUrl: 'https://upload.wikimedia.org/wikipedia/en/9/94/NarutoCoverTankobon1.jpg'
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/en/9/94/NarutoCoverTankobon1.jpg',
+    candidateImageUrls: [
+      'https://upload.wikimedia.org/wikipedia/en/9/94/NarutoCoverTankobon1.jpg',
+      'https://ui-avatars.com/api/?size=512&background=ff9800&color=1a237e&bold=true&name=NU'
+    ]
   },
   {
     canonical: 'Monkey D. Luffy',
     aliases: ['luffy', 'monkey d luffy', '路飞'],
-    imageUrl: 'https://upload.wikimedia.org/wikipedia/en/c/cb/Monkey_D_Luffy.png'
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/en/c/cb/Monkey_D_Luffy.png',
+    candidateImageUrls: [
+      'https://upload.wikimedia.org/wikipedia/en/c/cb/Monkey_D_Luffy.png',
+      'https://ui-avatars.com/api/?size=512&background=d32f2f&color=ffffff&bold=true&name=ML'
+    ]
   },
   {
     canonical: 'Son Goku',
     aliases: ['goku', 'son goku', '悟空'],
-    imageUrl: 'https://upload.wikimedia.org/wikipedia/en/6/6f/Son_Goku_Character.jpg'
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/en/6/6f/Son_Goku_Character.jpg',
+    candidateImageUrls: [
+      'https://upload.wikimedia.org/wikipedia/en/6/6f/Son_Goku_Character.jpg',
+      'https://ui-avatars.com/api/?size=512&background=ff6f00&color=ffffff&bold=true&name=SG'
+    ]
   },
   {
     canonical: 'Spider-Man',
     aliases: ['spiderman', 'spider man', '彼得帕克', '蜘蛛侠'],
-    imageUrl: 'https://upload.wikimedia.org/wikipedia/en/0/0c/Spiderman50.jpg'
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/en/0/0c/Spiderman50.jpg',
+    candidateImageUrls: [
+      'https://upload.wikimedia.org/wikipedia/en/0/0c/Spiderman50.jpg',
+      'https://ui-avatars.com/api/?size=512&background=d50000&color=1565c0&bold=true&name=SM'
+    ]
   },
   {
     canonical: 'Batman',
     aliases: ['batman', '布鲁斯韦恩', '蝙蝠侠'],
-    imageUrl: 'https://upload.wikimedia.org/wikipedia/en/1/17/Batman-BenAffleck.jpg'
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/en/1/17/Batman-BenAffleck.jpg',
+    candidateImageUrls: [
+      'https://upload.wikimedia.org/wikipedia/en/1/17/Batman-BenAffleck.jpg',
+      'https://ui-avatars.com/api/?size=512&background=212121&color=fdd835&bold=true&name=BM'
+    ]
   },
   {
     canonical: 'Link',
     aliases: ['link', 'zelda link', '林克'],
-    imageUrl: 'https://upload.wikimedia.org/wikipedia/en/2/2f/Link_Hyrule_Warriors.png'
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/en/2/2f/Link_Hyrule_Warriors.png',
+    candidateImageUrls: [
+      'https://upload.wikimedia.org/wikipedia/en/2/2f/Link_Hyrule_Warriors.png',
+      'https://ui-avatars.com/api/?size=512&background=2e7d32&color=ffffff&bold=true&name=LK'
+    ]
   },
   {
     canonical: 'Lara Croft',
     aliases: ['lara croft', 'lara', '劳拉'],
-    imageUrl: 'https://upload.wikimedia.org/wikipedia/en/7/7e/Lara_Croft.png'
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/en/7/7e/Lara_Croft.png',
+    candidateImageUrls: [
+      'https://upload.wikimedia.org/wikipedia/en/7/7e/Lara_Croft.png',
+      'https://ui-avatars.com/api/?size=512&background=4e342e&color=ffffff&bold=true&name=LC'
+    ]
+  },
+  {
+    canonical: 'Lisa Su',
+    aliases: ['lisa su', 'lisa', 'su', '苏姿丰'],
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/7a/Lisa_Su_2024_%28cropped%29.jpg/512px-Lisa_Su_2024_%28cropped%29.jpg',
+    candidateImageUrls: [
+      'https://upload.wikimedia.org/wikipedia/commons/thumb/7/7a/Lisa_Su_2024_%28cropped%29.jpg/512px-Lisa_Su_2024_%28cropped%29.jpg',
+      'https://upload.wikimedia.org/wikipedia/commons/thumb/6/60/AMD_CEO_Lisa_Su_20130415_cropped.jpg/512px-AMD_CEO_Lisa_Su_20130415_cropped.jpg'
+    ]
+  },
+  {
+    canonical: 'Satya Nadella',
+    aliases: ['satya nadella', 'satya', 'nadella', '萨提亚·纳德拉', '纳德拉'],
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/78/MS-Exec-Nadella-Satya-2017-08-31-22_%28cropped%29.jpg/512px-MS-Exec-Nadella-Satya-2017-08-31-22_%28cropped%29.jpg'
+  },
+  {
+    canonical: 'Taylor Swift',
+    aliases: ['taylor swift', 'taylor', 'swift', '泰勒·斯威夫特', '泰勒斯威夫特', '霉霉'],
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/Taylor_Swift_at_the_2023_MTV_Video_Music_Awards_%283%29.png/512px-Taylor_Swift_at_the_2023_MTV_Video_Music_Awards_%283%29.png'
   }
 ];
 
@@ -346,17 +410,52 @@ async function searchWikipediaPeople(query: string, limit: number): Promise<Pers
   return results.filter((item): item is PersonOption => Boolean(item?.imageUrl));
 }
 
-function findVerifiedPerson(name: string): { canonical: string; imageUrl: string; candidateImageUrls?: string[] } | undefined {
+export function findVerifiedPerson(name: string): { canonical: string; imageUrl: string; candidateImageUrls?: string[] } | undefined {
   const key = normalizeName(name).replace(/_/g, ' ');
+  const makeResult = (person: typeof VERIFIED_PEOPLE[number]) => ({
+    canonical: person.canonical,
+    imageUrl: person.imageUrl,
+    candidateImageUrls: person.candidateImageUrls
+  });
+
+  // 1. Exact match (fastest, most precise)
   for (const person of VERIFIED_PEOPLE) {
-    if (normalizeName(person.canonical) === key) {
-      return { canonical: person.canonical, imageUrl: person.imageUrl, candidateImageUrls: person.candidateImageUrls };
-    }
-    if (person.aliases.some((alias) => normalizeName(alias).replace(/_/g, ' ') === key)) {
-      return { canonical: person.canonical, imageUrl: person.imageUrl, candidateImageUrls: person.candidateImageUrls };
+    if (normalizeName(person.canonical) === key) return makeResult(person);
+    if (person.aliases.some((alias) => normalizeName(alias).replace(/_/g, ' ') === key)) return makeResult(person);
+  }
+
+  // 2. Partial match fallback — "bill gate" matches "bill gates", "lisa" matches "lisa su"
+  if (key.length >= 3) {
+    for (const person of VERIFIED_PEOPLE) {
+      const haystack = [normalizeName(person.canonical), ...person.aliases.map((a) => normalizeName(a))].map((s) => s.replace(/_/g, ' '));
+      if (haystack.some((text) => text.includes(key) || key.includes(text))) return makeResult(person);
     }
   }
+
   return undefined;
+}
+
+/**
+ * Instant synchronous search of VERIFIED_PEOPLE — no network calls.
+ * Returns matches with photos for use as instant autocomplete suggestions.
+ */
+export function searchVerifiedPeopleLocal(query: string, limit = 8): PersonOption[] {
+  const q = query.trim();
+  if (!q) return [];
+  const normalized = normalizeName(q);
+  if (normalized.length < 1) return [];
+
+  return VERIFIED_PEOPLE
+    .filter((person) => {
+      const haystack = [person.canonical, ...person.aliases].map((s) => normalizeName(s).replace(/_/g, ' '));
+      return haystack.some((text) => text.includes(normalized));
+    })
+    .slice(0, limit)
+    .map((person) => ({
+      name: person.canonical,
+      imageUrl: person.imageUrl,
+      candidateImageUrls: person.candidateImageUrls
+    }));
 }
 
 export function getVerifiedPlaceholderImage(): string {
@@ -378,8 +477,15 @@ export async function fetchPersonImage(name: string): Promise<string | undefined
     imageCache.set(key, verified.imageUrl);
     return verified.imageUrl;
   }
+  // Try exact Wikipedia title lookup first
   const wiki = await fetchWikiImageByTitle(name);
-  const image = wiki?.imageUrl;
+  if (wiki?.imageUrl) {
+    imageCache.set(key, wiki.imageUrl);
+    return wiki.imageUrl;
+  }
+  // Fall back to Wikipedia search when title lookup fails (e.g. "lisa" → "Lisa Su")
+  const searchResults = await searchWikipediaPeople(name, 1);
+  const image = searchResults[0]?.imageUrl;
   imageCache.set(key, image);
   return image;
 }
@@ -394,9 +500,13 @@ export async function fetchPersonImageCandidates(name: string): Promise<string[]
     const combined = [verified.imageUrl, ...(verified.candidateImageUrls || [])].filter(Boolean);
     return Array.from(new Set(combined));
   }
+  // Try exact Wikipedia title lookup first
   const wiki = await fetchWikiImageByTitle(name);
-  if (!wiki?.imageUrl) return undefined;
-  return [wiki.imageUrl];
+  if (wiki?.imageUrl) return [wiki.imageUrl];
+  // Fall back to Wikipedia search when title lookup fails
+  const searchResults = await searchWikipediaPeople(name, 3);
+  const images = searchResults.map((r) => r.imageUrl).filter(Boolean) as string[];
+  return images.length > 0 ? images : undefined;
 }
 
 export async function searchPeopleWithPhotos(query: string, limit = 6): Promise<PersonOption[]> {

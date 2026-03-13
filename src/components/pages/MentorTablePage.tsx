@@ -25,15 +25,17 @@ import {
   faBug
 } from '@fortawesome/free-solid-svg-icons';
 import Layout from '../layout/Layout';
-import { MentorProfile, createCustomMentorProfile, getSuggestedPeople } from '../../features/mentorTable/mentorProfiles';
+import { MentorProfile, createCustomMentorProfile, getCartoonAvatarUrl, getSuggestedPeople } from '../../features/mentorTable/mentorProfiles';
 import { MentorSimulationResult } from '../../features/mentorTable/mentorEngine';
 import { fetchMentorDebugPrompt, generateMentorAdvice, MentorConversationMessage } from '../../features/mentorTable/mentorApi';
 import {
   PersonOption,
   fetchPersonImage,
   fetchPersonImageCandidates,
+  findVerifiedPerson,
   getVerifiedPlaceholderImage,
-  searchPeopleWithPhotos
+  searchPeopleWithPhotos,
+  searchVerifiedPeopleLocal
 } from '../../features/mentorTable/personLookup';
 import styles from './MentorTablePage.module.css';
 
@@ -329,27 +331,31 @@ const MentorTablePage: React.FC = () => {
     return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
   };
 
-  const imageSrcFor = (name: string, imageUrl?: string, candidateImageUrls?: string[]) => {
+  const buildImageChain = (name: string, imageUrl?: string, candidateImageUrls?: string[]) => {
     const key = normalizeNameKey(name);
     const person = selectedPeople.find((p) => normalizeNameKey(p.name) === key);
-    const candidates = Array.from(
-      new Set([imageUrl, ...(candidateImageUrls || []), ...(person?.candidateImageUrls || [])].filter(Boolean))
+    const external = Array.from(
+      new Set([imageUrl, person?.imageUrl, ...(candidateImageUrls || []), ...(person?.candidateImageUrls || [])].filter(Boolean))
     ) as string[];
-    const idx = imageAttemptByKey[key] || 0;
-    const chosen = candidates[idx] || '';
-    return chosen || createInitialAvatar(name) || DEFAULT_PLACEHOLDER_AVATAR;
+    // Append DiceBear cartoon + inline SVG (data URI) as guaranteed fallbacks.
+    // The inline SVG is last because it always loads — it can never fail.
+    return [...external, getCartoonAvatarUrl(name), createInitialAvatar(name)];
   };
 
-  const markImageBroken = (name: string, candidateImageUrls?: string[]) => {
+  const imageSrcFor = (name: string, imageUrl?: string, candidateImageUrls?: string[]) => {
     const key = normalizeNameKey(name);
-    const person = selectedPeople.find((p) => normalizeNameKey(p.name) === key);
-    const candidates = Array.from(
-      new Set([person?.imageUrl, ...(candidateImageUrls || []), ...(person?.candidateImageUrls || [])].filter(Boolean))
-    );
-    const maxIndex = Math.max(0, candidates.length - 1);
+    const chain = buildImageChain(name, imageUrl, candidateImageUrls);
+    const idx = Math.min(imageAttemptByKey[key] || 0, chain.length - 1);
+    return chain[idx];
+  };
+
+  const markImageBroken = (name: string, imageUrl?: string, candidateImageUrls?: string[]) => {
+    const key = normalizeNameKey(name);
+    const chain = buildImageChain(name, imageUrl, candidateImageUrls);
     setImageAttemptByKey((prev) => {
       const current = prev[key] || 0;
-      if (current >= maxIndex) return { ...prev, [key]: current + 1 };
+      // Stop at the last item (inline SVG data URI) — it always works
+      if (current >= chain.length - 1) return prev;
       return { ...prev, [key]: current + 1 };
     });
   };
@@ -548,29 +554,52 @@ const MentorTablePage: React.FC = () => {
     const query = personQuery.trim();
     if (!query) {
       setSuggestions([]);
+      setIsSearching(false);
       return;
     }
 
+    // ── Instant local results (sync, 0ms) ──
+    // Search VERIFIED_PEOPLE (with photos) + built-in MENTOR_PROFILES
+    const verifiedHits = searchVerifiedPeopleLocal(query);
+    const profileHits = getSuggestedPeople(query).map((p) => {
+      const v = findVerifiedPerson(p.displayName);
+      return { name: p.displayName, imageUrl: v?.imageUrl, candidateImageUrls: v?.candidateImageUrls } as PersonOption;
+    });
+    const localUnique = new Map<string, PersonOption>();
+    for (const p of [...verifiedHits, ...profileHits]) {
+      const k = p.name.trim().toLowerCase();
+      if (k && !localUnique.has(k)) localUnique.set(k, p);
+    }
+    const instantResults = Array.from(localUnique.values()).slice(0, 8);
+    setSuggestions(instantResults);
+
+    // If we already have local matches, don't show "Searching..." spinner
+    // (Wikipedia results will merge in silently when ready)
+    const hasLocalHits = instantResults.length > 0;
+    setIsSearching(!hasLocalHits);
+
+    // ── Background remote search (async, debounced) ──
     let alive = true;
-    setIsSearching(true);
     const timer = window.setTimeout(async () => {
-      const [remote, local] = await Promise.all([
-        searchPeopleWithPhotos(query),
-        Promise.resolve(getSuggestedPeople(query).map((p) => ({ name: p.displayName } as PersonOption)))
-      ]);
+      try {
+        const remote = await searchPeopleWithPhotos(query);
+        if (!alive) return;
 
-      if (!alive) return;
-      const merged = [...remote, ...local];
-      const unique = new Map<string, PersonOption>();
-      for (const person of merged) {
-        const key = person.name.trim().toLowerCase();
-        if (!key) continue;
-        if (!unique.has(key)) unique.set(key, person);
+        // Merge remote results with local — remote first (has richer image data)
+        const merged = new Map<string, PersonOption>();
+        for (const p of [...remote, ...instantResults]) {
+          const k = p.name.trim().toLowerCase();
+          if (k && !merged.has(k)) merged.set(k, p);
+        }
+
+        setSuggestions(Array.from(merged.values()).slice(0, 8));
+      } catch {
+        // Remote search failed — keep whatever local results we have
+        if (!alive) return;
+      } finally {
+        if (alive) setIsSearching(false);
       }
-
-      setSuggestions(Array.from(unique.values()).slice(0, 8));
-      setIsSearching(false);
-    }, 180);
+    }, 120);
 
     return () => {
       alive = false;
@@ -1122,18 +1151,21 @@ const MentorTablePage: React.FC = () => {
 
                   {personQuery.trim() && (
                     <div className={styles.suggestionMenu}>
-                      {isSearching && <div className={styles.searchingRow}>{isZh ? '搜索中...' : 'Searching...'}</div>}
-                      {!isSearching && suggestions.map((s) => (
+                      {suggestions.map((s) => (
                         <button type="button" key={s.name} className={styles.suggestionItem} onClick={() => addPerson(s)}>
                           <img
                             src={imageSrcFor(s.name, s.imageUrl, s.candidateImageUrls)}
                             alt={s.name}
                             className={styles.suggestionAvatar}
-                            onError={() => markImageBroken(s.name, s.candidateImageUrls)}
+                            onError={() => markImageBroken(s.name, s.imageUrl, s.candidateImageUrls)}
                           />
                           <span>{localizeName(s.name)}</span>
                         </button>
                       ))}
+                      {isSearching && <div className={styles.searchingRow}>{isZh ? '搜索中...' : 'Searching...'}</div>}
+                      {!isSearching && suggestions.length === 0 && (
+                        <div className={styles.searchingRow}>{isZh ? '未找到结果，按回车添加自定义名人' : 'No results — press Enter to add as custom mentor'}</div>
+                      )}
                     </div>
                   )}
 
@@ -1153,7 +1185,7 @@ const MentorTablePage: React.FC = () => {
                             src={imageSrcFor(person.name, person.imageUrl, person.candidateImageUrls)}
                             alt={person.name}
                             className={styles.guestAvatar}
-                            onError={() => markImageBroken(person.name, person.candidateImageUrls)}
+                            onError={() => markImageBroken(person.name, person.imageUrl, person.candidateImageUrls)}
                           />
                           <div className={styles.guestMeta}>
                             <strong>{localizeName(person.name)}</strong>
@@ -1542,7 +1574,7 @@ const MentorTablePage: React.FC = () => {
                           <img
                             src={findImage(displayName)}
                             alt={displayName}
-                            onError={() => markImageBroken(resolveMentorName(displayName), selectedPeople[index]?.candidateImageUrls)}
+                            onError={() => markImageBroken(resolveMentorName(displayName), selectedPeople[index]?.imageUrl, selectedPeople[index]?.candidateImageUrls)}
                           />
                         </button>
                         {(hoveredDebugMentorId === mentor.id || openDebugMentorId === mentor.id) && (
