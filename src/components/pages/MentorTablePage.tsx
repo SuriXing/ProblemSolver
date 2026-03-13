@@ -151,14 +151,28 @@ const mentorNameZhMap: Record<string, string> = {
   'Oprah Winfrey': '奥普拉',
   'Kobe Bryant': '科比·布莱恩特',
   'Hayao Miyazaki': '宫崎骏',
-  'Elon Musk': '埃隆·马斯克'
+  'Elon Musk': '埃隆·马斯克',
+  'Steve Jobs': '史蒂夫·乔布斯',
+  'Lisa Su': '苏姿丰',
+  'Satya Nadella': '萨提亚·纳德拉',
+  'Taylor Swift': '泰勒·斯威夫特',
+  'Super Mario': '超级马里奥',
+  'Iron Man': '钢铁侠',
+  'Pikachu': '皮卡丘',
+  'Naruto Uzumaki': '鸣人',
+  'Monkey D. Luffy': '路飞',
+  'Son Goku': '孙悟空',
+  'Spider-Man': '蜘蛛侠',
+  'Batman': '蝙蝠侠',
+  'Link': '林克',
+  'Lara Croft': '劳拉'
 };
 
 function getMentorCategory(name: string): 'tech' | 'sports' | 'artist' | 'leader' {
   const normalized = name.toLowerCase();
   if (normalized.includes('kobe')) return 'sports';
-  if (normalized.includes('miyazaki')) return 'artist';
-  if (normalized.includes('bill') || normalized.includes('elon')) return 'tech';
+  if (normalized.includes('miyazaki') || normalized.includes('taylor') || normalized.includes('swift')) return 'artist';
+  if (normalized.includes('bill') || normalized.includes('elon') || normalized.includes('jobs') || normalized.includes('lisa su') || normalized.includes('satya') || normalized.includes('nadella')) return 'tech';
   return 'leader';
 }
 
@@ -559,12 +573,28 @@ const MentorTablePage: React.FC = () => {
     }
 
     // ── Instant local results (sync, 0ms) ──
-    // Search VERIFIED_PEOPLE (with photos) + built-in MENTOR_PROFILES
-    const verifiedHits = searchVerifiedPeopleLocal(query);
-    const profileHits = getSuggestedPeople(query).map((p) => {
-      const v = findVerifiedPerson(p.displayName);
-      return { name: p.displayName, imageUrl: v?.imageUrl, candidateImageUrls: v?.candidateImageUrls } as PersonOption;
-    });
+    // Try VERIFIED_PEOPLE search first, then fall back to MENTOR_PROFILES only
+    let verifiedHits: PersonOption[] = [];
+    try {
+      verifiedHits = searchVerifiedPeopleLocal(query);
+    } catch {
+      // searchVerifiedPeopleLocal may not be available (module HMR / cache)
+    }
+
+    let profileHits: PersonOption[] = [];
+    try {
+      profileHits = getSuggestedPeople(query).map((p) => {
+        let img: string | undefined;
+        let candidates: string[] | undefined;
+        try {
+          const v = findVerifiedPerson(p.displayName);
+          img = v?.imageUrl;
+          candidates = v?.candidateImageUrls;
+        } catch { /* findVerifiedPerson may not be available */ }
+        return { name: p.displayName, imageUrl: img, candidateImageUrls: candidates } as PersonOption;
+      });
+    } catch { /* getSuggestedPeople fallback */ }
+
     const localUnique = new Map<string, PersonOption>();
     for (const p of [...verifiedHits, ...profileHits]) {
       const k = p.name.trim().toLowerCase();
@@ -574,20 +604,21 @@ const MentorTablePage: React.FC = () => {
     setSuggestions(instantResults);
 
     // If we already have local matches, don't show "Searching..." spinner
-    // (Wikipedia results will merge in silently when ready)
     const hasLocalHits = instantResults.length > 0;
     setIsSearching(!hasLocalHits);
 
-    // ── Background remote search (async, debounced) ──
+    // ── Background remote search (async, debounced 120ms) ──
+    // searchPeopleWithPhotos ALSO searches VERIFIED_PEOPLE + Wikipedia,
+    // so even if local search failed, remote will fill in verified results.
     let alive = true;
     const timer = window.setTimeout(async () => {
       try {
         const remote = await searchPeopleWithPhotos(query);
         if (!alive) return;
 
-        // Merge remote results with local — remote first (has richer image data)
+        // Merge: verified local results first (most reliable), then remote
         const merged = new Map<string, PersonOption>();
-        for (const p of [...remote, ...instantResults]) {
+        for (const p of [...verifiedHits, ...remote, ...instantResults]) {
           const k = p.name.trim().toLowerCase();
           if (k && !merged.has(k)) merged.set(k, p);
         }
@@ -1157,6 +1188,8 @@ const MentorTablePage: React.FC = () => {
                             src={imageSrcFor(s.name, s.imageUrl, s.candidateImageUrls)}
                             alt={s.name}
                             className={styles.suggestionAvatar}
+                            referrerPolicy="no-referrer"
+                            crossOrigin="anonymous"
                             onError={() => markImageBroken(s.name, s.imageUrl, s.candidateImageUrls)}
                           />
                           <span>{localizeName(s.name)}</span>
@@ -1185,6 +1218,8 @@ const MentorTablePage: React.FC = () => {
                             src={imageSrcFor(person.name, person.imageUrl, person.candidateImageUrls)}
                             alt={person.name}
                             className={styles.guestAvatar}
+                            referrerPolicy="no-referrer"
+                            crossOrigin="anonymous"
                             onError={() => markImageBroken(person.name, person.imageUrl, person.candidateImageUrls)}
                           />
                           <div className={styles.guestMeta}>
@@ -1574,6 +1609,8 @@ const MentorTablePage: React.FC = () => {
                           <img
                             src={findImage(displayName)}
                             alt={displayName}
+                            referrerPolicy="no-referrer"
+                            crossOrigin="anonymous"
                             onError={() => markImageBroken(resolveMentorName(displayName), selectedPeople[index]?.imageUrl, selectedPeople[index]?.candidateImageUrls)}
                           />
                         </button>
