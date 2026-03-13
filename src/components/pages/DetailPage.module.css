@@ -57,7 +57,7 @@
 }
 
 .questionCard {
-  background-color: white;
+  background-color: var(--bg-surface);
   border-radius: 12px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
   padding: 30px;
@@ -76,7 +76,7 @@
   display: flex;
   align-items: center;
   margin-bottom: 16px;
-  color: #6b7280;
+  color: var(--text-secondary);
   font-size: 0.9rem;
 }
 
@@ -119,19 +119,19 @@
 .responseInput {
   width: 100%;
   padding: 16px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid color-mix(in srgb, var(--primary-color) 18%, transparent);
   border-radius: 8px;
   resize: none;
   margin-bottom: 16px;
   font-family: inherit;
   font-size: 0.95rem;
-  color: #4b5563;
+  color: var(--text-secondary);
 }
 
 .responseInput:focus {
   outline: none;
   border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px rgba(79, 124, 255, 0.1);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary-color) 10%, transparent);
 }
 
 .reactionBar {
@@ -148,7 +148,7 @@
   justify-content: center;
   border-radius: 50%;
   background-color: #f9fafb;
-  color: #6b7280;
+  color: var(--text-secondary);
   cursor: pointer;
   font-size: 1.1rem;
   transition: all 0.2s ease;
@@ -161,7 +161,7 @@
 
 .reaction.selected {
   background-color: #eef2ff;
-  color: #4f7cff;
+  color: var(--primary-color, #5B7BFA);
 }
 
 .actionBar {
@@ -188,7 +188,7 @@
 }
 
 .submitBtn:hover {
-  background-color: #4069e5;
+  background-color: #4360D3;
 }
 
 .submitBtn:disabled {
@@ -199,7 +199,7 @@
 .changeBtn {
   display: flex;
   align-items: center;
-  color: #6b7280;
+  color: var(--text-secondary);
   background-color: #f3f4f6;
   border: none;
   padding: 10px 16px;
@@ -221,7 +221,7 @@
   display: flex;
   justify-content: space-between;
   margin-top: 30px;
-  color: #6b7280;
+  color: var(--text-secondary);
   font-size: 0.9rem;
 }
 
@@ -237,7 +237,7 @@
 .backLink {
   display: flex;
   align-items: center;
-  color: #6b7280;
+  color: var(--text-secondary);
   text-decoration: none;
   font-size: 0.95rem;
   margin-bottom: 20px;
@@ -260,7 +260,7 @@
   font-size: 1.2rem;
   font-weight: 600;
   margin-bottom: 16px;
-  color: #374151;
+  color: var(--text-primary);
 }
 
 .replyList {
@@ -283,7 +283,7 @@
 .replyAuthor {
   display: flex;
   align-items: center;
-  color: #4f7cff;
+  color: var(--primary-color, #5B7BFA);
   font-weight: 500;
   font-size: 0.95rem;
 }
@@ -298,7 +298,7 @@
 }
 
 .replyContent {
-  color: #4b5563;
+  color: var(--text-secondary);
   font-size: 0.95rem;
   line-height: 1.5;
 }
@@ -308,7 +308,7 @@
   padding: 30px;
   background-color: #f9fafb;
   border-radius: 8px;
-  color: #6b7280;
+  color: var(--text-secondary);
 }
 
 .noReplies p:first-child {
@@ -328,13 +328,13 @@
   min-height: 300px;
   flex-direction: column;
   gap: 16px;
-  color: #6b7280;
+  color: var(--text-secondary);
 }
 
 .spinner {
   width: 40px;
   height: 40px;
-  border: 3px solid rgba(79, 124, 255, 0.2);
+  border: 3px solid color-mix(in srgb, var(--primary-color) 20%, transparent);
   border-radius: 50%;
   border-top-color: var(--primary-color);
   animation: spin 1s ease-in-out infinite;

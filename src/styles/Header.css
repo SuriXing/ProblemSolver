@@ -1,7 +1,9 @@
 /* Header Styles */
 .header {
-  background-color: white;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  background-color: var(--bg-surface);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--primary-color) 15%, transparent);
   padding: 1rem 0;
   position: fixed;
   top: 0;
@@ -11,19 +13,25 @@
 }
 
 .header .container {
-  max-width: 1200px;
+  max-width: 1400px;
+  width: 100%;
   margin: 0 auto;
-  padding: 0 1rem;
+  padding: 0 2rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 1rem;
+}
+
+.header .nav-actions {
+  margin-right: 0;
 }
 
 .logo {
   display: flex;
   align-items: center;
   text-decoration: none;
-  color: #4f7cff;
+  color: var(--primary-color, #5B7BFA);
   font-size: 1.2rem;
   font-weight: 600;
 }
@@ -52,7 +60,7 @@
   display: flex;
   align-items: center;
   text-decoration: none;
-  color: #666;
+  color: var(--text-secondary);
   font-size: 0.9rem;
   font-weight: 400;
   padding: 0.5rem 1rem;
@@ -66,8 +74,8 @@
 
 .nav-link:hover,
 .history-link:hover {
-  background-color: #f5f5f5;
-  color: #4f7cff;
+  background-color: color-mix(in srgb, var(--primary-color) 14%, transparent);
+  color: var(--primary-color);
 }
 
 .nav-link svg,
@@ -97,7 +105,7 @@
   cursor: pointer;
   font-size: 0.9rem;
   font-weight: 400;
-  color: #666;
+  color: var(--text-secondary);
   transition: all 0.2s;
   user-select: none;
   background: none;
@@ -105,8 +113,8 @@
 }
 
 .language-button:hover {
-  background-color: #f5f5f5;
-  color: #4f7cff;
+  background-color: color-mix(in srgb, var(--primary-color) 14%, transparent);
+  color: var(--primary-color);
 }
 
 .language-button span {
@@ -119,7 +127,7 @@
   position: absolute;
   top: 100%;
   right: 0;
-  background-color: white;
+  background-color: var(--bg-surface);
   border-radius: 4px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   padding: 0.5rem 0;
@@ -141,21 +149,21 @@
   cursor: pointer;
   font-size: 0.9rem;
   font-weight: 400;
-  color: #666;
+  color: var(--text-secondary);
   transition: all 0.2s;
   display: flex;
   align-items: center;
 }
 
 .language-option:hover {
-  background-color: #f5f5f5;
-  color: #4f7cff;
+  background-color: color-mix(in srgb, var(--primary-color) 14%, transparent);
+  color: var(--primary-color);
 }
 
 .language-option.active {
-  color: #4f7cff;
+  color: var(--primary-color);
   font-weight: 500;
-  background-color: #f0f5ff;
+  background-color: color-mix(in srgb, var(--primary-color) 18%, transparent);
 }
 
 /* Instruction button styling to match other nav elements */
@@ -168,7 +176,7 @@
   cursor: pointer;
   font-size: 0.9rem;
   font-weight: 400;
-  color: #666;
+  color: var(--text-secondary);
   transition: all 0.2s;
   background: none;
   border: none;
@@ -176,8 +184,8 @@
 }
 
 .instruction-button:hover {
-  background-color: #f5f5f5;
-  color: #4f7cff;
+  background-color: color-mix(in srgb, var(--primary-color) 14%, transparent);
+  color: var(--primary-color);
 }
 
 .instruction-button span[role="img"] {

@@ -13,15 +13,13 @@ import {
   faMagnifyingGlass,
   faShuffle,
   faRotate,
-  faWandMagicSparkles,
   faChevronLeft,
-  faChevronRight,
-  faDice,
   faBell,
   faBookOpen,
   faBug
 } from '@fortawesome/free-solid-svg-icons';
 import Layout from '../layout/Layout';
+import { useTheme } from '../../hooks/useTheme';
 import { MentorProfile, createCustomMentorProfile, getCartoonAvatarUrl, getSuggestedPeople } from '../../features/mentorTable/mentorProfiles';
 import { MentorSimulationResult } from '../../features/mentorTable/mentorEngine';
 import { fetchMentorDebugPrompt, generateMentorAdvice, MentorConversationMessage } from '../../features/mentorTable/mentorApi';
@@ -37,14 +35,12 @@ import {
 } from '../../features/mentorTable/personLookup';
 import styles from './MentorTablePage.module.css';
 
-type SceneStyle = 'cute' | 'nature' | 'spooky' | 'cyber' | 'library';
-type RitualPhase = 'invite' | 'scene' | 'wish' | 'session';
+type RitualPhase = 'invite' | 'wish' | 'session';
 type SessionMode = 'idle' | 'booting' | 'live';
 
 interface MemoryCard {
   id: string;
   title: string;
-  style: SceneStyle;
   createdAt: string;
   takeaways: string[];
 }
@@ -83,7 +79,7 @@ const onboardingSlides = [
   },
   {
     title: '怎么用？',
-    body: '1. 搜索并添加你想咨询的对象（名人、MBTI类型、动漫/游戏/电影角色都可以）\n2. 选一个场景，写下你的问题\n3. 点击开始，等待每位对象的回复\n\n你还可以单独追问某个人，或同时问所有人。'
+    body: '1. 搜索并添加你想咨询的对象（名人、MBTI类型、动漫/游戏/电影角色都可以）\n2. 写下你的问题\n3. 点击开始，等待每位对象的回复\n\n你还可以单独追问某个人，或同时问所有人。'
   },
   {
     title: '准备好了吗？',
@@ -103,18 +99,12 @@ function getMentorCategory(name: string): 'tech' | 'sports' | 'artist' | 'leader
   return 'leader';
 }
 
-function styleClassForCard(style: SceneStyle): string {
-  if (style === 'cute') return styles.messageCardCute;
-  if (style === 'nature') return styles.messageCardNature;
-  if (style === 'spooky') return styles.messageCardSpooky;
-  if (style === 'cyber') return styles.messageCardCyber;
-  return styles.messageCardLibrary;
-}
-
 const MentorTablePage: React.FC<{ standalone?: boolean }> = ({ standalone = false }) => {
   const navigate = useNavigate();
   const { i18n } = useTranslation();
   const isZh = i18n.language?.toLowerCase().startsWith('zh');
+  // Apply stored theme (primary color + light/dark mode) on mount
+  useTheme();
   const [phase, setPhase] = useState<RitualPhase>('invite');
   const [sessionMode, setSessionMode] = useState<SessionMode>('idle');
   const [problem, setProblem] = useState('');
@@ -134,7 +124,6 @@ const MentorTablePage: React.FC<{ standalone?: boolean }> = ({ standalone = fals
     return localStorage.getItem(ONBOARDING_KEY) === '1';
   });
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [scene, setScene] = useState<SceneStyle>('cute');
   const [flippedCards, setFlippedCards] = useState<Record<string, boolean>>({});
   const [lastSummonedName, setLastSummonedName] = useState<string>('');
   const [candleLevel, setCandleLevel] = useState(1);
@@ -163,47 +152,18 @@ const MentorTablePage: React.FC<{ standalone?: boolean }> = ({ standalone = fals
   const [saveNotice, setSaveNotice] = useState('');
   const conversationPanelRef = useRef<HTMLDivElement | null>(null);
 
-  const sceneOptions: Array<{
-    id: SceneStyle;
-    label: string;
-    desc: string;
-    vibeLine: string;
-    cta: string;
-  }> = useMemo(
-    () =>
-      isZh
-        ? [
-            { id: 'cute', label: '可爱美学', desc: '粉彩闪光 + 贴纸便签', vibeLine: '柔和、温暖、闪闪发光。', cta: '发送便签 ✨' },
-            { id: 'nature', label: '自然', desc: '户外草地 + 手帐纸感', vibeLine: '清新、扎实、自然开阔。', cta: '释放想法 🍃' },
-            { id: 'spooky', label: '诡秘', desc: '烛光薄雾 + 旧纸信笺', vibeLine: '安静、微诡、烛光氛围。', cta: '向圆桌低语 🕯️' },
-            { id: 'cyber', label: '赛博夜色', desc: '霓虹雨幕 + 全息面板', vibeLine: '霓虹、未来、科技感。', cta: '发送信号 ▣' },
-            { id: 'library', label: '书房', desc: '暖灯书桌 + 笔记本', vibeLine: '暖光、专注、沉静思考。', cta: '翻开章节 📚' }
-          ]
-        : [
-            { id: 'cute', label: 'Cute & Aesthetic', desc: 'pastel sparkles + sticker notes', vibeLine: 'Soft, cozy, sparkly.', cta: 'Send the Note ✨' },
-            { id: 'nature', label: 'Nature', desc: 'open air + field notes', vibeLine: 'Fresh, grounded, open-air.', cta: 'Release the Thought 🍃' },
-            { id: 'spooky', label: 'Spooky & Creepy', desc: 'candle fog + parchment', vibeLine: 'Quiet, eerie, candlelit.', cta: 'Whisper to the Table 🕯️' },
-            { id: 'cyber', label: 'Cyber Noir', desc: 'neon rain + holo panel', vibeLine: 'Neon rain, futuristic.', cta: 'Transmit Signal ▣' },
-            { id: 'library', label: 'Library / Study', desc: 'warm lamp + notebook', vibeLine: 'Warm study lamp, calm focus.', cta: 'Open the Chapter 📚' }
-          ],
-    [isZh]
-  );
-
   const selectedMentors = useMemo(
     () => selectedPeople.map((person) => createCustomMentorProfile(person.name)),
     [selectedPeople]
   );
 
-  const ritualStep = phase === 'invite' ? 0 : phase === 'scene' ? 1 : phase === 'wish' ? 2 : 3;
-  const sceneIndex = sceneOptions.findIndex((s) => s.id === scene);
-  const currentScene = sceneOptions[sceneIndex] || sceneOptions[0];
+  const ritualStep = phase === 'invite' ? 0 : phase === 'wish' ? 1 : 2;
   const localizedVibeTags = isZh ? vibeTagsZh : vibeTags;
 
   const t = {
     heroTitle: isZh ? '名人桌 · 召唤房间' : 'Celebrity Mentor Table · Summoning Room',
     heroSub: isZh ? '这不是普通页面，而是一个互动舞台。' : 'Not a page. A stage.',
     summonGuests: isZh ? '召唤人物' : 'Summon Guests',
-    portalPicker: isZh ? '传送门风格' : 'Portal Picker',
     placeArtifact: isZh ? '放下你的问题卡' : 'Place Your Artifact',
     openCircle: isZh ? '开启圆桌' : 'Open Circle',
     edit: isZh ? '编辑' : 'Edit',
@@ -213,11 +173,10 @@ const MentorTablePage: React.FC<{ standalone?: boolean }> = ({ standalone = fals
     invitePlaceholder: isZh ? '输入对象（名人/MBTI/角色）' : 'Enter target (celebrity/MBTI/character)',
     flip: isZh ? '翻面' : 'flip',
     keepGoing: isZh ? '继续加油' : 'keep going',
-    continueToPortal: isZh ? '继续到传送门' : 'Continue to Portal',
-    randomVibe: isZh ? '随机风格' : 'Random vibe',
-    lockWorld: isZh ? '锁定这个世界' : 'Lock this World',
+    continueToWish: isZh ? '继续' : 'Continue',
     artifactPlaceholder: isZh ? '写下你现在最困扰的问题，圆桌会听见。' : 'Write what’s weighing on you. The table will listen.',
-    openingPortal: isZh ? '正在开启传送门...' : 'Opening portal...',
+    beginSession: isZh ? '开启圆桌 ✨' : 'Open the Circle ✨',
+    generating: isZh ? '正在召唤...' : 'Summoning...',
     sessionInProgress: isZh ? '会话进行中。' : 'Session in progress.',
     source: isZh ? '来源' : 'Source',
     llmApi: isZh ? 'LLM 接口' : 'LLM API',
@@ -378,10 +337,6 @@ const MentorTablePage: React.FC<{ standalone?: boolean }> = ({ standalone = fals
       return { ...prev, [key]: current + 1 };
     });
   };
-
-  const localizedSceneText = (style: SceneStyle) => sceneOptions.find((s) => s.id === style) || currentScene;
-
-  const localizedSceneName = (style: SceneStyle) => localizedSceneText(style).label;
 
   const generateMentorFollowup = (_mentorName: string, userText: string) => {
     const excerpt = userText.slice(0, 56).trim();
@@ -953,7 +908,6 @@ const MentorTablePage: React.FC<{ standalone?: boolean }> = ({ standalone = fals
     const memory: MemoryCard = {
       id: `${Date.now()}`,
       title: isZh ? '今晚总结' : 'Tonight\'s takeaway',
-      style: scene,
       createdAt: new Date().toLocaleString(),
       takeaways
     };
@@ -978,32 +932,8 @@ const MentorTablePage: React.FC<{ standalone?: boolean }> = ({ standalone = fals
     setMemoryDrawerOpen(true);
   };
 
-  const goPrevStyle = () => {
-    const next = (sceneIndex - 1 + sceneOptions.length) % sceneOptions.length;
-    setScene(sceneOptions[next].id);
-  };
-
-  const goNextStyle = () => {
-    const next = (sceneIndex + 1) % sceneOptions.length;
-    setScene(sceneOptions[next].id);
-  };
-
-  const randomStyle = () => {
-    const picked = sceneOptions[Math.floor(Math.random() * sceneOptions.length)];
-    setScene(picked.id);
-  };
-
-  const themeClass = {
-    cute: styles.sceneCute,
-    nature: styles.sceneNature,
-    spooky: styles.sceneSpooky,
-    cyber: styles.sceneCyber,
-    library: styles.sceneLibrary
-  }[scene];
-
   const phaseTitles: Array<{ id: RitualPhase; label: string }> = [
     { id: 'invite', label: t.summonGuests },
-    { id: 'scene', label: t.portalPicker },
     { id: 'wish', label: t.placeArtifact },
     { id: 'session', label: t.openCircle }
   ];
@@ -1017,7 +947,7 @@ const MentorTablePage: React.FC<{ standalone?: boolean }> = ({ standalone = fals
         },
         {
           title: 'How does it work?',
-          body: '1. Search and add who you want advice from (celebrities, MBTI types, cartoon/game/movie characters — all work)\n2. Pick a scene, then describe your problem\n3. Hit start and wait for each one to reply\n\nYou can also follow up with one person, or ask everyone at once.'
+          body: '1. Search and add who you want advice from (celebrities, MBTI types, cartoon/game/movie characters — all work)\n2. Describe your problem\n3. Hit start and wait for each one to reply\n\nYou can also follow up with one person, or ask everyone at once.'
         },
         {
           title: 'Ready?',
@@ -1072,7 +1002,7 @@ const MentorTablePage: React.FC<{ standalone?: boolean }> = ({ standalone = fals
 
   const content = (
       <section className={styles.roomPage}>
-        <div className={`${styles.roomScene} ${themeClass} ${sessionMode === 'booting' ? styles.ritualBooting : ''}`}>
+        <div className={`${styles.roomScene} ${sessionMode === 'booting' ? styles.ritualBooting : ''}`}>
           <div className={styles.backLayer} />
           <div className={styles.midLayer} />
           <div className={styles.lightSource} />
@@ -1238,36 +1168,8 @@ const MentorTablePage: React.FC<{ standalone?: boolean }> = ({ standalone = fals
                     })}
                   </div>
 
-                  <button type="button" data-testid="mentor-continue-scene" className={styles.primaryCta} onClick={() => setPhase('scene')}>
-                    {t.continueToPortal}
-                  </button>
-                </div>
-              )}
-
-              {phase === 'scene' && (
-                <div className={styles.block}>
-                  <h2><FontAwesomeIcon icon={faWandMagicSparkles} /> {t.portalPicker}</h2>
-                  <div className={styles.portalPicker}>
-                    <button type="button" className={styles.portalNav} onClick={goPrevStyle}><FontAwesomeIcon icon={faChevronLeft} /></button>
-                    <div className={styles.portalCenter}>
-                      <div className={styles.portalMain}>{localizedSceneText(scene).label}</div>
-                      <p>{localizedSceneText(scene).desc}</p>
-                      <em>{localizedSceneText(scene).vibeLine}</em>
-                    </div>
-                    <button type="button" className={styles.portalNav} onClick={goNextStyle}><FontAwesomeIcon icon={faChevronRight} /></button>
-                  </div>
-
-                  <div className={styles.portalPeekRow}>
-                    <span>{localizedSceneText(sceneOptions[(sceneIndex - 1 + sceneOptions.length) % sceneOptions.length].id).label}</span>
-                    <span>{localizedSceneText(sceneOptions[(sceneIndex + 1) % sceneOptions.length].id).label}</span>
-                  </div>
-
-                  <button type="button" className={styles.ghostBtn} onClick={randomStyle}>
-                    <FontAwesomeIcon icon={faDice} /> {t.randomVibe}
-                  </button>
-
-                  <button type="button" data-testid="mentor-lock-world" className={styles.primaryCta} onClick={() => setPhase('wish')}>
-                    {t.lockWorld}
+                  <button type="button" data-testid="mentor-continue-wish" className={styles.primaryCta} onClick={() => setPhase('wish')}>
+                    {t.continueToWish}
                   </button>
                 </div>
               )}
@@ -1275,7 +1177,7 @@ const MentorTablePage: React.FC<{ standalone?: boolean }> = ({ standalone = fals
               {phase === 'wish' && (
                 <div className={styles.block}>
                   <h2><FontAwesomeIcon icon={faBookOpen} /> {t.placeArtifact}</h2>
-                  <div className={`${styles.artifactInput} ${styles[`artifact${scene[0].toUpperCase()}${scene.slice(1)}`]}`}>
+                  <div className={styles.artifactInput}>
                     <textarea
                       data-testid="mentor-problem-input"
                       className={styles.problemInput}
@@ -1292,7 +1194,7 @@ const MentorTablePage: React.FC<{ standalone?: boolean }> = ({ standalone = fals
                     disabled={isGenerating || !problem.trim() || selectedMentors.length === 0}
                     onClick={handleGenerate}
                   >
-                    <FontAwesomeIcon icon={faLightbulb} /> {isGenerating ? t.openingPortal : localizedSceneText(scene).cta}
+                    <FontAwesomeIcon icon={faLightbulb} /> {isGenerating ? t.generating : t.beginSession}
                   </button>
                 </div>
               )}
@@ -1364,7 +1266,7 @@ const MentorTablePage: React.FC<{ standalone?: boolean }> = ({ standalone = fals
                           const threadKey = mentorThreadKey(reply.mentorName);
                           return (
                             <div key={`${mentorName}-${reply.mentorId}`} className={styles.conversationRowLeft}>
-                              <article className={`${styles.conversationBubble} ${styles.conversationLeftBubble} ${styleClassForCard(scene)}`}>
+                              <article className={`${styles.conversationBubble} ${styles.conversationLeftBubble} `}>
                                 <header>{mentorName}</header>
                                 <p>{reply.likelyResponse}</p>
                                 <footer>{isZh ? '下一步：' : 'Next move: '} {reply.oneActionStep}</footer>
@@ -1437,7 +1339,7 @@ const MentorTablePage: React.FC<{ standalone?: boolean }> = ({ standalone = fals
                             </div>
                             {turn.replies.map((reply, idx) => (
                               <div key={`${turn.id}-${reply.mentorName}-${idx}`} className={styles.conversationRowLeft}>
-                                <article className={`${styles.conversationBubble} ${styles.conversationLeftBubble} ${styleClassForCard(scene)}`}>
+                                <article className={`${styles.conversationBubble} ${styles.conversationLeftBubble} `}>
                                   <header>{localizeName(reply.mentorName)}</header>
                                   <p>{reply.text}</p>
                                 </article>
@@ -1598,7 +1500,7 @@ const MentorTablePage: React.FC<{ standalone?: boolean }> = ({ standalone = fals
                   );
                   const isSpeaker = activeReplyName === displayName && sessionMode === 'live';
                   const flipped = Boolean(flippedCards[displayName]);
-                  const marker = scene === 'cute' ? '★' : scene === 'nature' ? '🍃' : scene === 'spooky' ? '✦' : scene === 'cyber' ? '▣' : '✎';
+                  const marker = '✎';
                   const categoryClass = styles[`entrance${getMentorCategory(displayName)[0].toUpperCase()}${getMentorCategory(displayName).slice(1)}`];
 
                   return (
@@ -1883,7 +1785,7 @@ const MentorTablePage: React.FC<{ standalone?: boolean }> = ({ standalone = fals
             {memories.map((memory) => (
               <article key={memory.id} className={styles.memoryCard}>
                 <header>{memory.title}</header>
-                <small>{memory.createdAt} · {localizedSceneName(memory.style)}</small>
+                <small>{memory.createdAt}</small>
                 <ul>
                   {memory.takeaways.slice(0, 3).map((item, idx) => (
                     <li key={`${memory.id}-${idx}`}>{item}</li>

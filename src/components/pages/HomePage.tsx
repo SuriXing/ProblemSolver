@@ -70,8 +70,8 @@ const HomePage: React.FC = () => {
               role="button"
               tabIndex={0}
             >
-              <div className="option-icon" style={{ backgroundColor: '#f0f5ff' }}>
-                <FontAwesomeIcon icon={faComments} style={{ color: '#4285F4' }} />
+              <div className="option-icon" style={{ backgroundColor: 'color-mix(in srgb, var(--primary) 15%, transparent)' }}>
+                <FontAwesomeIcon icon={faComments} style={{ color: 'var(--primary)' }} />
               </div>
               <h2>{t('confessCardTitle')}</h2>
               <p>{t('confessCardDesc')}</p>
@@ -80,18 +80,18 @@ const HomePage: React.FC = () => {
               </div>
             </div>
 
-            <div 
+            <div
               className={`option-card ${visibleElements.optionCard2 ? 'visible' : ''}`}
               onClick={handleHelpClick}
               role="button"
               tabIndex={0}
             >
-              <div className="option-icon" style={{ backgroundColor: '#f0f5ff' }}>
-                <FontAwesomeIcon icon={faHandsHelping} style={{ color: '#4285F4' }} />
+              <div className="option-icon" style={{ backgroundColor: 'color-mix(in srgb, var(--primary) 15%, transparent)' }}>
+                <FontAwesomeIcon icon={faHandsHelping} style={{ color: 'var(--primary)' }} />
               </div>
               <h2>{t('helpCardTitle')}</h2>
               <p>{t('helpCardDesc')}</p>
-              <div className="btn-primary" style={{ backgroundColor: 'white', color: '#4285F4', border: '1px solid #4285F4' }}>
+              <div className="btn-primary" style={{ backgroundColor: 'transparent', color: 'var(--primary)', border: '1px solid var(--primary)' }}>
                 {t('goHelp')}
               </div>
             </div>
@@ -102,7 +102,7 @@ const HomePage: React.FC = () => {
         <div style={{
           position: 'fixed',
           bottom: 20,
-          right: 20,
+          right: 80,
           zIndex: 1000
         }}>
           <button

@@ -28,7 +28,7 @@ const SuccessPage: React.FC = () => {
       localStorage.setItem('accessCode', location.state.accessCode);
       // Auto-save to notebook
       console.log('Auto-saving access code to notebook:', location.state.accessCode);
-      saveAccessCodeToNotebook(location.state.accessCode, 'Auto-saved');
+      saveAccessCodeToNotebook(location.state.accessCode);
     } else {
       // Fall back to localStorage (when returning to the page)
       const storedAccessCode = localStorage.getItem('accessCode');
@@ -38,7 +38,7 @@ const SuccessPage: React.FC = () => {
         setAccessCode(storedAccessCode);
         // Auto-save to notebook if not already saved
         console.log('Auto-saving stored access code to notebook:', storedAccessCode);
-        saveAccessCodeToNotebook(storedAccessCode, 'Auto-saved');
+        saveAccessCodeToNotebook(storedAccessCode);
       } else {
         console.warn('No access code found in state or localStorage');
       }
