@@ -80,9 +80,10 @@ const HelpPage: React.FC = () => {
         setLoading(true);
         const posts = await DatabaseService.getPostsByPurpose('need_help');
         setHelpItems(posts);
-      } catch (error) {
-        console.error('Error fetching posts:', error);
-        setError('Failed to load posts');
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : String(err);
+        console.error('Error fetching posts:', err);
+        setError(`Failed to load posts: ${message}`);
       } finally {
         setLoading(false);
       }
