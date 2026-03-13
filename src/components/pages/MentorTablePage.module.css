@@ -1802,11 +1802,14 @@
 
 .onboardingCard {
   width: min(560px, 92vw);
+  min-height: 320px;
   border-radius: 16px;
   border: 1px solid #d4def2;
   background: #fff;
   box-shadow: 0 24px 48px rgba(18, 28, 56, 0.28);
   padding: 20px;
+  display: flex;
+  flex-direction: column;
 }
 
 .onboardingCard h3 {
@@ -1819,6 +1822,7 @@
   margin: 10px 0 0;
   color: #465d85;
   line-height: 1.6;
+  flex: 1;
 }
 
 .slideDots {
