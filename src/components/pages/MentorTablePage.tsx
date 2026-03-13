@@ -698,28 +698,46 @@ const MentorTablePage: React.FC = () => {
     const trimmed = rawName.trim();
     if (!trimmed) return;
 
-    const initialImage = typeof person === 'string' ? undefined : person.imageUrl;
-    const initialCandidates = typeof person === 'string' ? undefined : person.candidateImageUrls;
+    // ── Resolve raw text to canonical name + image ──
+    // e.g. "lisa" → "Lisa Su" with photo, "steve jobs" → "Steve Jobs" with photo
+    let name = typeof person === 'string' ? trimmed : person.name;
+    let initialImage = typeof person === 'string' ? undefined : person.imageUrl;
+    let initialCandidates = typeof person === 'string' ? undefined : person.candidateImageUrls;
+
+    if (typeof person === 'string') {
+      try {
+        const verified = findVerifiedPerson(trimmed);
+        if (verified) {
+          name = verified.canonical;
+          initialImage = verified.imageUrl;
+          initialCandidates = verified.candidateImageUrls;
+        }
+      } catch { /* findVerifiedPerson may not be available due to module cache */ }
+    }
+
     setSelectedPeople((prev) => {
-      if (prev.some((p) => p.name.toLowerCase() === trimmed.toLowerCase())) return prev;
+      if (prev.some((p) => p.name.toLowerCase() === name.toLowerCase())) return prev;
       if (prev.length >= MAX_PEOPLE) return prev;
-      return [...prev, { name: trimmed, imageUrl: initialImage, candidateImageUrls: initialCandidates }];
+      return [...prev, { name, imageUrl: initialImage, candidateImageUrls: initialCandidates }];
     });
-    setLastSummonedName(trimmed);
+    setLastSummonedName(name);
     window.setTimeout(() => setLastSummonedName(''), 1800);
     setPersonQuery('');
 
+    // Async image fetch for people not in VERIFIED_PEOPLE
     if (!initialImage) {
-      const [fetchedImage, fetchedCandidates] = await Promise.all([fetchPersonImage(trimmed), fetchPersonImageCandidates(trimmed)]);
-      if (fetchedImage || fetchedCandidates) {
-        setSelectedPeople((prev) =>
-          prev.map((p) =>
-            p.name.toLowerCase() === trimmed.toLowerCase()
-              ? { ...p, imageUrl: fetchedImage || p.imageUrl, candidateImageUrls: fetchedCandidates || p.candidateImageUrls }
-              : p
-          )
-        );
-      }
+      try {
+        const [fetchedImage, fetchedCandidates] = await Promise.all([fetchPersonImage(name), fetchPersonImageCandidates(name)]);
+        if (fetchedImage || fetchedCandidates) {
+          setSelectedPeople((prev) =>
+            prev.map((p) =>
+              p.name.toLowerCase() === name.toLowerCase()
+                ? { ...p, imageUrl: fetchedImage || p.imageUrl, candidateImageUrls: fetchedCandidates || p.candidateImageUrls }
+                : p
+            )
+          );
+        }
+      } catch { /* remote image fetch failed — keep initial/fallback */ }
     }
   };
 
@@ -1182,19 +1200,25 @@ const MentorTablePage: React.FC = () => {
 
                   {personQuery.trim() && (
                     <div className={styles.suggestionMenu}>
-                      {suggestions.map((s) => (
-                        <button type="button" key={s.name} className={styles.suggestionItem} onClick={() => addPerson(s)}>
-                          <img
-                            src={imageSrcFor(s.name, s.imageUrl, s.candidateImageUrls)}
-                            alt={s.name}
-                            className={styles.suggestionAvatar}
-                            referrerPolicy="no-referrer"
-                            crossOrigin="anonymous"
-                            onError={() => markImageBroken(s.name, s.imageUrl, s.candidateImageUrls)}
-                          />
-                          <span>{localizeName(s.name)}</span>
-                        </button>
-                      ))}
+                      {suggestions.map((s) => {
+                        const desc = isZh ? (s.descriptionZh || s.description) : s.description;
+                        return (
+                          <button type="button" key={s.name} className={styles.suggestionItem} onClick={() => addPerson(s)}>
+                            <img
+                              src={imageSrcFor(s.name, s.imageUrl, s.candidateImageUrls)}
+                              alt={s.name}
+                              className={styles.suggestionAvatar}
+                              referrerPolicy="no-referrer"
+                              crossOrigin="anonymous"
+                              onError={() => markImageBroken(s.name, s.imageUrl, s.candidateImageUrls)}
+                            />
+                            <div className={styles.suggestionText}>
+                              <span className={styles.suggestionName}>{localizeName(s.name)}</span>
+                              {desc && <span className={styles.suggestionDesc}>{desc}</span>}
+                            </div>
+                          </button>
+                        );
+                      })}
                       {isSearching && <div className={styles.searchingRow}>{isZh ? '搜索中...' : 'Searching...'}</div>}
                       {!isSearching && suggestions.length === 0 && (
                         <div className={styles.searchingRow}>{isZh ? '未找到结果，按回车添加自定义名人' : 'No results — press Enter to add as custom mentor'}</div>
