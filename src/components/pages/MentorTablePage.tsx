@@ -329,13 +329,24 @@ const MentorTablePage: React.FC = () => {
 
   const normalizeNameKey = (name: string) => name.trim().toLowerCase().replace(/\s+/g, ' ');
 
+  // Resolve a raw name to its canonical display form, e.g. "lisa su" → "Lisa Su"
+  const resolveDisplayName = (name: string): string => {
+    try {
+      const verified = findVerifiedPerson(name);
+      if (verified) return verified.canonical;
+    } catch { /* findVerifiedPerson may not be available */ }
+    return name;
+  };
+
   const localizeName = (name: string) => {
-    if (!isZh) return name;
-    return mentorNameZhMap[name] || name;
+    const canonical = resolveDisplayName(name);
+    if (!isZh) return canonical;
+    return mentorNameZhMap[canonical] || canonical;
   };
 
   const createInitialAvatar = (name: string) => {
-    const text = name
+    const canonical = resolveDisplayName(name);
+    const text = canonical
       .split(/\s+/)
       .filter(Boolean)
       .slice(0, 2)
@@ -348,8 +359,19 @@ const MentorTablePage: React.FC = () => {
   const buildImageChain = (name: string, imageUrl?: string, candidateImageUrls?: string[]) => {
     const key = normalizeNameKey(name);
     const person = selectedPeople.find((p) => normalizeNameKey(p.name) === key);
+
+    // Always consult VERIFIED_PEOPLE at render time — even if the person was added
+    // with a raw lowercase name and no imageUrl, we still find their canonical photo.
+    let verifiedImages: string[] = [];
+    try {
+      const verified = findVerifiedPerson(name);
+      if (verified) {
+        verifiedImages = [verified.imageUrl, ...(verified.candidateImageUrls || [])].filter(Boolean);
+      }
+    } catch { /* findVerifiedPerson may not be available */ }
+
     const external = Array.from(
-      new Set([imageUrl, person?.imageUrl, ...(candidateImageUrls || []), ...(person?.candidateImageUrls || [])].filter(Boolean))
+      new Set([imageUrl, person?.imageUrl, ...verifiedImages, ...(candidateImageUrls || []), ...(person?.candidateImageUrls || [])].filter(Boolean))
     ) as string[];
     // Append DiceBear cartoon + inline SVG (data URI) as guaranteed fallbacks.
     // The inline SVG is last because it always loads — it can never fail.
@@ -1209,7 +1231,6 @@ const MentorTablePage: React.FC = () => {
                               alt={s.name}
                               className={styles.suggestionAvatar}
                               referrerPolicy="no-referrer"
-                              crossOrigin="anonymous"
                               onError={() => markImageBroken(s.name, s.imageUrl, s.candidateImageUrls)}
                             />
                             <div className={styles.suggestionText}>
@@ -1243,7 +1264,6 @@ const MentorTablePage: React.FC = () => {
                             alt={person.name}
                             className={styles.guestAvatar}
                             referrerPolicy="no-referrer"
-                            crossOrigin="anonymous"
                             onError={() => markImageBroken(person.name, person.imageUrl, person.candidateImageUrls)}
                           />
                           <div className={styles.guestMeta}>
@@ -1634,7 +1654,6 @@ const MentorTablePage: React.FC = () => {
                             src={findImage(displayName)}
                             alt={displayName}
                             referrerPolicy="no-referrer"
-                            crossOrigin="anonymous"
                             onError={() => markImageBroken(resolveMentorName(displayName), selectedPeople[index]?.imageUrl, selectedPeople[index]?.candidateImageUrls)}
                           />
                         </button>
