@@ -3,6 +3,7 @@ const path = require('path');
 const express = require('express');
 const mentorTableHandler = require('./api/mentor-table.js');
 const mentorDebugPromptHandler = require('./api/mentor-debug-prompt.js');
+const mentorImageHandler = require('./api/mentor-image.js');
 
 function stripWrappingQuotes(value) {
   if (typeof value !== 'string' || value.length < 2) return value;
@@ -60,6 +61,10 @@ app.all('/api/mentor-table', async (req, res) => {
 
 app.all('/api/mentor-debug-prompt', async (req, res) => {
   await mentorDebugPromptHandler(req, res);
+});
+
+app.get('/api/mentor-image', async (req, res) => {
+  await mentorImageHandler(req, res);
 });
 
 app.listen(port, host, () => {
