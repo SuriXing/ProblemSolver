@@ -6,6 +6,7 @@ import { TranslationProvider } from './context/TranslationContext';
 import { useTranslation } from 'react-i18next';
 
 // Import all your page components
+import LandingPage from './components/pages/LandingPage';
 import HomePage from './components/pages/HomePage';
 import HelpPage from './components/pages/HelpPage';
 import ConfessionPage from './components/pages/ConfessionPage';
@@ -55,7 +56,8 @@ function App() {
           ) : (
             <>
               <Routes>
-                <Route path="/" element={<HomePage />} />
+                <Route path="/" element={<LandingPage />} />
+                <Route path="/problem-solver" element={<HomePage />} />
                 <Route path="/help" element={<HelpPage />} />
                 <Route path="/help/:accessCode" element={<HelpDetailPage />} />
                 <Route path="/help-success" element={<HelpSuccessPage />} />
