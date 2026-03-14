@@ -30,6 +30,8 @@
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
     "coverage": "vitest run --coverage",
+    "test:e2e": "cypress run",
+    "test:e2e:open": "cypress open",
     "serve": "serve -s dist -l 5000",
     "server": "node server.js"
   },

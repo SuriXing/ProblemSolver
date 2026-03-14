@@ -138,7 +138,7 @@ const TopicDetailPage: React.FC = () => {
   };
   
   function renderTag(tag: string) {
-    return t(`tag${tag.charAt(0).toUpperCase() + tag.slice(1)}`, tag);
+    return t(`tag${tag.charAt(0).toUpperCase() + tag.slice(1)}`, { defaultValue: tag });
   }
   
   if (isLoading) {

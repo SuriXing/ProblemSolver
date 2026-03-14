@@ -14,12 +14,9 @@ import {
   faShuffle,
   faRotate,
   faWandMagicSparkles,
-  faVolumeXmark,
-  faVolumeHigh,
   faChevronLeft,
   faChevronRight,
   faDice,
-  faCamera,
   faBell,
   faBookOpen,
   faBug
@@ -63,9 +60,11 @@ interface ExpandedSuggestionCard {
 
 interface SuggestionDeckEntry {
   key: string;
+  mentorIndex: number;
   displayName: string;
   likelyResponse: string;
   oneActionStep: string;
+  status?: 'ready' | 'typing';
   replyId?: string;
 }
 
@@ -94,50 +93,6 @@ const onboardingSlides = [
   {
     title: '说明显示设置',
     body: '最后一步你可以选择“下次继续显示”或“下次不再显示”本说明。'
-  }
-];
-
-const sceneOptions: Array<{
-  id: SceneStyle;
-  label: string;
-  desc: string;
-  vibeLine: string;
-  cta: string;
-}> = [
-  {
-    id: 'cute',
-    label: 'Cute & Aesthetic',
-    desc: 'pastel sparkles + sticker notes',
-    vibeLine: 'Soft, cozy, sparkly.',
-    cta: 'Send the Note ✨'
-  },
-  {
-    id: 'nature',
-    label: 'Nature',
-    desc: 'open air + field notes',
-    vibeLine: 'Fresh, grounded, open-air.',
-    cta: 'Release the Thought 🍃'
-  },
-  {
-    id: 'spooky',
-    label: 'Spooky & Creepy',
-    desc: 'candle fog + parchment',
-    vibeLine: 'Quiet, eerie, candlelit.',
-    cta: 'Whisper to the Table 🕯️'
-  },
-  {
-    id: 'cyber',
-    label: 'Cyber Noir',
-    desc: 'neon rain + holo panel',
-    vibeLine: 'Neon rain, futuristic.',
-    cta: 'Transmit Signal ▣'
-  },
-  {
-    id: 'library',
-    label: 'Library / Study',
-    desc: 'warm lamp + notebook',
-    vibeLine: 'Warm study lamp, calm focus.',
-    cta: 'Open the Chapter 📚'
   }
 ];
 
@@ -179,7 +134,6 @@ const MentorTablePage: React.FC = () => {
   const [selectedPeople, setSelectedPeople] = useState<PersonOption[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
-  const [soundOn, setSoundOn] = useState(false);
   const [suggestions, setSuggestions] = useState<PersonOption[]>([]);
   const [result, setResult] = useState<MentorSimulationResult | null>(null);
   const [activeResultIndex, setActiveResultIndex] = useState(0);
@@ -217,7 +171,34 @@ const MentorTablePage: React.FC = () => {
   const [debugPromptByMentorId, setDebugPromptByMentorId] = useState<Record<string, string>>({});
   const [debugPromptLoadingByMentorId, setDebugPromptLoadingByMentorId] = useState<Record<string, boolean>>({});
   const [debugPromptErrorByMentorId, setDebugPromptErrorByMentorId] = useState<Record<string, string>>({});
+  const [saveNotice, setSaveNotice] = useState('');
   const conversationPanelRef = useRef<HTMLDivElement | null>(null);
+
+  const sceneOptions: Array<{
+    id: SceneStyle;
+    label: string;
+    desc: string;
+    vibeLine: string;
+    cta: string;
+  }> = useMemo(
+    () =>
+      isZh
+        ? [
+            { id: 'cute', label: '可爱美学', desc: '粉彩闪光 + 贴纸便签', vibeLine: '柔和、温暖、闪闪发光。', cta: '发送便签 ✨' },
+            { id: 'nature', label: '自然', desc: '户外草地 + 手帐纸感', vibeLine: '清新、扎实、自然开阔。', cta: '释放想法 🍃' },
+            { id: 'spooky', label: '诡秘', desc: '烛光薄雾 + 旧纸信笺', vibeLine: '安静、微诡、烛光氛围。', cta: '向圆桌低语 🕯️' },
+            { id: 'cyber', label: '赛博夜色', desc: '霓虹雨幕 + 全息面板', vibeLine: '霓虹、未来、科技感。', cta: '发送信号 ▣' },
+            { id: 'library', label: '书房', desc: '暖灯书桌 + 笔记本', vibeLine: '暖光、专注、沉静思考。', cta: '翻开章节 📚' }
+          ]
+        : [
+            { id: 'cute', label: 'Cute & Aesthetic', desc: 'pastel sparkles + sticker notes', vibeLine: 'Soft, cozy, sparkly.', cta: 'Send the Note ✨' },
+            { id: 'nature', label: 'Nature', desc: 'open air + field notes', vibeLine: 'Fresh, grounded, open-air.', cta: 'Release the Thought 🍃' },
+            { id: 'spooky', label: 'Spooky & Creepy', desc: 'candle fog + parchment', vibeLine: 'Quiet, eerie, candlelit.', cta: 'Whisper to the Table 🕯️' },
+            { id: 'cyber', label: 'Cyber Noir', desc: 'neon rain + holo panel', vibeLine: 'Neon rain, futuristic.', cta: 'Transmit Signal ▣' },
+            { id: 'library', label: 'Library / Study', desc: 'warm lamp + notebook', vibeLine: 'Warm study lamp, calm focus.', cta: 'Open the Chapter 📚' }
+          ],
+    [isZh]
+  );
 
   const selectedMentors = useMemo(
     () => selectedPeople.map((person) => createCustomMentorProfile(person.name)),
@@ -238,9 +219,6 @@ const MentorTablePage: React.FC = () => {
     openCircle: isZh ? '开启圆桌' : 'Open Circle',
     edit: isZh ? '编辑' : 'Edit',
     shuffle: isZh ? '换座位' : 'Shuffle',
-    polaroid: isZh ? '拍立得' : 'Polaroid',
-    soundOn: isZh ? '声音开' : 'Sound On',
-    soundOff: isZh ? '声音关' : 'Sound Off',
     restart: isZh ? '重新开始' : 'Restart',
     summoningRitual: isZh ? '召唤仪式' : 'Summoning Ritual',
     invitePlaceholder: isZh ? '输入对象（名人/MBTI/角色）' : 'Enter target (celebrity/MBTI/character)',
@@ -255,6 +233,9 @@ const MentorTablePage: React.FC = () => {
     source: isZh ? '来源' : 'Source',
     llmApi: isZh ? 'LLM 接口' : 'LLM API',
     localFallback: isZh ? '本地回退' : 'Local Fallback',
+    aiDisclaimer: isZh
+      ? '这是基于公开信息的AI模拟视角，不代表真实人物的观点。'
+      : 'This is an AI-simulated perspective inspired by public information, not a real statement from the person.',
     youFrontRow: isZh ? '你 · 第一视角' : 'You · Front row',
     concernHint: isZh ? '把你的问题放在桌面上。' : 'Place your concern artifact on the table.',
     tableListening: isZh ? '圆桌正在聆听。' : 'The table is listening.',
@@ -267,6 +248,8 @@ const MentorTablePage: React.FC = () => {
     replyTo: isZh ? '回复给' : 'Reply to',
     send: isZh ? '发送' : 'Send',
     typing: isZh ? '正在输入...' : 'typing...',
+    typingNow: isZh ? '正在输入中' : 'Typing now',
+    mentorTyping: isZh ? '输入中' : 'Typing',
     hideGroup: isZh ? '隐藏共同讨论' : 'Hide group solve',
     showGroup: isZh ? '共同讨论方案' : 'Group solve together',
     jointStrategy: isZh ? '全员讨论 · 联合方案' : 'All mentors · Joint strategy',
@@ -276,10 +259,12 @@ const MentorTablePage: React.FC = () => {
     showWrap: isZh ? '显示总结' : 'Show session wrap',
     sessionComplete: isZh ? '会话完成。' : 'Session complete.',
     tonightTakeaway: isZh ? '今晚总结' : 'Tonight’s takeaway',
-    save: isZh ? '保存' : 'Save',
+    save: isZh ? '保存聊天' : 'Save Chat',
     newTable: isZh ? '开启新圆桌' : 'Start a new table',
     memories: isZh ? '记忆抽屉' : 'Memories',
     memoryDrawer: isZh ? '记忆抽屉' : 'Memory Drawer',
+    savedInDrawer: isZh ? '已保存到右下角“记忆抽屉”。' : 'Saved to the Memories drawer in the bottom-right.',
+    savedSuccess: isZh ? '聊天记录已成功保存。' : 'Conversation saved successfully.',
     noMemories: isZh ? '还没有保存内容。' : 'No saved memories yet.',
     chatWindow: isZh ? '聊天窗口' : 'Conversation',
     backToTable: isZh ? '返回上一页' : 'Back to previous view',
@@ -309,7 +294,7 @@ const MentorTablePage: React.FC = () => {
     return cjkCount >= latinCount ? 'zh-CN' : 'en';
   };
 
-  const getOutputLanguage = (userText: string) => detectLanguageFromText(userText) || uiLanguage;
+  const getOutputLanguage = (_userText: string) => uiLanguage;
 
   const normalizeNameKey = (name: string) => name.trim().toLowerCase().replace(/\s+/g, ' ');
 
@@ -327,6 +312,11 @@ const MentorTablePage: React.FC = () => {
       .join('') || '?';
     const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#eff5ff"/><stop offset="100%" stop-color="#d6e5ff"/></linearGradient></defs><rect width="96" height="96" fill="url(#g)"/><circle cx="48" cy="48" r="44" fill="#ffffff" opacity="0.72"/><text x="50%" y="53%" text-anchor="middle" dominant-baseline="middle" font-family="Arial,sans-serif" font-size="34" font-weight="700" fill="#2b4f90">${text}</text></svg>`;
     return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+  };
+
+  const isLikelyFallbackAvatar = (src?: string) => {
+    if (!src) return false;
+    return src.startsWith('data:image/svg+xml') || src.includes('ui-avatars.com/api');
   };
 
   const imageSrcFor = (name: string, imageUrl?: string, candidateImageUrls?: string[]) => {
@@ -354,19 +344,7 @@ const MentorTablePage: React.FC = () => {
     });
   };
 
-  const localizedSceneText = (style: SceneStyle) => {
-    if (!isZh) {
-      return sceneOptions.find((s) => s.id === style) || currentScene;
-    }
-    const zhMap: Record<SceneStyle, { label: string; desc: string; vibeLine: string; cta: string }> = {
-      cute: { label: '可爱美学', desc: '粉彩闪光 + 贴纸便签', vibeLine: '柔和、温暖、闪闪发光。', cta: '发送便签 ✨' },
-      nature: { label: '自然', desc: '户外草地 + 手帐纸感', vibeLine: '清新、扎实、自然开阔。', cta: '释放想法 🍃' },
-      spooky: { label: '诡秘', desc: '烛光薄雾 + 旧纸信笺', vibeLine: '安静、微诡、烛光氛围。', cta: '向圆桌低语 🕯️' },
-      cyber: { label: '赛博夜色', desc: '霓虹雨幕 + 全息面板', vibeLine: '霓虹、未来、科技感。', cta: '发送信号 ▣' },
-      library: { label: '书房', desc: '暖灯书桌 + 笔记本', vibeLine: '暖光、专注、沉静思考。', cta: '翻开章节 📚' }
-    };
-    return zhMap[style];
-  };
+  const localizedSceneText = (style: SceneStyle) => sceneOptions.find((s) => s.id === style) || currentScene;
 
   const localizedSceneName = (style: SceneStyle) => localizedSceneText(style).label;
 
@@ -414,20 +392,6 @@ const MentorTablePage: React.FC = () => {
           role: 'mentor',
           speaker: localizeName(reply.mentorName || 'Mentor'),
           text: reply.text.trim()
-        });
-      }
-    }
-
-    for (const mentor of selectedMentors) {
-      const key = mentorThreadKey(mentor.displayName);
-      const notes = noteReplies[key] || [];
-      const speakerName = localizeName(resolveMentorName(mentor.displayName));
-      for (const note of notes) {
-        if (!note?.text?.trim()) continue;
-        history.push({
-          role: note.role === 'user' ? 'user' : 'mentor',
-          speaker: note.role === 'user' ? t.you : speakerName,
-          text: note.text.trim()
         });
       }
     }
@@ -493,6 +457,14 @@ const MentorTablePage: React.FC = () => {
         { role: 'mentor', text: mentorReply }
       ]
     }));
+    setConversationTurns((prev) => [
+      ...prev,
+      {
+        id: `${Date.now()}-${threadKey}-${prev.length}`,
+        user: text,
+        replies: [{ mentorName, text: mentorReply }]
+      }
+    ]);
     setNoteDrafts((prev) => ({ ...prev, [threadKey]: '' }));
     setOpenNoteFor(threadKey);
     scrollConversationToBottom();
@@ -649,7 +621,8 @@ const MentorTablePage: React.FC = () => {
     window.setTimeout(() => setLastSummonedName(''), 1800);
     setPersonQuery('');
 
-    if (!initialImage) {
+    const shouldHydrateProfile = !initialImage || !initialCandidates?.length || isLikelyFallbackAvatar(initialImage);
+    if (shouldHydrateProfile) {
       const [fetchedImage, fetchedCandidates] = await Promise.all([fetchPersonImage(trimmed), fetchPersonImageCandidates(trimmed)]);
       if (fetchedImage || fetchedCandidates) {
         setSelectedPeople((prev) =>
@@ -729,20 +702,6 @@ const MentorTablePage: React.FC = () => {
     }
   };
 
-  const takeSnapshotMemory = () => {
-    const takeaways =
-      result?.mentorReplies?.slice(0, 3).map((r) => r.oneActionStep) || [problem || (isZh ? '会话快照' : 'Session snapshot')];
-    const memory: MemoryCard = {
-      id: `${Date.now()}`,
-      title: isZh ? '拍立得快照' : 'Polaroid Snapshot',
-      style: scene,
-      createdAt: new Date().toLocaleString(),
-      takeaways
-    };
-    setMemories((prev) => [memory, ...prev]);
-    setMemoryDrawerOpen(true);
-  };
-
   const seatPoint = (index: number, total: number) => {
     if (total <= 1) return { x: 50, y: 34 };
     const angleStart = 200;
@@ -760,6 +719,8 @@ const MentorTablePage: React.FC = () => {
     const { x, y } = seatPoint(index, total);
     return { left: `${x}%`, top: `${y}%` };
   };
+
+  const clampNumber = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value));
 
   const getReplyByMentorName = (name: string) => {
     const key = normalizeMentorKey(name);
@@ -798,44 +759,36 @@ const MentorTablePage: React.FC = () => {
     return compact.replace(/^next\s+step(?:\s*\(today\))?[:：]\s*/iu, '').trim();
   };
 
-  const floatingCardPlacement = (index: number, total: number): React.CSSProperties => {
-    const rotateOffsets = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-    const anchorMap: Record<number, Array<{ left: number; top: number }>> = {
-      1: [{ left: 50, top: 15 }],
-      2: [{ left: 26, top: 18 }, { left: 74, top: 18 }],
-      3: [{ left: 16, top: 22 }, { left: 50, top: 15 }, { left: 84, top: 22 }],
-      4: [{ left: 12, top: 23 }, { left: 38, top: 16 }, { left: 64, top: 16 }, { left: 90, top: 23 }],
-      5: [{ left: 10, top: 24 }, { left: 30, top: 19 }, { left: 50, top: 14 }, { left: 70, top: 19 }, { left: 90, top: 24 }],
-      6: [{ left: 8, top: 24 }, { left: 24, top: 20 }, { left: 40, top: 16 }, { left: 60, top: 16 }, { left: 76, top: 20 }, { left: 92, top: 24 }],
-      7: [{ left: 6, top: 24 }, { left: 20, top: 21 }, { left: 34, top: 18 }, { left: 50, top: 14 }, { left: 66, top: 18 }, { left: 80, top: 21 }, { left: 94, top: 24 }],
-      8: [{ left: 5, top: 24 }, { left: 17, top: 22 }, { left: 29, top: 19 }, { left: 41, top: 16 }, { left: 59, top: 16 }, { left: 71, top: 19 }, { left: 83, top: 22 }, { left: 95, top: 24 }]
-    };
-    const generatedAnchors = Array.from({ length: Math.max(total, 1) }, (_, idx) => {
-      const ratio = total <= 1 ? 0.5 : idx / (total - 1);
-      const left = 4 + ratio * 92;
-      const centerDist = Math.abs(ratio - 0.5);
-      const wave = idx % 2 === 0 ? 0 : 0.8;
-      const top = 14 + centerDist * 10 + wave;
-      return { left, top };
-    });
-    const anchorSet = anchorMap[total] || generatedAnchors;
-    const anchor = anchorSet[Math.min(index, anchorSet.length - 1)] || { left: 50, top: 22 };
-    const width = total <= 2 ? 250 : total === 3 ? 210 : total === 4 ? 168 : total === 5 ? 148 : total === 6 ? 134 : total === 7 ? 120 : 110;
-    const rotate = rotateOffsets[index % rotateOffsets.length];
+  const floatingCardPlacement = (mentorIndex: number, totalMentors: number): React.CSSProperties => {
+    const safeTotal = Math.max(totalMentors, 1);
+    const safeIndex = Math.min(Math.max(mentorIndex, 0), safeTotal - 1);
+    const lanePoints = Array.from({ length: safeTotal }, (_, idx) => seatPoint(idx, safeTotal));
+    const lane = lanePoints[safeIndex] || { x: 50, y: 34 };
+    const prevLane = safeIndex > 0 ? lanePoints[safeIndex - 1] : null;
+    const nextLane = safeIndex < safeTotal - 1 ? lanePoints[safeIndex + 1] : null;
+    const leftGap = prevLane ? Math.abs(lane.x - prevLane.x) : Number.POSITIVE_INFINITY;
+    const rightGap = nextLane ? Math.abs(nextLane.x - lane.x) : Number.POSITIVE_INFINITY;
+    const nearestGap = Math.min(leftGap, rightGap);
+    const widthPercent = Number.isFinite(nearestGap) ? clampNumber(nearestGap * 0.82, 8.5, 22) : 22;
+    const widthCapPx = safeTotal <= 2 ? 250 : safeTotal <= 4 ? 210 : safeTotal <= 6 ? 170 : safeTotal <= 8 ? 150 : 130;
+    const safeInset = widthPercent / 2 + 1.25;
+    const left = clampNumber(lane.x, safeInset, 100 - safeInset);
+    // Keep notes above the mentor name plate zone.
+    const top = clampNumber(lane.y - 26.5, 10, 16.5);
 
     return {
-      ['--mentor-card-left' as string]: `${anchor.left}%`,
-      ['--mentor-card-top' as string]: `${anchor.top}%`,
-      ['--mentor-card-rotate' as string]: `${rotate}deg`,
-      ['--mentor-card-width' as string]: `${width}px`
+      ['--mentor-card-left' as string]: `${left}%`,
+      ['--mentor-card-top' as string]: `${top}%`,
+      ['--mentor-card-rotate' as string]: '0deg',
+      ['--mentor-card-width' as string]: `${widthPercent}%`,
+      ['--mentor-card-max' as string]: `${widthCapPx}px`
     };
   };
 
   const activeReply = result?.mentorReplies?.[activeResultIndex];
   const activeReplyName = localizeName(resolveMentorName(activeReply?.mentorName || ''));
   const visibleReplies = (result?.mentorReplies || []).slice(0, visibleReplyCount);
-  const pendingReply = result?.mentorReplies?.[visibleReplyCount] || null;
-  const pendingMentorName = pendingReply ? localizeName(resolveMentorName(pendingReply.mentorName)) : '';
+  const pendingMentorReplies = (result?.mentorReplies || []).slice(visibleReplyCount);
 
   const sessionComplete = Boolean(
     result?.mentorReplies?.length && visibleReplyCount >= result.mentorReplies.length && sessionMode === 'live'
@@ -859,7 +812,7 @@ const MentorTablePage: React.FC = () => {
 
   useEffect(() => {
     if (!openDebugMentorId && !hoveredDebugMentorId) return;
-    const validMentorIds = new Set(selectedMentors.map((mentor) => mentor.id));
+    const validMentorIds = new Set<string>(selectedMentors.map((mentor) => mentor.id));
     if (openDebugMentorId && !validMentorIds.has(openDebugMentorId)) {
       setOpenDebugMentorId('');
     }
@@ -913,6 +866,8 @@ const MentorTablePage: React.FC = () => {
       takeaways
     };
     setMemories((prev) => [memory, ...prev]);
+    setSaveNotice(`${t.savedSuccess} ${t.savedInDrawer}`);
+    window.setTimeout(() => setSaveNotice(''), 2600);
     if (goHomeAfterSave) {
       setShowSessionWrap(false);
       setResult(null);
@@ -987,7 +942,7 @@ const MentorTablePage: React.FC = () => {
       ];
 
   const suggestionDeckEntries: SuggestionDeckEntry[] = selectedMentors
-    .map((mentor, index) => {
+    .map<SuggestionDeckEntry | null>((mentor, index) => {
       const person = selectedPeople[index];
       const displayName = localizeName(person?.name || mentor.displayName);
       const reply = getReplyByMentorName(displayName) || getReplyByMentorName(mentor.displayName);
@@ -996,25 +951,40 @@ const MentorTablePage: React.FC = () => {
       if (phase !== 'session' && reply) {
         return {
           key: `suggestion-${mentor.id}-${index}`,
+          mentorIndex: index,
           displayName,
           likelyResponse: reply.likelyResponse,
-          oneActionStep: reply.oneActionStep
+          oneActionStep: reply.oneActionStep,
+          status: 'ready'
         };
       }
 
       if (phase === 'session' && sessionMode === 'live' && visibleReply) {
         return {
           key: `preview-${mentor.id}-${index}`,
+          mentorIndex: index,
           displayName,
           likelyResponse: visibleReply.likelyResponse,
           oneActionStep: visibleReply.oneActionStep,
+          status: 'ready',
           replyId: visibleReply.mentorId
+        };
+      }
+
+      if (phase === 'session' && sessionMode === 'live' && reply && !sessionComplete) {
+        return {
+          key: `typing-${mentor.id}-${index}`,
+          mentorIndex: index,
+          displayName,
+          likelyResponse: t.mentorTyping,
+          oneActionStep: '',
+          status: 'typing'
         };
       }
 
       return null;
     })
-    .filter((item): item is SuggestionDeckEntry => Boolean(item));
+    .filter((item): item is SuggestionDeckEntry => item !== null);
 
   return (
     <Layout>
@@ -1069,10 +1039,6 @@ const MentorTablePage: React.FC = () => {
                 {t.edit}
               </button>
               <button type="button" className={styles.ghostBtn} onClick={shuffleSeating}><FontAwesomeIcon icon={faShuffle} /> {t.shuffle}</button>
-              <button type="button" className={styles.ghostBtn} onClick={takeSnapshotMemory}><FontAwesomeIcon icon={faCamera} /> {t.polaroid}</button>
-              <button type="button" className={styles.ghostBtn} onClick={() => setSoundOn((v) => !v)}>
-                <FontAwesomeIcon icon={soundOn ? faVolumeHigh : faVolumeXmark} /> {soundOn ? t.soundOn : t.soundOff}
-              </button>
               <button
                 type="button"
                 className={styles.ghostBtn}
@@ -1104,6 +1070,7 @@ const MentorTablePage: React.FC = () => {
                   <div className={styles.searchBox}>
                     <FontAwesomeIcon icon={faMagnifyingGlass} className={styles.searchIcon} />
                     <input
+                      data-testid="mentor-person-input"
                       value={personQuery}
                       onChange={(e) => setPersonQuery(e.target.value)}
                       onKeyDown={(e) => {
@@ -1115,7 +1082,7 @@ const MentorTablePage: React.FC = () => {
                       placeholder={t.invitePlaceholder}
                       className={styles.personInput}
                     />
-                    <button type="button" className={styles.addBtn} onClick={() => addPerson(personQuery)}>
+                    <button type="button" data-testid="mentor-add-person" className={styles.addBtn} onClick={() => addPerson(personQuery)}>
                       <FontAwesomeIcon icon={faPlus} />
                     </button>
                   </div>
@@ -1178,7 +1145,7 @@ const MentorTablePage: React.FC = () => {
                     })}
                   </div>
 
-                  <button type="button" className={styles.primaryCta} onClick={() => setPhase('scene')}>
+                  <button type="button" data-testid="mentor-continue-scene" className={styles.primaryCta} onClick={() => setPhase('scene')}>
                     {t.continueToPortal}
                   </button>
                 </div>
@@ -1206,7 +1173,7 @@ const MentorTablePage: React.FC = () => {
                     <FontAwesomeIcon icon={faDice} /> {t.randomVibe}
                   </button>
 
-                  <button type="button" className={styles.primaryCta} onClick={() => setPhase('wish')}>
+                  <button type="button" data-testid="mentor-lock-world" className={styles.primaryCta} onClick={() => setPhase('wish')}>
                     {t.lockWorld}
                   </button>
                 </div>
@@ -1217,6 +1184,7 @@ const MentorTablePage: React.FC = () => {
                   <h2><FontAwesomeIcon icon={faBookOpen} /> {t.placeArtifact}</h2>
                   <div className={`${styles.artifactInput} ${styles[`artifact${scene[0].toUpperCase()}${scene.slice(1)}`]}`}>
                     <textarea
+                      data-testid="mentor-problem-input"
                       className={styles.problemInput}
                       value={problem}
                       onChange={(e) => setProblem(e.target.value)}
@@ -1226,6 +1194,7 @@ const MentorTablePage: React.FC = () => {
                   </div>
                   <button
                     type="button"
+                    data-testid="mentor-begin-session"
                     className={styles.primaryCta}
                     disabled={isGenerating || !problem.trim() || selectedMentors.length === 0}
                     onClick={handleGenerate}
@@ -1238,7 +1207,7 @@ const MentorTablePage: React.FC = () => {
               {phase === 'session' && (
                 <div className={styles.sessionSidebarStack}>
                   <div className={styles.disclaimer}>
-                    <div className={styles.disclaimerLine}><FontAwesomeIcon icon={faCircleInfo} /> {result?.meta.disclaimer || t.sessionInProgress}</div>
+                    <div className={styles.disclaimerLine}><FontAwesomeIcon icon={faCircleInfo} /> {t.aiDisclaimer}</div>
                     <div className={styles.sourceTag}>{t.source}: {result?.meta.source === 'llm' ? t.llmApi : t.localFallback}</div>
                   </div>
 
@@ -1260,6 +1229,7 @@ const MentorTablePage: React.FC = () => {
 
                   <div
                     ref={conversationPanelRef}
+                    data-testid="mentor-conversation-panel"
                     className={styles.conversationPanel}
                     onMouseEnter={() => setIsConversationHovered(true)}
                     onMouseLeave={() => setIsConversationHovered(false)}
@@ -1268,10 +1238,22 @@ const MentorTablePage: React.FC = () => {
 
                     {sessionMode !== 'live' && (
                       <div className={styles.conversationRowLeft}>
-                        <article className={`${styles.conversationBubble} ${styles.conversationLoading}`}>
-                          <header>{t.sessionInProgress}</header>
-                          <p>{t.typing}</p>
-                        </article>
+                        <div className={styles.turnGroup}>
+                          <div className={styles.conversationRowRight}>
+                            <article className={`${styles.conversationBubble} ${styles.conversationRightBubble}`}>
+                              <header>{t.you}</header>
+                              <p>{problem.trim() || '...'}</p>
+                            </article>
+                          </div>
+                          {selectedMentors.map((mentor) => (
+                            <div key={`booting-${mentor.id}`} className={styles.conversationRowLeft}>
+                              <article data-testid={`mentor-typing-${mentor.id}`} className={`${styles.conversationBubble} ${styles.conversationLoading}`}>
+                                <header>{localizeName(mentor.displayName)}</header>
+                                <p>{t.mentorTyping}</p>
+                              </article>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     )}
 
@@ -1287,7 +1269,6 @@ const MentorTablePage: React.FC = () => {
                         {visibleReplies.map((reply) => {
                           const mentorName = localizeName(resolveMentorName(reply.mentorName));
                           const threadKey = mentorThreadKey(reply.mentorName);
-                          const notes = noteReplies[threadKey] || [];
                           return (
                             <div key={`${mentorName}-${reply.mentorId}`} className={styles.conversationRowLeft}>
                               <article className={`${styles.conversationBubble} ${styles.conversationLeftBubble} ${styleClassForCard(scene)}`}>
@@ -1323,76 +1304,33 @@ const MentorTablePage: React.FC = () => {
                                     </div>
                                   </div>
                                 )}
-                                {notes.map((note, idx) => (
-                                  <div key={`${threadKey}-note-${idx}`} className={styles.noteThread}>
-                                    {note.role === 'user' ? `${t.you}: ${note.text}` : `${mentorName}: ${note.text}`}
-                                  </div>
-                                ))}
                               </article>
                             </div>
                           );
                         })}
 
-                        {!sessionComplete && pendingMentorName && (
-                          <div className={styles.conversationRowLeft}>
-                            <article className={`${styles.conversationBubble} ${styles.conversationLoading}`}>
-                              <header>{pendingMentorName}</header>
-                              <p>{t.typing}</p>
-                            </article>
-                          </div>
-                        )}
+                        {!sessionComplete && pendingMentorReplies.map((reply, idx) => {
+                          const mentorName = localizeName(resolveMentorName(reply.mentorName));
+                          return (
+                            <div key={`pending-${reply.mentorId || reply.mentorName}-${idx}`} className={styles.conversationRowLeft}>
+                              <article data-testid={`mentor-pending-${reply.mentorId || idx}`} className={`${styles.conversationBubble} ${styles.conversationLoading}`}>
+                                <header>{mentorName}</header>
+                                <p>{t.mentorTyping}</p>
+                              </article>
+                            </div>
+                          );
+                        })}
 
                         {isRoundGenerating && (
-                          <div className={styles.conversationRowLeft}>
-                            <article className={`${styles.conversationBubble} ${styles.conversationLoading}`}>
-                              <header>{isZh ? '导师们' : 'Mentors'}</header>
-                              <p>{t.typing}</p>
-                            </article>
-                          </div>
-                        )}
-
-                        {sessionComplete && (
-                          <div className={styles.groupActions}>
-                            <button
-                              type="button"
-                              className={styles.secondaryCta}
-                              onClick={() => setShowGroupSolve((v) => !v)}
-                            >
-                              {showGroupSolve ? t.hideGroup : t.showGroup}
-                            </button>
-                          </div>
-                        )}
-
-                        {sessionComplete && showGroupSolve && (
-                          <div className={styles.conversationRowLeft}>
-                            <article className={`${styles.conversationBubble} ${styles.groupSolveCard}`}>
-                              <header>{t.jointStrategy}</header>
-                              <p>{groupSolveText}</p>
-                            </article>
-                          </div>
-                        )}
-
-                        {sessionComplete && (
-                          <div className={styles.conversationRowRight}>
-                            <article className={`${styles.conversationBubble} ${styles.conversationRightBubble}`}>
-                              <header>{t.replyToAllHeader}</header>
-                              <textarea
-                                value={replyAllDraft}
-                                onChange={(e) => setReplyAllDraft(e.target.value)}
-                                placeholder={t.replyAllPlaceholder}
-                                rows={2}
-                              />
-                              <div className={styles.inlineNoteActions}>
-                                <button
-                                  type="button"
-                                  className={styles.ghostBtn}
-                                  disabled={isRoundGenerating}
-                                  onClick={handleReplyAll}
-                                >
-                                  {isRoundGenerating ? t.typing : t.sendToAll}
-                                </button>
+                          <div className={styles.turnGroup}>
+                            {selectedMentors.map((mentor) => (
+                              <div key={`round-loading-${mentor.id}`} className={styles.conversationRowLeft}>
+                                <article data-testid={`mentor-round-typing-${mentor.id}`} className={`${styles.conversationBubble} ${styles.conversationLoading}`}>
+                                  <header>{localizeName(mentor.displayName)}</header>
+                                  <p>{t.mentorTyping}</p>
+                                </article>
                               </div>
-                            </article>
+                            ))}
                           </div>
                         )}
 
@@ -1415,11 +1353,56 @@ const MentorTablePage: React.FC = () => {
                           </div>
                         ))}
 
+                        {sessionComplete && (
+                          <div className={styles.groupActions}>
+                            <button
+                              type="button"
+                              className={styles.secondaryCta}
+                              onClick={() => setShowGroupSolve((v) => !v)}
+                            >
+                              {showGroupSolve ? t.hideGroup : t.showGroup}
+                            </button>
+                          </div>
+                        )}
+
+                        {sessionComplete && showGroupSolve && (
+                          <div className={styles.conversationRowLeft}>
+                            <article className={`${styles.conversationBubble} ${styles.groupSolveCard}`}>
+                              <header>{t.jointStrategy}</header>
+                              <p>{groupSolveText}</p>
+                            </article>
+                          </div>
+                        )}
+
                         {sessionComplete && !showSessionWrap && (
                           <div className={styles.conversationRowRight}>
                             <button type="button" className={styles.secondaryCta} onClick={() => setShowSessionWrap(true)}>
                               {t.showWrap}
                             </button>
+                          </div>
+                        )}
+
+                        {sessionComplete && (
+                          <div className={styles.conversationRowRight}>
+                            <article className={`${styles.conversationBubble} ${styles.conversationRightBubble} ${styles.replyAllDockCard}`}>
+                              <header>{t.replyToAllHeader}</header>
+                              <textarea
+                                value={replyAllDraft}
+                                onChange={(e) => setReplyAllDraft(e.target.value)}
+                                placeholder={t.replyAllPlaceholder}
+                                rows={4}
+                              />
+                              <div className={styles.inlineNoteActions}>
+                                <button
+                                  type="button"
+                                  className={styles.ghostBtn}
+                                  disabled={isRoundGenerating}
+                                  onClick={handleReplyAll}
+                                >
+                                  {isRoundGenerating ? t.typing : t.sendToAll}
+                                </button>
+                              </div>
+                            </article>
                           </div>
                         )}
                       </>
@@ -1436,7 +1419,7 @@ const MentorTablePage: React.FC = () => {
                         ))}
                       </ul>
                       <div className={styles.wrapActions}>
-                        <button type="button" className={styles.secondaryCta} onClick={() => saveTakeawayMemory(true)}>{t.save}</button>
+                        <button type="button" data-testid="mentor-save-chat" className={styles.secondaryCta} onClick={() => saveTakeawayMemory()}>{t.save}</button>
                         <button
                           type="button"
                           className={styles.secondaryCta}
@@ -1512,6 +1495,14 @@ const MentorTablePage: React.FC = () => {
                 {selectedMentors.map((mentor: MentorProfile, index: number) => {
                   const person = selectedPeople[index];
                   const displayName = localizeName(person?.name || mentor.displayName);
+                  const mentorReply = getReplyByMentorName(displayName) || getReplyByMentorName(mentor.displayName);
+                  const mentorWaitingForReply = Boolean(
+                    phase === 'session' &&
+                    sessionMode === 'live' &&
+                    !sessionComplete &&
+                    mentorReply &&
+                    !visibleReplies.some((reply) => reply.mentorId === mentorReply.mentorId)
+                  );
                   const isSpeaker = activeReplyName === displayName && sessionMode === 'live';
                   const flipped = Boolean(flippedCards[displayName]);
                   const marker = scene === 'cute' ? '★' : scene === 'nature' ? '🍃' : scene === 'spooky' ? '✦' : scene === 'cyber' ? '▣' : '✎';
@@ -1523,6 +1514,9 @@ const MentorTablePage: React.FC = () => {
                       className={`${styles.mentorNode} ${isSpeaker ? styles.mentorNodeSpeaker : ''} ${categoryClass}`}
                       style={seatStyle(index, selectedMentors.length)}
                     >
+                      {mentorWaitingForReply && (
+                        <div className={styles.mentorTypingBadge}>{t.mentorTyping}</div>
+                      )}
                       <button
                         type="button"
                         className={`${styles.namePlate} ${isSpeaker ? styles.namePlateActive : ''}`}
@@ -1565,19 +1559,33 @@ const MentorTablePage: React.FC = () => {
                 })}
 
                 <div className={styles.suggestionDeck}>
-                  {suggestionDeckEntries.map((entry, slotIndex) => {
-                    const cardStyle = floatingCardPlacement(slotIndex, suggestionDeckEntries.length);
+                  {suggestionDeckEntries.map((entry) => {
+                    const totalMentorSlots = Math.max(selectedMentors.length, 1);
+                    const cardStyle = floatingCardPlacement(entry.mentorIndex, totalMentorSlots);
                     const actionPreview = truncateWithEllipsis(
                       simplifyActionStep(entry.oneActionStep),
-                      suggestionDeckEntries.length > 6 ? 24 : suggestionDeckEntries.length > 3 ? 32 : 44
+                      totalMentorSlots > 6 ? 24 : totalMentorSlots > 3 ? 32 : 44
                     );
                     const reasonPreview = truncateWithEllipsis(
                       simplifyLikelyResponse(entry.likelyResponse),
-                      suggestionDeckEntries.length > 6 ? 28 : suggestionDeckEntries.length > 3 ? 36 : 50
+                      totalMentorSlots > 6 ? 28 : totalMentorSlots > 3 ? 36 : 50
                     );
                     const hasTrimmed = reasonPreview.isTruncated || actionPreview.isTruncated;
 
                     if (!entry.replyId) {
+                      if (entry.status === 'typing') {
+                        return (
+                          <article
+                            key={entry.key}
+                            className={`${styles.suggestionCard} ${styles.suggestionCardTyping}`}
+                            style={cardStyle}
+                          >
+                            <h3>{entry.displayName}</h3>
+                            <p className={styles.suggestionPrimary}>{t.mentorTyping}</p>
+                          </article>
+                        );
+                      }
+
                       return (
                         <button
                           type="button"
@@ -1638,7 +1646,7 @@ const MentorTablePage: React.FC = () => {
                       <FontAwesomeIcon icon={faChevronLeft} /> {t.backToTable}
                     </button>
                     <article
-                      className={`${styles.replyExpandedCard} ${styleClassForCard(scene)}`}
+                      className={`${styles.replyExpandedCard} ${styles.replyExpandedSticky}`}
                       onClick={(e) => e.stopPropagation()}
                     >
                       <header>{expandedSuggestion.mentorName}</header>
@@ -1668,7 +1676,7 @@ const MentorTablePage: React.FC = () => {
                       <FontAwesomeIcon icon={faChevronLeft} /> {t.backToTable}
                     </button>
                     <article
-                      className={`${styles.replyExpandedCard} ${styleClassForCard(scene)}`}
+                      className={`${styles.replyExpandedCard} ${styles.replyExpandedSticky}`}
                       onClick={(e) => e.stopPropagation()}
                     >
                       {(() => {
@@ -1767,13 +1775,16 @@ const MentorTablePage: React.FC = () => {
           </div>
         </div>
 
-        <button type="button" className={styles.memoryFab} onClick={() => setMemoryDrawerOpen((v) => !v)}>
-          <FontAwesomeIcon icon={faCamera} /> {t.memories} ({memories.length})
+        <button type="button" data-testid="mentor-memory-fab" className={styles.memoryFab} onClick={() => setMemoryDrawerOpen((v) => !v)}>
+          <FontAwesomeIcon icon={faBookOpen} /> {t.memories} ({memories.length})
         </button>
 
+        {saveNotice && <div data-testid="mentor-save-notice" className={styles.saveNotice}>{saveNotice}</div>}
+
         {memoryDrawerOpen && (
-          <div className={styles.memoryDrawer}>
+          <div data-testid="mentor-memory-drawer" className={styles.memoryDrawer}>
             <h3>{t.memoryDrawer}</h3>
+            <p className={styles.memoryHint}>{t.savedInDrawer}</p>
             {memories.length === 0 && <p className={styles.emptyMemory}>{t.noMemories}</p>}
             {memories.map((memory) => (
               <article key={memory.id} className={styles.memoryCard}>
