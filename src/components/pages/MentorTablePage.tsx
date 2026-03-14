@@ -318,8 +318,21 @@ const MentorTablePage: React.FC = () => {
     const key = normalizeNameKey(name);
     const person = selectedPeople.find((p) => normalizeNameKey(p.name) === key);
 
-    // Always consult VERIFIED_PEOPLE at render time — even if the person was added
-    // with a raw lowercase name and no imageUrl, we still find their canonical photo.
+    // Resolve the display name to canonical (e.g. "lisa" → "Lisa Su")
+    let resolvedName = name;
+    try {
+      const verified = findVerifiedPerson(name);
+      if (verified) resolvedName = verified.canonical;
+    } catch { /* findVerifiedPerson may not be available */ }
+
+    // Server-side proxy: fetches from Wikipedia, caches on disk, serves locally.
+    // Works for ANY person/character — no CORS, no rate-limits for the client.
+    const proxyUrl = `/api/mentor-image?name=${encodeURIComponent(resolvedName)}`;
+    const localFallback = import.meta.env.DEV
+      ? `http://127.0.0.1:8787/api/mentor-image?name=${encodeURIComponent(resolvedName)}`
+      : undefined;
+
+    // External URLs as fallback if server proxy is down
     let verifiedImages: string[] = [];
     try {
       const verified = findVerifiedPerson(name);
@@ -331,9 +344,9 @@ const MentorTablePage: React.FC = () => {
     const external = Array.from(
       new Set([imageUrl, person?.imageUrl, ...verifiedImages, ...(candidateImageUrls || []), ...(person?.candidateImageUrls || [])].filter(Boolean))
     ) as string[];
-    // Append DiceBear cartoon + inline SVG (data URI) as guaranteed fallbacks.
-    // The inline SVG is last because it always loads — it can never fail.
-    return [...external, getCartoonAvatarUrl(name), createInitialAvatar(name)];
+
+    // Chain: proxy (cached/fetched) → external URLs → cartoon → initials
+    return [proxyUrl, localFallback, ...external, getCartoonAvatarUrl(name), createInitialAvatar(name)].filter(Boolean) as string[];
   };
 
   const imageSrcFor = (name: string, imageUrl?: string, candidateImageUrls?: string[]) => {
