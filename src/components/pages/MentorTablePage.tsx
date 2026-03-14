@@ -30,6 +30,7 @@ import {
   fetchPersonImage,
   fetchPersonImageCandidates,
   findVerifiedPerson,
+  getChineseDisplayName,
   getVerifiedPlaceholderImage,
   searchPeopleWithPhotos,
   searchVerifiedPeopleLocal
@@ -101,27 +102,6 @@ const onboardingSlides = [
 const vibeTags = ['Builder', 'Storyteller', 'Competitor', 'Strategist', 'Dreamer', 'Rebel'];
 const vibeTagsZh = ['构建者', '讲述者', '行动派', '战略派', '梦想家', '突破者'];
 
-const mentorNameZhMap: Record<string, string> = {
-  'Bill Gates': '比尔·盖茨',
-  'Oprah Winfrey': '奥普拉',
-  'Kobe Bryant': '科比·布莱恩特',
-  'Hayao Miyazaki': '宫崎骏',
-  'Elon Musk': '埃隆·马斯克',
-  'Steve Jobs': '史蒂夫·乔布斯',
-  'Lisa Su': '苏姿丰',
-  'Satya Nadella': '萨提亚·纳德拉',
-  'Taylor Swift': '泰勒·斯威夫特',
-  'Super Mario': '超级马里奥',
-  'Iron Man': '钢铁侠',
-  'Pikachu': '皮卡丘',
-  'Naruto Uzumaki': '鸣人',
-  'Monkey D. Luffy': '路飞',
-  'Son Goku': '孙悟空',
-  'Spider-Man': '蜘蛛侠',
-  'Batman': '蝙蝠侠',
-  'Link': '林克',
-  'Lara Croft': '劳拉'
-};
 
 function getMentorCategory(name: string): 'tech' | 'sports' | 'artist' | 'leader' {
   const normalized = name.toLowerCase();
@@ -179,6 +159,7 @@ const MentorTablePage: React.FC = () => {
   const [replyAllDraft, setReplyAllDraft] = useState('');
   const [conversationTurns, setConversationTurns] = useState<ConversationTurn[]>([]);
   const [imageAttemptByKey, setImageAttemptByKey] = useState<Record<string, number>>({});
+  const [imageRetryByKey, setImageRetryByKey] = useState<Record<string, number>>({});
   const [expandedReplyId, setExpandedReplyId] = useState('');
   const [expandedSuggestion, setExpandedSuggestion] = useState<ExpandedSuggestionCard | null>(null);
   const [isRoundGenerating, setIsRoundGenerating] = useState(false);
@@ -299,19 +280,6 @@ const MentorTablePage: React.FC = () => {
 
   const uiLanguage: 'zh-CN' | 'en' = isZh ? 'zh-CN' : 'en';
 
-  const detectLanguageFromText = (text: string): 'zh-CN' | 'en' | null => {
-    const value = text.trim();
-    if (!value) return null;
-    const cjkCount = (value.match(/[\u3400-\u9fff]/g) || []).length;
-    const latinCount = (value.match(/[A-Za-z]/g) || []).length;
-    if (cjkCount === 0 && latinCount === 0) return null;
-    if (cjkCount >= latinCount * 0.8) return 'zh-CN';
-    if (latinCount >= cjkCount * 0.8) return 'en';
-    return cjkCount >= latinCount ? 'zh-CN' : 'en';
-  };
-
-  const getOutputLanguage = (_userText: string) => uiLanguage;
-
   const normalizeNameKey = (name: string) => name.trim().toLowerCase().replace(/\s+/g, ' ');
 
   // Resolve a raw name to its canonical display form, e.g. "lisa su" → "Lisa Su"
@@ -326,7 +294,7 @@ const MentorTablePage: React.FC = () => {
   const localizeName = (name: string) => {
     const canonical = resolveDisplayName(name);
     if (!isZh) return canonical;
-    return mentorNameZhMap[canonical] || canonical;
+    return getChineseDisplayName(canonical);
   };
 
   const createInitialAvatar = (name: string) => {
@@ -372,15 +340,35 @@ const MentorTablePage: React.FC = () => {
     const key = normalizeNameKey(name);
     const chain = buildImageChain(name, imageUrl, candidateImageUrls);
     const idx = Math.min(imageAttemptByKey[key] || 0, chain.length - 1);
-    return chain[idx];
+    const src = chain[idx];
+    // Append cache-buster on retry so the browser re-fetches instead of reusing cached 429
+    const retry = imageRetryByKey[key] || 0;
+    if (retry > 0 && src && !src.startsWith('data:')) {
+      return `${src}${src.includes('?') ? '&' : '?'}_r=${retry}`;
+    }
+    return src;
   };
 
   const markImageBroken = (name: string, imageUrl?: string, candidateImageUrls?: string[]) => {
     const key = normalizeNameKey(name);
     const chain = buildImageChain(name, imageUrl, candidateImageUrls);
+    const currentAttempt = imageAttemptByKey[key] || 0;
+    const currentSrc = chain[Math.min(currentAttempt, chain.length - 1)];
+    const retries = imageRetryByKey[key] || 0;
+
+    // Wikimedia returns 429 under concurrent load — retry once after a delay
+    const isWikimedia = currentSrc?.includes('wikimedia.org') || currentSrc?.includes('wikipedia.org');
+    if (isWikimedia && retries < 1) {
+      setTimeout(() => {
+        setImageRetryByKey((prev) => ({ ...prev, [key]: (prev[key] || 0) + 1 }));
+      }, 600 + currentAttempt * 400);
+      return;
+    }
+
+    // Advance to next URL in chain
+    setImageRetryByKey((prev) => ({ ...prev, [key]: 0 }));
     setImageAttemptByKey((prev) => {
       const current = prev[key] || 0;
-      // Stop at the last item (inline SVG data URI) — it always works
       if (current >= chain.length - 1) return prev;
       return { ...prev, [key]: current + 1 };
     });
@@ -392,7 +380,7 @@ const MentorTablePage: React.FC = () => {
 
   const generateMentorFollowup = (_mentorName: string, userText: string) => {
     const excerpt = userText.slice(0, 56).trim();
-    if (getOutputLanguage(userText) === 'zh-CN') {
+    if (uiLanguage === 'zh-CN') {
       return `收到你的补充（“${excerpt}${userText.length > 56 ? '...' : ''}”）。我会先给你一个最小可执行动作，你做完后我们再迭代下一步。`;
     }
     return `I got your follow-up (“${excerpt}${userText.length > 56 ? '...' : ''}”). I would start with one smallest executable step, then iterate with you from there.`;
@@ -472,7 +460,7 @@ const MentorTablePage: React.FC = () => {
     try {
       const aiResult = await generateMentorAdvice({
         problem: text,
-        language: getOutputLanguage(text),
+        language: uiLanguage,
         mentors: coordinatedMentorSet,
         conversationHistory: buildConversationHistory(text)
       });
@@ -520,7 +508,7 @@ const MentorTablePage: React.FC = () => {
     try {
       const aiResult = await generateMentorAdvice({
         problem: text,
-        language: getOutputLanguage(text),
+        language: uiLanguage,
         mentors: selectedMentors,
         conversationHistory: buildConversationHistory(text)
       });
@@ -759,7 +747,7 @@ const MentorTablePage: React.FC = () => {
 
   const handleGenerate = async () => {
     if (!problem.trim() || selectedMentors.length === 0) return;
-    const language = getOutputLanguage(problem.trim());
+    const language = uiLanguage;
 
     setIsGenerating(true);
     setPhase('session');
@@ -1184,34 +1172,33 @@ const MentorTablePage: React.FC = () => {
                     <button type="button" data-testid="mentor-add-person" className={styles.addBtn} onClick={() => addPerson(personQuery)}>
                       <FontAwesomeIcon icon={faPlus} />
                     </button>
+                    {personQuery.trim() && (
+                      <div className={styles.suggestionMenu}>
+                        {suggestions.map((s) => {
+                          const desc = isZh ? (s.descriptionZh || s.description) : s.description;
+                          return (
+                            <button type="button" key={s.name} className={styles.suggestionItem} onClick={() => addPerson(s)}>
+                              <img
+                                src={imageSrcFor(s.name, s.imageUrl, s.candidateImageUrls)}
+                                alt={s.name}
+                                className={styles.suggestionAvatar}
+                                referrerPolicy="no-referrer"
+                                onError={() => markImageBroken(s.name, s.imageUrl, s.candidateImageUrls)}
+                              />
+                              <div className={styles.suggestionText}>
+                                <span className={styles.suggestionName}>{localizeName(s.name)}</span>
+                                {desc && <span className={styles.suggestionDesc}>{desc}</span>}
+                              </div>
+                            </button>
+                          );
+                        })}
+                        {isSearching && <div className={styles.searchingRow}>{isZh ? '搜索中...' : 'Searching...'}</div>}
+                        {!isSearching && suggestions.length === 0 && (
+                          <div className={styles.searchingRow}>{isZh ? '未找到结果，按回车添加自定义名人' : 'No results — press Enter to add as custom mentor'}</div>
+                        )}
+                      </div>
+                    )}
                   </div>
-
-                  {personQuery.trim() && (
-                    <div className={styles.suggestionMenu}>
-                      {suggestions.map((s) => {
-                        const desc = isZh ? (s.descriptionZh || s.description) : s.description;
-                        return (
-                          <button type="button" key={s.name} className={styles.suggestionItem} onClick={() => addPerson(s)}>
-                            <img
-                              src={imageSrcFor(s.name, s.imageUrl, s.candidateImageUrls)}
-                              alt={s.name}
-                              className={styles.suggestionAvatar}
-                              referrerPolicy="no-referrer"
-                              onError={() => markImageBroken(s.name, s.imageUrl, s.candidateImageUrls)}
-                            />
-                            <div className={styles.suggestionText}>
-                              <span className={styles.suggestionName}>{localizeName(s.name)}</span>
-                              {desc && <span className={styles.suggestionDesc}>{desc}</span>}
-                            </div>
-                          </button>
-                        );
-                      })}
-                      {isSearching && <div className={styles.searchingRow}>{isZh ? '搜索中...' : 'Searching...'}</div>}
-                      {!isSearching && suggestions.length === 0 && (
-                        <div className={styles.searchingRow}>{isZh ? '未找到结果，按回车添加自定义名人' : 'No results — press Enter to add as custom mentor'}</div>
-                      )}
-                    </div>
-                  )}
 
                   <div className={styles.selectedPeopleGrid}>
                     {selectedPeople.map((person, idx) => {

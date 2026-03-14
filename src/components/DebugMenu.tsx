@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useTranslationContext } from '../context/TranslationContext';
 import { Card, Switch, Space, Button, Divider, Typography, Drawer, message, Collapse, Input } from 'antd';
 import { BugOutlined, CrownOutlined } from '@ant-design/icons';
-import { DatabaseService } from '../services/database.service';
+import { DatabaseService, generateAccessCode } from '../services/database.service';
 import { Post } from '../types/database.types';
 import type { TranslationKey } from '../types/i18n.types';
 import './DebugMenu.css';
@@ -77,7 +77,7 @@ const DebugMenu: React.FC<DebugMenuProps> = ({
   const generateNewAccessCode = async () => {
     setLoading(true);
     try {
-      const accessCode = await DatabaseService.generateTestAccessCode();
+      const accessCode = await generateAccessCode();
       setTestAccessCode(accessCode);
       message.success(translate('newAccessCodeGenerated'));
     } catch (error) {
