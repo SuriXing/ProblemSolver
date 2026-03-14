@@ -17,7 +17,8 @@ describe('personLookup', () => {
 
     const image = await fetchPersonImage('Bill Gates');
 
-    expect(image).toContain('Bill_Gates');
+    // Local cached image is preferred (no network needed)
+    expect(image).toBe('/assets/mentors/bill-gates.jpg');
     expect(fetchSpy).not.toHaveBeenCalled();
   });
 
@@ -42,8 +43,10 @@ describe('personLookup', () => {
     const results = await searchPeopleWithPhotos('bill', 6);
 
     expect(results[0].name).toBe('Bill Gates');
-    expect(results.some((item) => item.name === 'bill')).toBe(true);
-    expect(results[0].imageUrl).toContain('Bill_Gates');
+    // "bill" is a substring of "bill gates", so no redundant typed fallback
+    expect(results.some((item) => item.name === 'bill')).toBe(false);
+    // Local cached image is first
+    expect(results[0].imageUrl).toBe('/assets/mentors/bill-gates.jpg');
   });
 
   it('filters out wikipedia results that are not likely people or characters', async () => {
