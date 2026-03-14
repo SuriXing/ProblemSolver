@@ -1,11 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { supabase } from '../../utils/supabaseClient';
 import Layout from '../layout/Layout';
 import TagSelector from '../ui/TagSelector';
 import '../../styles/ConfessionPage.css';
 import StorageSystem from '../../utils/StorageSystem';
+import { DatabaseService } from '../../services/database.service';
 
 const ConfessionPage: React.FC = () => {
   const { t } = useTranslation();
@@ -66,24 +66,53 @@ const ConfessionPage: React.FC = () => {
     setIsSubmitting(true);
     
     try {
-      console.log('Attempting to submit confession to Supabase');
-      // Generate a unique access code 
-      const accessCode = Math.random().toString(36).substring(2, 10).toUpperCase();
-      
-      // Log the exact data we're sending to aid debugging
-      const postData = { 
+      console.log('Attempting to submit confession via DatabaseService');
+
+      // Use DatabaseService.createPost() — it handles access code generation
+      // with crypto-strength randomness + uniqueness checks
+      const post = await DatabaseService.createPost({
         title: 'Confession',
         content: confession,
         is_anonymous: isAnonymous,
         tags: selectedTags,
         status: 'open',
-        access_code: accessCode,
         purpose: 'need_help',
-        views: 0
-      };
-      
-      console.log('Sending this data to Supabase:', postData);
-      
+        user_id: isAnonymous ? undefined : 'User123'
+      });
+
+      if (!post) {
+        // createPost returned null — network or DB issue
+        console.warn('DatabaseService.createPost returned null, attempting local fallback');
+
+        // Generate a local fallback code for offline use
+        const fallbackCode = crypto.getRandomValues(new Uint8Array(4))
+          .reduce((acc, v) => acc + 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'[v % 36], '');
+
+        const userData = {
+          userId: isAnonymous ? 'Anonymous' : 'User123',
+          confessionText: confession,
+          selectedTags: selectedTags,
+          timestamp: new Date().toISOString(),
+          accessCode: fallbackCode,
+          privacyOption: isPrivate ? 'private' : 'public',
+          emailNotification: notifyViaEmail,
+          email: notifyViaEmail ? email : '',
+          replies: [],
+          views: 0
+        };
+
+        localStorage.setItem('accessCode', fallbackCode);
+        StorageSystem.storeData(fallbackCode, userData);
+        navigate('/success', {
+          state: { accessCode: fallbackCode, postId: 'local-fallback' }
+        });
+        return;
+      }
+
+      const accessCode = post.access_code || 'UNKNOWN';
+      console.log('Submission successful, access code:', accessCode);
+
+      // Save to localStorage for retrieval on success page
       const userData = {
         userId: isAnonymous ? 'Anonymous' : 'User123',
         confessionText: confession,
@@ -97,77 +126,16 @@ const ConfessionPage: React.FC = () => {
         views: 0
       };
 
-      const saveLocallyAndContinue = () => {
-        localStorage.setItem('accessCode', accessCode);
-        StorageSystem.storeData(accessCode, userData);
-        navigate('/success', {
-          state: {
-            accessCode,
-            postId: 'local-fallback'
-          }
-        });
-      };
-
-      // Create a new post in the database with only the fields that exist
-      const { data, error } = await supabase
-        .from('posts')
-        .insert([postData])
-        .select();
-      
-      if (error) {
-        if (String(error.message || '').toLowerCase().includes('failed to fetch')) {
-          console.warn('Supabase unreachable, saving submission locally:', error);
-          saveLocallyAndContinue();
-          return;
-        }
-        const errorCode = error.code ? ` [${error.code}]` : '';
-        const errorDetails = error.details ? `\nDetails: ${error.details}` : '';
-        console.error('Error submitting confession:', error);
-        alert(`Error submitting your confession${errorCode}: ${error.message}${errorDetails}`);
-        setIsSubmitting(false);
-        return;
-      }
-      
-      console.log('Submission successful:', data);
-      
-      // Save to localStorage for retrieval on success page
       localStorage.setItem('accessCode', accessCode);
       StorageSystem.storeData(accessCode, userData);
-      
-      // Navigate to success page
-      console.log('Navigating to success page with accessCode:', accessCode);
-      navigate('/success', { 
-        state: { 
+
+      navigate('/success', {
+        state: {
           accessCode: accessCode,
-          postId: data[0]?.id || 'unknown'
-        } 
+          postId: post.id
+        }
       });
     } catch (err) {
-      if (err instanceof Error && err.message.toLowerCase().includes('failed to fetch')) {
-        console.warn('Unexpected network error while submitting:', err);
-        const accessCode = Math.random().toString(36).substring(2, 10).toUpperCase();
-        const userData = {
-          userId: isAnonymous ? 'Anonymous' : 'User123',
-          confessionText: confession,
-          selectedTags: selectedTags,
-          timestamp: new Date().toISOString(),
-          accessCode: accessCode,
-          privacyOption: isPrivate ? 'private' : 'public',
-          emailNotification: notifyViaEmail,
-          email: notifyViaEmail ? email : '',
-          replies: [],
-          views: 0
-        };
-        localStorage.setItem('accessCode', accessCode);
-        StorageSystem.storeData(accessCode, userData);
-        navigate('/success', {
-          state: {
-            accessCode,
-            postId: 'local-fallback'
-          }
-        });
-        return;
-      }
       const message = err instanceof Error ? err.message : 'Unknown error';
       console.error('Unexpected error in form submission:', err);
       alert(`An unexpected error occurred: ${message}`);
