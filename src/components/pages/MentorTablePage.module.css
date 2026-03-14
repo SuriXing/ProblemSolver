@@ -26,6 +26,13 @@
   --glass: rgba(255, 255, 255, 0.78);
   --text-main: #1f417a;
   --message-bg: rgba(255, 255, 255, 0.93);
+  --note-bg-a: rgba(252, 244, 255, 0.98);
+  --note-bg-b: rgba(235, 226, 255, 0.95);
+  --note-fold: rgba(255, 255, 255, 0.55);
+  --note-border: rgba(181, 157, 233, 0.72);
+  --note-shadow: rgba(44, 49, 108, 0.2);
+  --note-text-1: #2f3f78;
+  --note-text-2: #40528c;
   --seat-glow: rgba(255, 224, 174, 0.78);
 }
 
@@ -814,7 +821,7 @@
 .mentorNode {
   position: absolute;
   transform: translate(-50%, -50%);
-  z-index: 10;
+  z-index: 20;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -824,6 +831,22 @@
 
 .mentorNodeSpeaker {
   transform: translate(-50%, -50%) scale(1.05);
+}
+
+.mentorTypingBadge {
+  margin-bottom: 2px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  background: rgba(14, 26, 51, 0.78);
+  color: #f2f7ff;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+  padding: 2px 8px;
+  white-space: nowrap;
+  box-shadow: 0 6px 14px rgba(7, 15, 30, 0.26);
+  animation: blink 1.2s ease infinite;
 }
 
 .namePlate {
@@ -923,55 +946,74 @@
   position: absolute;
   left: clamp(5%, var(--mentor-card-left, 50%), 95%);
   top: clamp(10%, var(--mentor-card-top, 22%), 26%);
-  width: min(var(--mentor-card-width, 220px), min(250px, 28vw));
+  width: min(var(--mentor-card-width, 220px), min(var(--mentor-card-max, 250px), 28vw));
   transform: translate(-50%, -50%) rotate(var(--mentor-card-rotate, 0deg));
-  border-radius: 14px;
-  border: 2px solid #95afe5;
-  background: #ffffff;
-  box-shadow: 0 20px 38px rgba(11, 23, 51, 0.28);
-  padding: 11px 12px;
+  aspect-ratio: 1 / 1;
+  border-radius: 8px;
+  border: 1px solid var(--note-border);
+  background:
+    linear-gradient(155deg, var(--note-fold) 0 16%, rgba(255, 255, 255, 0) 16% 100%),
+    linear-gradient(180deg, var(--note-bg-a) 0%, var(--note-bg-b) 100%);
+  box-shadow: 0 12px 24px var(--note-shadow);
+  padding: 9px 10px;
   z-index: 18;
   text-align: left;
   cursor: pointer;
   appearance: none;
-  line-height: 1.4;
-  backdrop-filter: blur(2px);
+  line-height: 1.45;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   transition: transform 180ms ease, box-shadow 180ms ease, filter 180ms ease;
 }
 
 .suggestionCard:hover {
-  transform: translate(-50%, calc(-50% + 6px)) rotate(var(--mentor-card-rotate, 0deg));
+  transform: translate(-50%, calc(-50% + 2px)) rotate(var(--mentor-card-rotate, 0deg));
+  box-shadow: 0 15px 28px rgba(41, 52, 112, 0.28);
 }
 
 .suggestionCard h3 {
-  margin: 0 0 6px;
-  color: #0f2d61;
-  font-size: 0.99rem;
+  margin: 0 0 5px;
+  color: var(--note-text-1);
+  font-size: 0.92rem;
   font-weight: 800;
+  letter-spacing: 0.01em;
+}
+
+.suggestionCardTyping {
+  pointer-events: none;
+  justify-content: center;
+}
+
+.suggestionCardTyping .suggestionPrimary {
+  margin-top: 4px;
+  text-align: center;
+  -webkit-line-clamp: 1;
+  letter-spacing: 0.04em;
 }
 
 .suggestionCard p {
-  margin: 0 0 4px;
-  line-height: 1.42;
+  margin: 0 0 5px;
+  line-height: 1.45;
 }
 
 .suggestionPrimary {
-  color: #11294f;
-  font-size: 0.92rem;
+  color: var(--note-text-1);
+  font-size: 0.84rem;
   font-weight: 800;
   display: -webkit-box;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 3;
   overflow: hidden;
 }
 
 .suggestionSecondary {
-  color: #34507e;
-  font-size: 0.82rem;
-  font-weight: 700;
+  color: var(--note-text-2);
+  font-size: 0.78rem;
+  font-weight: 650;
   display: -webkit-box;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 4;
   overflow: hidden;
 }
 
@@ -1019,6 +1061,24 @@
   padding: 12px;
   display: grid;
   gap: 8px;
+}
+
+.replyAllDockCard {
+  width: min(560px, calc(100% - 22px));
+  margin-left: auto;
+  box-sizing: border-box;
+  padding: 12px 14px;
+}
+
+.replyAllDockCard textarea {
+  width: 100%;
+  min-height: 132px;
+  border-radius: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.95);
+  color: #3b3b3b;
+  padding: 11px 12px;
+  box-sizing: border-box;
 }
 
 .stageLiveHint {
@@ -1126,7 +1186,7 @@
 
 .conversationLoading p {
   letter-spacing: 0.04em;
-  text-transform: lowercase;
+  text-transform: none;
   animation: blink 1.2s ease infinite;
 }
 
@@ -1260,33 +1320,37 @@
 }
 
 .tableReplyCard {
-  border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  background: rgba(255, 255, 255, 0.94);
-  box-shadow: 0 12px 22px rgba(16, 33, 67, 0.24);
-  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #d6bf57;
+  background:
+    linear-gradient(155deg, rgba(255, 255, 255, 0.8) 0 16%, rgba(255, 255, 255, 0) 16% 100%),
+    linear-gradient(180deg, #fffad0 0%, #fff2a7 100%);
+  box-shadow: 0 12px 24px rgba(78, 61, 10, 0.28);
+  padding: 9px 10px;
   cursor: pointer;
   transition: transform 180ms ease, box-shadow 180ms ease, filter 180ms ease;
 }
 
 .tableReplyCard:hover {
-  box-shadow: 0 16px 28px rgba(15, 32, 66, 0.3);
+  box-shadow: 0 15px 28px rgba(78, 61, 10, 0.33);
   filter: brightness(1.02);
 }
 
 .tableReplyCardActive {
-  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.86), 0 16px 28px rgba(15, 32, 66, 0.3);
+  box-shadow: 0 0 0 2px rgba(255, 248, 210, 0.86), 0 15px 28px rgba(78, 61, 10, 0.33);
 }
 
 .tableReplyCard header {
-  font-size: 0.86rem;
+  color: #40320a;
+  font-size: 0.92rem;
   font-weight: 800;
 }
 
 .tableReplyCard p {
-  margin: 6px 0 0;
-  font-size: 0.8rem;
-  line-height: 1.48;
+  margin: 5px 0 0;
+  color: #2f2508;
+  font-size: 0.84rem;
+  line-height: 1.45;
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 3;
@@ -1294,27 +1358,31 @@
 }
 
 .tableReplyCard footer {
-  margin-top: 8px;
-  font-size: 0.75rem;
-  font-weight: 700;
+  margin-top: 6px;
+  color: #4a3e16;
+  font-size: 0.78rem;
+  font-weight: 650;
 }
 
 .mentorReplyPreview {
   position: absolute;
   left: clamp(5%, var(--mentor-card-left, 50%), 95%);
   top: clamp(10%, var(--mentor-card-top, 22%), 26%);
-  width: min(var(--mentor-card-width, 220px), min(250px, 28vw));
+  width: min(var(--mentor-card-width, 220px), min(var(--mentor-card-max, 250px), 28vw));
+  aspect-ratio: 1 / 1;
   transform: translate(-50%, -50%) rotate(var(--mentor-card-rotate, 0deg));
   z-index: 18;
   pointer-events: auto;
-  border: 2px solid #95afe5;
-  background: #ffffff;
-  box-shadow: 0 20px 38px rgba(11, 23, 51, 0.28);
+  border: 1px solid #d6bf57;
+  box-shadow: 0 12px 24px rgba(78, 61, 10, 0.28);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   transition: transform 180ms ease, box-shadow 180ms ease, filter 180ms ease;
 }
 
 .mentorReplyPreview:hover {
-  transform: translate(-50%, calc(-50% + 6px)) rotate(var(--mentor-card-rotate, 0deg));
+  transform: translate(-50%, calc(-50% + 2px)) rotate(var(--mentor-card-rotate, 0deg));
 }
 
 .mentorReplyPreviewRight {
@@ -1333,10 +1401,10 @@
 }
 
 .replyExpandHint {
-  margin-top: 6px;
+  margin-top: auto;
   display: inline-block;
-  color: #194ea7;
-  font-size: 0.76rem;
+  color: #594812;
+  font-size: 0.74rem;
   font-weight: 800;
 }
 
@@ -1457,6 +1525,35 @@
   margin-top: 10px;
   font-size: 0.88rem;
   font-weight: 800;
+}
+
+.replyExpandedSticky {
+  width: min(560px, 92vw);
+  min-height: min(480px, 78vh);
+  max-height: min(84vh, 760px);
+  border-radius: 8px;
+  border: 1px solid #d6bf57;
+  background:
+    linear-gradient(155deg, rgba(255, 255, 255, 0.8) 0 16%, rgba(255, 255, 255, 0) 16% 100%),
+    linear-gradient(180deg, #fffad0 0%, #fff2a7 100%);
+  box-shadow: 0 18px 34px rgba(78, 61, 10, 0.33);
+  color: #2f2508;
+}
+
+.replyExpandedSticky header {
+  color: #40320a;
+  font-size: 1.08rem;
+}
+
+.replyExpandedSticky p {
+  color: #2f2508;
+  font-size: 0.96rem;
+  line-height: 1.66;
+}
+
+.replyExpandedSticky footer {
+  color: #4a3e16;
+  font-size: 0.9rem;
 }
 
 .passNoteBtn {
@@ -1654,6 +1751,13 @@
   color: #21447f;
 }
 
+.memoryHint {
+  margin: 6px 0 0;
+  font-size: 0.8rem;
+  color: #5470a6;
+  line-height: 1.45;
+}
+
 .emptyMemory {
   color: #6f82a6;
   font-size: 0.84rem;
@@ -1818,6 +1922,13 @@
   --table-border: #b87ca5;
   --runner-a: rgba(255, 219, 239, 0.92);
   --runner-b: rgba(243, 168, 212, 0.82);
+  --note-bg-a: rgba(255, 241, 250, 0.98);
+  --note-bg-b: rgba(239, 220, 247, 0.95);
+  --note-fold: rgba(255, 255, 255, 0.62);
+  --note-border: rgba(222, 164, 214, 0.76);
+  --note-shadow: rgba(97, 48, 101, 0.22);
+  --note-text-1: #6e2f65;
+  --note-text-2: #7f4a86;
   --seat-glow: rgba(255, 195, 225, 0.85);
 }
 
@@ -1832,6 +1943,13 @@
   --table-border: #6a4327;
   --runner-a: rgba(255, 255, 255, 0.78);
   --runner-b: rgba(220, 246, 202, 0.74);
+  --note-bg-a: rgba(246, 255, 236, 0.98);
+  --note-bg-b: rgba(226, 244, 211, 0.95);
+  --note-fold: rgba(255, 255, 255, 0.58);
+  --note-border: rgba(151, 191, 134, 0.78);
+  --note-shadow: rgba(66, 98, 41, 0.22);
+  --note-text-1: #355a35;
+  --note-text-2: #476c47;
   --seat-glow: rgba(183, 232, 145, 0.78);
 }
 
@@ -1849,6 +1967,13 @@
   --glass: rgba(29, 20, 32, 0.66);
   --text-main: #f1dae4;
   --message-bg: rgba(34, 19, 26, 0.9);
+  --note-bg-a: rgba(61, 28, 36, 0.96);
+  --note-bg-b: rgba(40, 19, 26, 0.95);
+  --note-fold: rgba(255, 214, 228, 0.08);
+  --note-border: rgba(180, 108, 128, 0.74);
+  --note-shadow: rgba(8, 2, 6, 0.42);
+  --note-text-1: #f3dbe8;
+  --note-text-2: #e6bfd1;
   --seat-glow: rgba(255, 167, 130, 0.78);
 }
 
@@ -1866,6 +1991,13 @@
   --glass: rgba(9, 22, 40, 0.66);
   --text-main: #e3f8ff;
   --message-bg: rgba(8, 24, 44, 0.88);
+  --note-bg-a: rgba(13, 36, 58, 0.96);
+  --note-bg-b: rgba(8, 24, 44, 0.96);
+  --note-fold: rgba(80, 235, 255, 0.14);
+  --note-border: rgba(67, 220, 244, 0.78);
+  --note-shadow: rgba(0, 20, 36, 0.38);
+  --note-text-1: #c9f3ff;
+  --note-text-2: #9fdded;
   --seat-glow: rgba(65, 235, 255, 0.8);
 }
 
@@ -1880,7 +2012,31 @@
   --table-border: #4a311c;
   --runner-a: rgba(248, 236, 205, 0.78);
   --runner-b: rgba(228, 203, 157, 0.6);
+  --note-bg-a: rgba(255, 248, 227, 0.98);
+  --note-bg-b: rgba(245, 229, 192, 0.95);
+  --note-fold: rgba(255, 255, 255, 0.42);
+  --note-border: rgba(189, 157, 104, 0.74);
+  --note-shadow: rgba(86, 57, 26, 0.24);
+  --note-text-1: #634121;
+  --note-text-2: #7c5931;
   --seat-glow: rgba(255, 221, 157, 0.8);
+}
+
+.saveNotice {
+  position: fixed;
+  right: 18px;
+  bottom: 74px;
+  z-index: 44;
+  max-width: min(360px, 88vw);
+  border-radius: 10px;
+  border: 1px solid #9fd2aa;
+  background: rgba(236, 252, 239, 0.96);
+  color: #1f6532;
+  font-size: 0.8rem;
+  font-weight: 700;
+  line-height: 1.45;
+  padding: 8px 10px;
+  box-shadow: 0 12px 22px rgba(24, 76, 38, 0.18);
 }
 
 .sceneSpooky .midLayer {

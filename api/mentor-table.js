@@ -1,5 +1,3 @@
-const FALLBACK_DISCLAIMER =
-  'This is an AI-simulated perspective inspired by public information, not a real statement from the person.';
 const RESPONSE_SCHEMA_VERSION = 'mentor_table.v1';
 
 const RESPONSE_SCHEMA = {
@@ -82,6 +80,12 @@ function normalizeLanguage(language) {
   return language === 'en' ? 'en' : 'zh-CN';
 }
 
+function defaultDisclaimer(language) {
+  return normalizeLanguage(language) === 'zh-CN'
+    ? '这是基于公开信息的AI模拟视角，不代表真实人物的观点。'
+    : 'This is an AI-simulated perspective inspired by public information, not a real statement from the person.';
+}
+
 function detectLanguageFromText(text) {
   if (typeof text !== 'string') return null;
   const value = text.trim();
@@ -95,6 +99,10 @@ function detectLanguageFromText(text) {
 }
 
 function resolveEffectiveLanguage(requestedLanguage, problem, conversationHistory) {
+  if (requestedLanguage === 'zh-CN' || requestedLanguage === 'en') {
+    return normalizeLanguage(requestedLanguage);
+  }
+
   const problemLanguage = detectLanguageFromText(problem);
   if (problemLanguage) return problemLanguage;
 
@@ -151,12 +159,30 @@ function finalizeContractShape(normalized, { language, baseUrl, model }) {
       disclaimer:
         typeof meta.disclaimer === 'string' && meta.disclaimer.trim()
           ? meta.disclaimer
-          : FALLBACK_DISCLAIMER,
+          : defaultDisclaimer(lang),
       generatedAt: new Date().toISOString(),
       provider: providerFromBaseUrl(baseUrl),
       model: typeof model === 'string' ? model : ''
     }
   };
+}
+
+function detectContentLanguage(text) {
+  if (typeof text !== 'string') return null;
+  const value = text.trim();
+  if (!value) return null;
+  const cjkCount = (value.match(/[\u3400-\u9fff]/g) || []).length;
+  const latinCount = (value.match(/[A-Za-z]/g) || []).length;
+  if (cjkCount === 0 && latinCount === 0) return null;
+  if (cjkCount >= Math.max(3, latinCount * 0.7)) return 'zh-CN';
+  if (latinCount >= Math.max(6, cjkCount * 1.4)) return 'en';
+  return cjkCount >= latinCount ? 'zh-CN' : 'en';
+}
+
+function contentMatchesLanguage(text, language) {
+  const detected = detectContentLanguage(text);
+  if (!detected) return true;
+  return detected === normalizeLanguage(language);
 }
 
 function buildMentorDirectiveBlock(mentors = []) {
@@ -517,7 +543,7 @@ function buildUserPrompt(problem, language, mentors, compactedConversation) {
     '  "meta": { "disclaimer": "string", "generatedAt": "ISO string" }',
     '}',
     '',
-    `Global disclaimer must be: ${FALLBACK_DISCLAIMER}`
+    `Global disclaimer must be: ${defaultDisclaimer(language)}`
   ].join('\n');
 }
 
@@ -663,7 +689,7 @@ function normalizeProviderPayload(raw, { mentors, language }) {
             raw?.GlobalDisclaimer ||
             raw?.globalDisclaimer ||
             raw?.disclaimer ||
-            FALLBACK_DISCLAIMER
+            defaultDisclaimer(language)
         }
       };
     }
@@ -713,7 +739,7 @@ function normalizeProviderPayload(raw, { mentors, language }) {
         }
       ],
       meta: {
-        disclaimer: raw.GlobalDisclaimer || raw.globalDisclaimer || raw.disclaimer || FALLBACK_DISCLAIMER
+        disclaimer: raw.GlobalDisclaimer || raw.globalDisclaimer || raw.disclaimer || defaultDisclaimer(language)
       }
     };
   }
@@ -734,7 +760,7 @@ function normalizeProviderPayload(raw, { mentors, language }) {
             raw?.GlobalDisclaimer ||
             raw?.globalDisclaimer ||
             raw?.disclaimer ||
-            FALLBACK_DISCLAIMER
+            defaultDisclaimer(language)
         }
       };
     }
@@ -809,7 +835,7 @@ function normalizeProviderPayload(raw, { mentors, language }) {
             raw?.GlobalDisclaimer ||
             raw?.globalDisclaimer ||
             raw?.disclaimer ||
-            FALLBACK_DISCLAIMER
+            defaultDisclaimer(language)
         }
       };
     }
@@ -833,7 +859,7 @@ function normalizeProviderPayload(raw, { mentors, language }) {
             raw?.GlobalDisclaimer ||
             raw?.globalDisclaimer ||
             raw?.disclaimer ||
-            FALLBACK_DISCLAIMER
+            defaultDisclaimer(language)
         }
       };
     }
@@ -906,7 +932,7 @@ function normalizeProviderPayloadLoose(text, { mentor, language }) {
 
   const disclaimer =
     extractLooseStringField(text, ['globalDisclaimer', 'GlobalDisclaimer', 'disclaimer']) ||
-    FALLBACK_DISCLAIMER;
+    defaultDisclaimer(lang);
 
   return {
     safety: {
@@ -953,7 +979,7 @@ function buildServerFallbackNormalized({ mentors, language }) {
       confidenceNote: defaultConfidenceNote(lang)
     })),
     meta: {
-      disclaimer: FALLBACK_DISCLAIMER
+      disclaimer: defaultDisclaimer(lang)
     }
   };
 }
@@ -1146,7 +1172,7 @@ function firstNonEmptyEnvValue(candidates) {
   return '';
 }
 
-module.exports = async (req, res) => {
+const mentorTableHandler = async (req, res) => {
   if (req.method !== 'POST') {
     res.status(405).json({ error: 'Method not allowed' });
     return;
@@ -1243,7 +1269,7 @@ module.exports = async (req, res) => {
         emergencyMessage: ''
       },
       mentorReplies: [],
-      meta: { disclaimer: FALLBACK_DISCLAIMER }
+      meta: { disclaimer: defaultDisclaimer(effectiveLanguage) }
     };
 
     for (const item of perMentor) {
@@ -1251,16 +1277,35 @@ module.exports = async (req, res) => {
       if (item.ok && item.output) {
         normalized.safety = mergeSafetyState(normalized.safety, item.output.safety);
         const reply = item.output.reply;
+        const likelyResponse = sanitizeFirstPerson(String(reply.likelyResponse || ''));
+        const oneActionStep = sanitizeFirstPerson(String(reply.oneActionStep || defaultActionStep(effectiveLanguage)));
+        const wrongLanguage =
+          !contentMatchesLanguage(likelyResponse, effectiveLanguage) ||
+          !contentMatchesLanguage(oneActionStep, effectiveLanguage);
+        if (wrongLanguage) {
+          failedMentors.push(mentor.id);
+          console.warn(`[mentor-api] language mismatch for mentor=${mentor.id}; using language-safe fallback`);
+          const fallbackReply = buildFallbackReplyForMentor(mentor, effectiveLanguage);
+          normalized.mentorReplies.push({
+            mentorId: mentor.id,
+            mentorName: mentor.displayName,
+            likelyResponse: sanitizeFirstPerson(String(fallbackReply.likelyResponse || '')),
+            whyThisFits: String(fallbackReply.whyThisFits || ''),
+            oneActionStep: sanitizeFirstPerson(String(fallbackReply.oneActionStep || defaultActionStep(effectiveLanguage))),
+            confidenceNote: String(fallbackReply.confidenceNote || defaultConfidenceNote(effectiveLanguage))
+          });
+          continue;
+        }
         normalized.mentorReplies.push({
           mentorId: mentor.id,
           mentorName: mentor.displayName,
-          likelyResponse: sanitizeFirstPerson(String(reply.likelyResponse || '')),
+          likelyResponse,
           whyThisFits:
             String(reply.whyThisFits || '') ||
             (effectiveLanguage === 'zh-CN'
               ? `这条建议基于${mentor.displayName}公开风格生成。`
               : `This guidance is generated from ${mentor.displayName}'s public style.`),
-          oneActionStep: sanitizeFirstPerson(String(reply.oneActionStep || defaultActionStep(effectiveLanguage))),
+          oneActionStep,
           confidenceNote: String(reply.confidenceNote || defaultConfidenceNote(effectiveLanguage))
         });
       } else {
@@ -1304,3 +1349,15 @@ module.exports = async (req, res) => {
     });
   }
 };
+
+mentorTableHandler.__test__ = {
+  normalizeConversationHistory,
+  buildConversationRounds,
+  compactConversationHistoryDeterministic,
+  compactConversationHistory,
+  formatConversationHistoryForPrompt,
+  buildUserPrompt,
+  buildMentorDirectiveBlock
+};
+
+module.exports = mentorTableHandler;

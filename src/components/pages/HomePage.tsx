@@ -4,6 +4,7 @@ import { useTypeSafeTranslation } from '../../utils/translationHelper';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHandsHelping, faComments, faCrown } from '@fortawesome/free-solid-svg-icons';
 import Layout from '../layout/Layout';
+import { withLocalSuffix } from '../../utils/environmentLabel';
 import '../../styles/HomePage.css';
 
 const HomePage: React.FC = () => {
@@ -19,7 +20,7 @@ const HomePage: React.FC = () => {
 
   // Update page title when language changes
   useEffect(() => {
-    document.title = t('siteName');
+    document.title = withLocalSuffix(t('siteName'));
   }, [t, i18n.language]);
 
   // Navigation handlers

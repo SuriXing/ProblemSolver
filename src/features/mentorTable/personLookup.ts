@@ -7,8 +7,21 @@ export interface PersonOption {
 }
 
 const imageCache = new Map<string, string | undefined>();
-const VERIFIED_PLACEHOLDER_IMAGE = 'https://ui-avatars.com/api/?size=512&background=e7efff&color=2a4f90&name=Mentor';
 const WIKIPEDIA_API = 'https://en.wikipedia.org/w/api.php';
+
+function createInlineAvatarDataUri(label: string, backgroundHex: string, colorHex: string): string {
+  const safeLabel = (label || 'Mentor').trim() || 'Mentor';
+  const initials = safeLabel
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() || '')
+    .join('') || '?';
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512"><rect width="100%" height="100%" fill="${backgroundHex}"/><circle cx="256" cy="256" r="204" fill="#ffffff" opacity="0.72"/><text x="50%" y="54%" text-anchor="middle" dominant-baseline="middle" font-family="Arial,sans-serif" font-size="178" font-weight="700" fill="${colorHex}">${initials}</text></svg>`;
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+}
+
+const VERIFIED_PLACEHOLDER_IMAGE = createInlineAvatarDataUri('Mentor', '#e7efff', '#2a4f90');
 
 const VERIFIED_PEOPLE: Array<{
   canonical: string;
@@ -216,7 +229,28 @@ const MBTI_TYPES = [
 ];
 
 function normalizeName(name: string): string {
-  return name.trim().toLowerCase().replace(/\s+/g, ' ');
+  return name
+    .trim()
+    .toLowerCase()
+    .replace(/[_·.'’`-]+/g, ' ')
+    .replace(/\s+/g, ' ');
+}
+
+function buildNameAvatar(name: string): string {
+  const label = (name || 'Mentor').trim() || 'Mentor';
+  return createInlineAvatarDataUri(label, '#e7efff', '#2a4f90');
+}
+
+function withAvatarFallback(person: PersonOption): PersonOption {
+  const fallback = buildNameAvatar(person.name);
+  const candidates = Array.from(
+    new Set([person.imageUrl, ...(person.candidateImageUrls || []), fallback].filter(Boolean))
+  ) as string[];
+  return {
+    ...person,
+    imageUrl: person.imageUrl || fallback,
+    candidateImageUrls: candidates
+  };
 }
 
 async function fetchJson<T>(url: string): Promise<T | null> {
@@ -426,11 +460,11 @@ function buildMbtiOption(code: string): PersonOption {
   const mbtiAvatar = `https://www.16personalities.com/static/images/personality-types/avatars/${normalized.toLowerCase()}-${mbtiRole}.png`;
   const mbtiImage = `https://www.16personalities.com/static/images/social/${normalized.toLowerCase()}.png?v=3`;
   const fallback = `https://ui-avatars.com/api/?size=512&background=d9e8ff&color=244b8f&name=${encodeURIComponent(normalized)}`;
-  return {
+  return withAvatarFallback({
     name: normalized,
     imageUrl: localMbtiAvatar,
     candidateImageUrls: [localMbtiAvatar, mbtiAvatar, mbtiImage, fallback]
-  };
+  });
 }
 
 async function searchWikipediaPeople(query: string, limit: number): Promise<PersonOption[]> {
@@ -449,7 +483,9 @@ async function searchWikipediaPeople(query: string, limit: number): Promise<Pers
   const results = await Promise.all(
     titles.map(async (title) => fetchWikiImageByTitle(title))
   );
-  return results.filter((item): item is PersonOption => Boolean(item?.imageUrl));
+  return results
+    .filter((item): item is PersonOption => Boolean(item?.name))
+    .map((item) => withAvatarFallback(item));
 }
 
 export function findVerifiedPerson(name: string): { canonical: string; imageUrl: string; candidateImageUrls?: string[] } | undefined {
@@ -527,30 +563,30 @@ export async function fetchPersonImage(name: string): Promise<string | undefined
     imageCache.set(key, wiki.imageUrl);
     return wiki.imageUrl;
   }
-  // Fall back to Wikipedia search when title lookup fails (e.g. "lisa" → "Lisa Su")
+  // Fall back to Wikipedia search, then name avatar
   const searchResults = await searchWikipediaPeople(name, 1);
-  const image = searchResults[0]?.imageUrl;
+  const image = searchResults[0]?.imageUrl || buildNameAvatar(name);
   imageCache.set(key, image);
   return image;
 }
 
 export async function fetchPersonImageCandidates(name: string): Promise<string[] | undefined> {
+  const fallback = buildNameAvatar(name);
   if (isMbtiCode(name)) {
-    const mbti = buildMbtiOption(name).imageUrl;
-    return mbti ? [mbti] : undefined;
+    return buildMbtiOption(name).candidateImageUrls || [fallback];
   }
   const verified = findVerifiedPerson(name);
   if (verified) {
-    const combined = [verified.imageUrl, ...(verified.candidateImageUrls || [])].filter(Boolean);
+    const combined = [verified.imageUrl, ...(verified.candidateImageUrls || []), fallback].filter(Boolean);
     return Array.from(new Set(combined));
   }
   // Try exact Wikipedia title lookup first
   const wiki = await fetchWikiImageByTitle(name);
-  if (wiki?.imageUrl) return [wiki.imageUrl];
-  // Fall back to Wikipedia search when title lookup fails
+  if (wiki?.imageUrl) return Array.from(new Set([wiki.imageUrl, fallback]));
+  // Fall back to Wikipedia search, then name avatar
   const searchResults = await searchWikipediaPeople(name, 3);
   const images = searchResults.map((r) => r.imageUrl).filter(Boolean) as string[];
-  return images.length > 0 ? images : undefined;
+  return images.length > 0 ? [...images, fallback] : [fallback];
 }
 
 export async function searchPeopleWithPhotos(query: string, limit = 6): Promise<PersonOption[]> {
@@ -564,7 +600,7 @@ export async function searchPeopleWithPhotos(query: string, limit = 6): Promise<
       return haystack.some((text) => text.includes(normalized));
     })
     .slice(0, Math.max(1, Math.min(limit, 10)))
-    .map((person) => ({
+    .map((person) => withAvatarFallback({
       name: person.canonical,
       imageUrl: person.imageUrl,
       candidateImageUrls: person.candidateImageUrls,
@@ -577,12 +613,24 @@ export async function searchPeopleWithPhotos(query: string, limit = 6): Promise<
     .map((code) => buildMbtiOption(code));
 
   const wikiMatches = await searchWikipediaPeople(q, limit);
-  const merged = [...verifiedMatches, ...mbtiMatches, ...wikiMatches];
+  const typedOption = withAvatarFallback({ name: q });
+  const merged = [...verifiedMatches, ...mbtiMatches, ...wikiMatches, typedOption];
   const unique = new Map<string, PersonOption>();
+  const score = (person: PersonOption) => {
+    const generated = (url: string) => url.startsWith('data:image/svg+xml') || url.includes('ui-avatars.com/api');
+    const imageScore = person.imageUrl ? (generated(person.imageUrl) ? 1 : 6) : 0;
+    const candidateScore = (person.candidateImageUrls || []).reduce((acc, url) => acc + (generated(url) ? 0.25 : 1.5), 0);
+    return imageScore + candidateScore;
+  };
+
   for (const person of merged) {
     const key = normalizeName(person.name);
     if (!key) continue;
-    if (!unique.has(key)) unique.set(key, person);
+    const next = withAvatarFallback(person);
+    const current = unique.get(key);
+    if (!current || score(next) > score(current)) {
+      unique.set(key, next);
+    }
   }
-  return Array.from(unique.values()).slice(0, limit);
+  return Array.from(unique.values()).slice(0, Math.max(1, limit));
 }

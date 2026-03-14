@@ -2,6 +2,7 @@ import React, { createContext, useContext, useCallback, useEffect } from 'react'
 import { useTranslation } from 'react-i18next';
 import i18n from '../i18n';
 import type { SupportedLanguages } from '../types/i18n.types';
+import { withLocalSuffix } from '../utils/environmentLabel';
 
 interface TranslationContextType {
   changeLanguage: (lang: SupportedLanguages) => Promise<void>;
@@ -31,7 +32,7 @@ export const TranslationProvider: React.FC<{ children: React.ReactNode }> = ({ c
       // 更新页面标题和描述
       const siteNameTranslation = i18n.t('siteName');
       const siteDescriptionTranslation = i18n.t('siteDescription');
-      document.title = siteNameTranslation;
+      document.title = withLocalSuffix(siteNameTranslation);
       
       const metaDescription = document.querySelector('meta[name="description"]');
       if (metaDescription) {
