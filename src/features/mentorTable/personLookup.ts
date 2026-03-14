@@ -2,6 +2,8 @@ export interface PersonOption {
   name: string;
   imageUrl?: string;
   candidateImageUrls?: string[];
+  description?: string;
+  descriptionZh?: string;
 }
 
 const imageCache = new Map<string, string | undefined>();
@@ -13,12 +15,16 @@ const VERIFIED_PEOPLE: Array<{
   aliases: string[];
   imageUrl: string;
   candidateImageUrls?: string[];
+  description?: string;
+  descriptionZh?: string;
 }> = [
   {
     canonical: 'Bill Gates',
     aliases: ['bill gates', 'bill_gates', 'gates', 'william henry gates iii', '比尔·盖茨', '比尔盖茨'],
     imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/8/88/Bill_Gates_at_the_European_Commission_-_2025_-_P067383-987995_%28cropped%29.jpg',
-    candidateImageUrls: ['https://upload.wikimedia.org/wikipedia/commons/thumb/a/a0/Bill_Gates_2018.jpg/512px-Bill_Gates_2018.jpg']
+    candidateImageUrls: ['https://upload.wikimedia.org/wikipedia/commons/thumb/a/a0/Bill_Gates_2018.jpg/512px-Bill_Gates_2018.jpg'],
+    description: 'Co-founder of Microsoft, philanthropist',
+    descriptionZh: '微软联合创始人、慈善家'
   },
   {
     canonical: 'Oprah Winfrey',
@@ -26,7 +32,9 @@ const VERIFIED_PEOPLE: Array<{
     imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Oprah_Winfrey_2016.jpg/960px-Oprah_Winfrey_2016.jpg',
     candidateImageUrls: [
       'https://upload.wikimedia.org/wikipedia/commons/thumb/2/22/Oprah_Winfrey_2014.jpg/512px-Oprah_Winfrey_2014.jpg'
-    ]
+    ],
+    description: 'Media mogul, talk show host',
+    descriptionZh: '媒体大亨、脱口秀主持人'
   },
   {
     canonical: 'Kobe Bryant',
@@ -34,13 +42,17 @@ const VERIFIED_PEOPLE: Array<{
     imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/Kobe_Bryant_Dec_2014.jpg/960px-Kobe_Bryant_Dec_2014.jpg',
     candidateImageUrls: [
       'https://upload.wikimedia.org/wikipedia/commons/thumb/3/31/Kobe_Bryant_2019.jpg/512px-Kobe_Bryant_2019.jpg'
-    ]
+    ],
+    description: 'NBA legend, Black Mamba',
+    descriptionZh: 'NBA传奇球星、黑曼巴'
   },
   {
     canonical: 'Hayao Miyazaki',
     aliases: ['hayao miyazaki', 'miyazaki', 'miyazaki_hayao', '宫崎骏'],
     imageUrl:
-      'https://upload.wikimedia.org/wikipedia/commons/thumb/e/ef/Hayao_Miyazaki_%282019%29.jpg/512px-Hayao_Miyazaki_%282019%29.jpg'
+      'https://upload.wikimedia.org/wikipedia/commons/thumb/e/ef/Hayao_Miyazaki_%282019%29.jpg/512px-Hayao_Miyazaki_%282019%29.jpg',
+    description: 'Animator, Studio Ghibli co-founder',
+    descriptionZh: '动画大师、吉卜力工作室联合创始人'
   },
   {
     canonical: 'Elon Musk',
@@ -48,57 +60,151 @@ const VERIFIED_PEOPLE: Array<{
     imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/5/58/Elon_Musk_Royal_Society_%28crop2%29.jpg',
     candidateImageUrls: [
       'https://upload.wikimedia.org/wikipedia/commons/thumb/5/58/Elon_Musk_Royal_Society_%28crop2%29.jpg/512px-Elon_Musk_Royal_Society_%28crop2%29.jpg'
-    ]
+    ],
+    description: 'CEO of Tesla & SpaceX',
+    descriptionZh: 'Tesla与SpaceX CEO'
+  },
+  {
+    canonical: 'Steve Jobs',
+    aliases: ['steve jobs', 'jobs', '史蒂夫·乔布斯', '乔布斯'],
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/dc/Steve_Jobs_Headshot_2010-CROP_%28cropped_2%29.jpg/512px-Steve_Jobs_Headshot_2010-CROP_%28cropped_2%29.jpg',
+    description: 'Co-founder of Apple',
+    descriptionZh: '苹果联合创始人'
   },
   {
     canonical: 'Super Mario',
     aliases: ['super mario', 'mario', '马里奥'],
-    imageUrl: 'https://upload.wikimedia.org/wikipedia/en/a/a9/MarioNSMBUDeluxe.png'
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/en/a/a9/MarioNSMBUDeluxe.png',
+    candidateImageUrls: [
+      'https://upload.wikimedia.org/wikipedia/en/a/a9/MarioNSMBUDeluxe.png',
+      'https://ui-avatars.com/api/?size=512&background=e73a2c&color=ffffff&bold=true&name=Mario'
+    ],
+    description: 'Nintendo video game character',
+    descriptionZh: '任天堂经典游戏角色'
   },
   {
     canonical: 'Iron Man',
     aliases: ['iron man', 'ironman', 'tony stark', '钢铁侠'],
-    imageUrl: 'https://upload.wikimedia.org/wikipedia/en/e/e0/Iron_Man_bleeding_edge.jpg'
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/en/e/e0/Iron_Man_bleeding_edge.jpg',
+    candidateImageUrls: [
+      'https://upload.wikimedia.org/wikipedia/en/e/e0/Iron_Man_bleeding_edge.jpg',
+      'https://ui-avatars.com/api/?size=512&background=b71c1c&color=ffd54f&bold=true&name=IM'
+    ],
+    description: 'Marvel superhero, Tony Stark',
+    descriptionZh: '漫威超级英雄、托尼·斯塔克'
   },
   {
     canonical: 'Pikachu',
     aliases: ['pikachu', '皮卡丘'],
-    imageUrl: 'https://upload.wikimedia.org/wikipedia/en/a/a9/Pikachu.png'
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/en/a/a9/Pikachu.png',
+    candidateImageUrls: [
+      'https://upload.wikimedia.org/wikipedia/en/a/a9/Pikachu.png',
+      'https://ui-avatars.com/api/?size=512&background=fdd835&color=795548&bold=true&name=Pk'
+    ],
+    description: 'Pokémon electric-type mascot',
+    descriptionZh: '宝可梦电属性吉祥物'
   },
   {
     canonical: 'Naruto Uzumaki',
     aliases: ['naruto', 'naruto uzumaki', '鸣人'],
-    imageUrl: 'https://upload.wikimedia.org/wikipedia/en/9/94/NarutoCoverTankobon1.jpg'
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/en/9/94/NarutoCoverTankobon1.jpg',
+    candidateImageUrls: [
+      'https://upload.wikimedia.org/wikipedia/en/9/94/NarutoCoverTankobon1.jpg',
+      'https://ui-avatars.com/api/?size=512&background=ff9800&color=1a237e&bold=true&name=NU'
+    ],
+    description: 'Ninja from Naruto anime',
+    descriptionZh: '火影忍者主角'
   },
   {
     canonical: 'Monkey D. Luffy',
     aliases: ['luffy', 'monkey d luffy', '路飞'],
-    imageUrl: 'https://upload.wikimedia.org/wikipedia/en/c/cb/Monkey_D_Luffy.png'
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/en/c/cb/Monkey_D_Luffy.png',
+    candidateImageUrls: [
+      'https://upload.wikimedia.org/wikipedia/en/c/cb/Monkey_D_Luffy.png',
+      'https://ui-avatars.com/api/?size=512&background=d32f2f&color=ffffff&bold=true&name=ML'
+    ],
+    description: 'Captain of the Straw Hat Pirates',
+    descriptionZh: '草帽海贼团船长'
   },
   {
     canonical: 'Son Goku',
     aliases: ['goku', 'son goku', '悟空'],
-    imageUrl: 'https://upload.wikimedia.org/wikipedia/en/6/6f/Son_Goku_Character.jpg'
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/en/6/6f/Son_Goku_Character.jpg',
+    candidateImageUrls: [
+      'https://upload.wikimedia.org/wikipedia/en/6/6f/Son_Goku_Character.jpg',
+      'https://ui-avatars.com/api/?size=512&background=ff6f00&color=ffffff&bold=true&name=SG'
+    ],
+    description: 'Saiyan warrior from Dragon Ball',
+    descriptionZh: '龙珠赛亚人战士'
   },
   {
     canonical: 'Spider-Man',
     aliases: ['spiderman', 'spider man', '彼得帕克', '蜘蛛侠'],
-    imageUrl: 'https://upload.wikimedia.org/wikipedia/en/0/0c/Spiderman50.jpg'
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/en/0/0c/Spiderman50.jpg',
+    candidateImageUrls: [
+      'https://upload.wikimedia.org/wikipedia/en/0/0c/Spiderman50.jpg',
+      'https://ui-avatars.com/api/?size=512&background=d50000&color=1565c0&bold=true&name=SM'
+    ],
+    description: 'Marvel superhero, Peter Parker',
+    descriptionZh: '漫威超级英雄、彼得·帕克'
   },
   {
     canonical: 'Batman',
     aliases: ['batman', '布鲁斯韦恩', '蝙蝠侠'],
-    imageUrl: 'https://upload.wikimedia.org/wikipedia/en/1/17/Batman-BenAffleck.jpg'
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/en/1/17/Batman-BenAffleck.jpg',
+    candidateImageUrls: [
+      'https://upload.wikimedia.org/wikipedia/en/1/17/Batman-BenAffleck.jpg',
+      'https://ui-avatars.com/api/?size=512&background=212121&color=fdd835&bold=true&name=BM'
+    ],
+    description: 'DC superhero, Bruce Wayne',
+    descriptionZh: 'DC超级英雄、布鲁斯·韦恩'
   },
   {
     canonical: 'Link',
     aliases: ['link', 'zelda link', '林克'],
-    imageUrl: 'https://upload.wikimedia.org/wikipedia/en/2/2f/Link_Hyrule_Warriors.png'
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/en/2/2f/Link_Hyrule_Warriors.png',
+    candidateImageUrls: [
+      'https://upload.wikimedia.org/wikipedia/en/2/2f/Link_Hyrule_Warriors.png',
+      'https://ui-avatars.com/api/?size=512&background=2e7d32&color=ffffff&bold=true&name=LK'
+    ],
+    description: 'Hero of The Legend of Zelda',
+    descriptionZh: '塞尔达传说主角'
   },
   {
     canonical: 'Lara Croft',
     aliases: ['lara croft', 'lara', '劳拉'],
-    imageUrl: 'https://upload.wikimedia.org/wikipedia/en/7/7e/Lara_Croft.png'
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/en/7/7e/Lara_Croft.png',
+    candidateImageUrls: [
+      'https://upload.wikimedia.org/wikipedia/en/7/7e/Lara_Croft.png',
+      'https://ui-avatars.com/api/?size=512&background=4e342e&color=ffffff&bold=true&name=LC'
+    ],
+    description: 'Tomb Raider adventurer',
+    descriptionZh: '古墓丽影冒险家'
+  },
+  {
+    canonical: 'Lisa Su',
+    aliases: ['lisa su', 'lisa', 'su', '苏姿丰'],
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/7a/Lisa_Su_2024_%28cropped%29.jpg/512px-Lisa_Su_2024_%28cropped%29.jpg',
+    candidateImageUrls: [
+      'https://upload.wikimedia.org/wikipedia/commons/thumb/7/7a/Lisa_Su_2024_%28cropped%29.jpg/512px-Lisa_Su_2024_%28cropped%29.jpg',
+      'https://upload.wikimedia.org/wikipedia/commons/thumb/6/60/AMD_CEO_Lisa_Su_20130415_cropped.jpg/512px-AMD_CEO_Lisa_Su_20130415_cropped.jpg'
+    ],
+    description: 'CEO of AMD',
+    descriptionZh: 'AMD首席执行官'
+  },
+  {
+    canonical: 'Satya Nadella',
+    aliases: ['satya nadella', 'satya', 'nadella', '萨提亚·纳德拉', '纳德拉'],
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/78/MS-Exec-Nadella-Satya-2017-08-31-22_%28cropped%29.jpg/512px-MS-Exec-Nadella-Satya-2017-08-31-22_%28cropped%29.jpg',
+    description: 'CEO of Microsoft',
+    descriptionZh: '微软首席执行官'
+  },
+  {
+    canonical: 'Taylor Swift',
+    aliases: ['taylor swift', 'taylor', 'swift', '泰勒·斯威夫特', '泰勒斯威夫特', '霉霉'],
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/Taylor_Swift_at_the_2023_MTV_Video_Music_Awards_%283%29.png/512px-Taylor_Swift_at_the_2023_MTV_Video_Music_Awards_%283%29.png',
+    description: 'Singer-songwriter, pop icon',
+    descriptionZh: '创作型歌手、流行偶像'
   }
 ];
 
@@ -346,17 +452,54 @@ async function searchWikipediaPeople(query: string, limit: number): Promise<Pers
   return results.filter((item): item is PersonOption => Boolean(item?.imageUrl));
 }
 
-function findVerifiedPerson(name: string): { canonical: string; imageUrl: string; candidateImageUrls?: string[] } | undefined {
+export function findVerifiedPerson(name: string): { canonical: string; imageUrl: string; candidateImageUrls?: string[] } | undefined {
   const key = normalizeName(name).replace(/_/g, ' ');
+  const makeResult = (person: typeof VERIFIED_PEOPLE[number]) => ({
+    canonical: person.canonical,
+    imageUrl: person.imageUrl,
+    candidateImageUrls: person.candidateImageUrls
+  });
+
+  // 1. Exact match (fastest, most precise)
   for (const person of VERIFIED_PEOPLE) {
-    if (normalizeName(person.canonical) === key) {
-      return { canonical: person.canonical, imageUrl: person.imageUrl, candidateImageUrls: person.candidateImageUrls };
-    }
-    if (person.aliases.some((alias) => normalizeName(alias).replace(/_/g, ' ') === key)) {
-      return { canonical: person.canonical, imageUrl: person.imageUrl, candidateImageUrls: person.candidateImageUrls };
+    if (normalizeName(person.canonical) === key) return makeResult(person);
+    if (person.aliases.some((alias) => normalizeName(alias).replace(/_/g, ' ') === key)) return makeResult(person);
+  }
+
+  // 2. Partial match fallback — "bill gate" matches "bill gates", "lisa" matches "lisa su"
+  if (key.length >= 3) {
+    for (const person of VERIFIED_PEOPLE) {
+      const haystack = [normalizeName(person.canonical), ...person.aliases.map((a) => normalizeName(a))].map((s) => s.replace(/_/g, ' '));
+      if (haystack.some((text) => text.includes(key) || key.includes(text))) return makeResult(person);
     }
   }
+
   return undefined;
+}
+
+/**
+ * Instant synchronous search of VERIFIED_PEOPLE — no network calls.
+ * Returns matches with photos for use as instant autocomplete suggestions.
+ */
+export function searchVerifiedPeopleLocal(query: string, limit = 8): PersonOption[] {
+  const q = query.trim();
+  if (!q) return [];
+  const normalized = normalizeName(q);
+  if (normalized.length < 1) return [];
+
+  return VERIFIED_PEOPLE
+    .filter((person) => {
+      const haystack = [person.canonical, ...person.aliases].map((s) => normalizeName(s).replace(/_/g, ' '));
+      return haystack.some((text) => text.includes(normalized));
+    })
+    .slice(0, limit)
+    .map((person) => ({
+      name: person.canonical,
+      imageUrl: person.imageUrl,
+      candidateImageUrls: person.candidateImageUrls,
+      description: person.description,
+      descriptionZh: person.descriptionZh
+    }));
 }
 
 export function getVerifiedPlaceholderImage(): string {
@@ -378,8 +521,15 @@ export async function fetchPersonImage(name: string): Promise<string | undefined
     imageCache.set(key, verified.imageUrl);
     return verified.imageUrl;
   }
+  // Try exact Wikipedia title lookup first
   const wiki = await fetchWikiImageByTitle(name);
-  const image = wiki?.imageUrl;
+  if (wiki?.imageUrl) {
+    imageCache.set(key, wiki.imageUrl);
+    return wiki.imageUrl;
+  }
+  // Fall back to Wikipedia search when title lookup fails (e.g. "lisa" → "Lisa Su")
+  const searchResults = await searchWikipediaPeople(name, 1);
+  const image = searchResults[0]?.imageUrl;
   imageCache.set(key, image);
   return image;
 }
@@ -394,9 +544,13 @@ export async function fetchPersonImageCandidates(name: string): Promise<string[]
     const combined = [verified.imageUrl, ...(verified.candidateImageUrls || [])].filter(Boolean);
     return Array.from(new Set(combined));
   }
+  // Try exact Wikipedia title lookup first
   const wiki = await fetchWikiImageByTitle(name);
-  if (!wiki?.imageUrl) return undefined;
-  return [wiki.imageUrl];
+  if (wiki?.imageUrl) return [wiki.imageUrl];
+  // Fall back to Wikipedia search when title lookup fails
+  const searchResults = await searchWikipediaPeople(name, 3);
+  const images = searchResults.map((r) => r.imageUrl).filter(Boolean) as string[];
+  return images.length > 0 ? images : undefined;
 }
 
 export async function searchPeopleWithPhotos(query: string, limit = 6): Promise<PersonOption[]> {
@@ -413,7 +567,9 @@ export async function searchPeopleWithPhotos(query: string, limit = 6): Promise<
     .map((person) => ({
       name: person.canonical,
       imageUrl: person.imageUrl,
-      candidateImageUrls: person.candidateImageUrls
+      candidateImageUrls: person.candidateImageUrls,
+      description: person.description,
+      descriptionZh: person.descriptionZh
     }));
 
   const mbtiMatches = MBTI_TYPES
