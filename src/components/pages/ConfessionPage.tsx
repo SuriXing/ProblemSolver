@@ -77,7 +77,7 @@ const ConfessionPage: React.FC = () => {
         tags: selectedTags,
         status: 'open',
         purpose: 'need_help',
-        user_id: isAnonymous ? undefined : 'User123'
+        user_id: isAnonymous ? undefined : `anon-${crypto.getRandomValues(new Uint8Array(8)).reduce((acc, v) => acc + v.toString(16).padStart(2, '0'), '')}`
       });
 
       if (!post) {
@@ -89,7 +89,7 @@ const ConfessionPage: React.FC = () => {
           .reduce((acc, v) => acc + 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'[v % 36], '');
 
         const userData = {
-          userId: isAnonymous ? 'Anonymous' : 'User123',
+          userId: isAnonymous ? 'Anonymous' : 'user',
           confessionText: confession,
           selectedTags: selectedTags,
           timestamp: new Date().toISOString(),
@@ -114,7 +114,7 @@ const ConfessionPage: React.FC = () => {
 
       // Save to localStorage for retrieval on success page
       const userData = {
-        userId: isAnonymous ? 'Anonymous' : 'User123',
+        userId: isAnonymous ? 'Anonymous' : 'user',
         confessionText: confession,
         selectedTags: selectedTags,
         timestamp: new Date().toISOString(),
