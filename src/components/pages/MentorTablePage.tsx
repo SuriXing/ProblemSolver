@@ -22,15 +22,17 @@ import {
   faBug
 } from '@fortawesome/free-solid-svg-icons';
 import Layout from '../layout/Layout';
-import { MentorProfile, createCustomMentorProfile, getSuggestedPeople } from '../../features/mentorTable/mentorProfiles';
+import { MentorProfile, createCustomMentorProfile, getCartoonAvatarUrl, getSuggestedPeople } from '../../features/mentorTable/mentorProfiles';
 import { MentorSimulationResult } from '../../features/mentorTable/mentorEngine';
 import { fetchMentorDebugPrompt, generateMentorAdvice, MentorConversationMessage } from '../../features/mentorTable/mentorApi';
 import {
   PersonOption,
   fetchPersonImage,
   fetchPersonImageCandidates,
+  findVerifiedPerson,
   getVerifiedPlaceholderImage,
-  searchPeopleWithPhotos
+  searchPeopleWithPhotos,
+  searchVerifiedPeopleLocal
 } from '../../features/mentorTable/personLookup';
 import styles from './MentorTablePage.module.css';
 
@@ -104,14 +106,28 @@ const mentorNameZhMap: Record<string, string> = {
   'Oprah Winfrey': '奥普拉',
   'Kobe Bryant': '科比·布莱恩特',
   'Hayao Miyazaki': '宫崎骏',
-  'Elon Musk': '埃隆·马斯克'
+  'Elon Musk': '埃隆·马斯克',
+  'Steve Jobs': '史蒂夫·乔布斯',
+  'Lisa Su': '苏姿丰',
+  'Satya Nadella': '萨提亚·纳德拉',
+  'Taylor Swift': '泰勒·斯威夫特',
+  'Super Mario': '超级马里奥',
+  'Iron Man': '钢铁侠',
+  'Pikachu': '皮卡丘',
+  'Naruto Uzumaki': '鸣人',
+  'Monkey D. Luffy': '路飞',
+  'Son Goku': '孙悟空',
+  'Spider-Man': '蜘蛛侠',
+  'Batman': '蝙蝠侠',
+  'Link': '林克',
+  'Lara Croft': '劳拉'
 };
 
 function getMentorCategory(name: string): 'tech' | 'sports' | 'artist' | 'leader' {
   const normalized = name.toLowerCase();
   if (normalized.includes('kobe')) return 'sports';
-  if (normalized.includes('miyazaki')) return 'artist';
-  if (normalized.includes('bill') || normalized.includes('elon')) return 'tech';
+  if (normalized.includes('miyazaki') || normalized.includes('taylor') || normalized.includes('swift')) return 'artist';
+  if (normalized.includes('bill') || normalized.includes('elon') || normalized.includes('jobs') || normalized.includes('lisa su') || normalized.includes('satya') || normalized.includes('nadella')) return 'tech';
   return 'leader';
 }
 
@@ -298,13 +314,24 @@ const MentorTablePage: React.FC = () => {
 
   const normalizeNameKey = (name: string) => name.trim().toLowerCase().replace(/\s+/g, ' ');
 
+  // Resolve a raw name to its canonical display form, e.g. "lisa su" → "Lisa Su"
+  const resolveDisplayName = (name: string): string => {
+    try {
+      const verified = findVerifiedPerson(name);
+      if (verified) return verified.canonical;
+    } catch { /* findVerifiedPerson may not be available */ }
+    return name;
+  };
+
   const localizeName = (name: string) => {
-    if (!isZh) return name;
-    return mentorNameZhMap[name] || name;
+    const canonical = resolveDisplayName(name);
+    if (!isZh) return canonical;
+    return mentorNameZhMap[canonical] || canonical;
   };
 
   const createInitialAvatar = (name: string) => {
-    const text = name
+    const canonical = resolveDisplayName(name);
+    const text = canonical
       .split(/\s+/)
       .filter(Boolean)
       .slice(0, 2)
@@ -319,27 +346,42 @@ const MentorTablePage: React.FC = () => {
     return src.startsWith('data:image/svg+xml') || src.includes('ui-avatars.com/api');
   };
 
-  const imageSrcFor = (name: string, imageUrl?: string, candidateImageUrls?: string[]) => {
+  const buildImageChain = (name: string, imageUrl?: string, candidateImageUrls?: string[]) => {
     const key = normalizeNameKey(name);
     const person = selectedPeople.find((p) => normalizeNameKey(p.name) === key);
-    const candidates = Array.from(
-      new Set([imageUrl, ...(candidateImageUrls || []), ...(person?.candidateImageUrls || [])].filter(Boolean))
+
+    // Always consult VERIFIED_PEOPLE at render time — even if the person was added
+    // with a raw lowercase name and no imageUrl, we still find their canonical photo.
+    let verifiedImages: string[] = [];
+    try {
+      const verified = findVerifiedPerson(name);
+      if (verified) {
+        verifiedImages = [verified.imageUrl, ...(verified.candidateImageUrls || [])].filter(Boolean);
+      }
+    } catch { /* findVerifiedPerson may not be available */ }
+
+    const external = Array.from(
+      new Set([imageUrl, person?.imageUrl, ...verifiedImages, ...(candidateImageUrls || []), ...(person?.candidateImageUrls || [])].filter(Boolean))
     ) as string[];
-    const idx = imageAttemptByKey[key] || 0;
-    const chosen = candidates[idx] || '';
-    return chosen || createInitialAvatar(name) || DEFAULT_PLACEHOLDER_AVATAR;
+    // Append DiceBear cartoon + inline SVG (data URI) as guaranteed fallbacks.
+    // The inline SVG is last because it always loads — it can never fail.
+    return [...external, getCartoonAvatarUrl(name), createInitialAvatar(name)];
   };
 
-  const markImageBroken = (name: string, candidateImageUrls?: string[]) => {
+  const imageSrcFor = (name: string, imageUrl?: string, candidateImageUrls?: string[]) => {
     const key = normalizeNameKey(name);
-    const person = selectedPeople.find((p) => normalizeNameKey(p.name) === key);
-    const candidates = Array.from(
-      new Set([person?.imageUrl, ...(candidateImageUrls || []), ...(person?.candidateImageUrls || [])].filter(Boolean))
-    );
-    const maxIndex = Math.max(0, candidates.length - 1);
+    const chain = buildImageChain(name, imageUrl, candidateImageUrls);
+    const idx = Math.min(imageAttemptByKey[key] || 0, chain.length - 1);
+    return chain[idx];
+  };
+
+  const markImageBroken = (name: string, imageUrl?: string, candidateImageUrls?: string[]) => {
+    const key = normalizeNameKey(name);
+    const chain = buildImageChain(name, imageUrl, candidateImageUrls);
     setImageAttemptByKey((prev) => {
       const current = prev[key] || 0;
-      if (current >= maxIndex) return { ...prev, [key]: current + 1 };
+      // Stop at the last item (inline SVG data URI) — it always works
+      if (current >= chain.length - 1) return prev;
       return { ...prev, [key]: current + 1 };
     });
   };
@@ -520,29 +562,69 @@ const MentorTablePage: React.FC = () => {
     const query = personQuery.trim();
     if (!query) {
       setSuggestions([]);
+      setIsSearching(false);
       return;
     }
 
+    // ── Instant local results (sync, 0ms) ──
+    // Try VERIFIED_PEOPLE search first, then fall back to MENTOR_PROFILES only
+    let verifiedHits: PersonOption[] = [];
+    try {
+      verifiedHits = searchVerifiedPeopleLocal(query);
+    } catch {
+      // searchVerifiedPeopleLocal may not be available (module HMR / cache)
+    }
+
+    let profileHits: PersonOption[] = [];
+    try {
+      profileHits = getSuggestedPeople(query).map((p) => {
+        let img: string | undefined;
+        let candidates: string[] | undefined;
+        try {
+          const v = findVerifiedPerson(p.displayName);
+          img = v?.imageUrl;
+          candidates = v?.candidateImageUrls;
+        } catch { /* findVerifiedPerson may not be available */ }
+        return { name: p.displayName, imageUrl: img, candidateImageUrls: candidates } as PersonOption;
+      });
+    } catch { /* getSuggestedPeople fallback */ }
+
+    const localUnique = new Map<string, PersonOption>();
+    for (const p of [...verifiedHits, ...profileHits]) {
+      const k = p.name.trim().toLowerCase();
+      if (k && !localUnique.has(k)) localUnique.set(k, p);
+    }
+    const instantResults = Array.from(localUnique.values()).slice(0, 8);
+    setSuggestions(instantResults);
+
+    // If we already have local matches, don't show "Searching..." spinner
+    const hasLocalHits = instantResults.length > 0;
+    setIsSearching(!hasLocalHits);
+
+    // ── Background remote search (async, debounced 120ms) ──
+    // searchPeopleWithPhotos ALSO searches VERIFIED_PEOPLE + Wikipedia,
+    // so even if local search failed, remote will fill in verified results.
     let alive = true;
-    setIsSearching(true);
     const timer = window.setTimeout(async () => {
-      const [remote, local] = await Promise.all([
-        searchPeopleWithPhotos(query),
-        Promise.resolve(getSuggestedPeople(query).map((p) => ({ name: p.displayName } as PersonOption)))
-      ]);
+      try {
+        const remote = await searchPeopleWithPhotos(query);
+        if (!alive) return;
 
-      if (!alive) return;
-      const merged = [...remote, ...local];
-      const unique = new Map<string, PersonOption>();
-      for (const person of merged) {
-        const key = person.name.trim().toLowerCase();
-        if (!key) continue;
-        if (!unique.has(key)) unique.set(key, person);
+        // Merge: verified local results first (most reliable), then remote
+        const merged = new Map<string, PersonOption>();
+        for (const p of [...verifiedHits, ...remote, ...instantResults]) {
+          const k = p.name.trim().toLowerCase();
+          if (k && !merged.has(k)) merged.set(k, p);
+        }
+
+        setSuggestions(Array.from(merged.values()).slice(0, 8));
+      } catch {
+        // Remote search failed — keep whatever local results we have
+        if (!alive) return;
+      } finally {
+        if (alive) setIsSearching(false);
       }
-
-      setSuggestions(Array.from(unique.values()).slice(0, 8));
-      setIsSearching(false);
-    }, 180);
+    }, 120);
 
     return () => {
       alive = false;
@@ -610,29 +692,46 @@ const MentorTablePage: React.FC = () => {
     const trimmed = rawName.trim();
     if (!trimmed) return;
 
-    const initialImage = typeof person === 'string' ? undefined : person.imageUrl;
-    const initialCandidates = typeof person === 'string' ? undefined : person.candidateImageUrls;
+    // ── Resolve raw text to canonical name + image ──
+    // e.g. "lisa" → "Lisa Su" with photo, "steve jobs" → "Steve Jobs" with photo
+    let name = typeof person === 'string' ? trimmed : person.name;
+    let initialImage = typeof person === 'string' ? undefined : person.imageUrl;
+    let initialCandidates = typeof person === 'string' ? undefined : person.candidateImageUrls;
+
+    if (typeof person === 'string') {
+      try {
+        const verified = findVerifiedPerson(trimmed);
+        if (verified) {
+          name = verified.canonical;
+          initialImage = verified.imageUrl;
+          initialCandidates = verified.candidateImageUrls;
+        }
+      } catch { /* findVerifiedPerson may not be available due to module cache */ }
+    }
+
     setSelectedPeople((prev) => {
-      if (prev.some((p) => p.name.toLowerCase() === trimmed.toLowerCase())) return prev;
+      if (prev.some((p) => p.name.toLowerCase() === name.toLowerCase())) return prev;
       if (prev.length >= MAX_PEOPLE) return prev;
-      return [...prev, { name: trimmed, imageUrl: initialImage, candidateImageUrls: initialCandidates }];
+      return [...prev, { name, imageUrl: initialImage, candidateImageUrls: initialCandidates }];
     });
-    setLastSummonedName(trimmed);
+    setLastSummonedName(name);
     window.setTimeout(() => setLastSummonedName(''), 1800);
     setPersonQuery('');
 
     const shouldHydrateProfile = !initialImage || !initialCandidates?.length || isLikelyFallbackAvatar(initialImage);
     if (shouldHydrateProfile) {
-      const [fetchedImage, fetchedCandidates] = await Promise.all([fetchPersonImage(trimmed), fetchPersonImageCandidates(trimmed)]);
-      if (fetchedImage || fetchedCandidates) {
-        setSelectedPeople((prev) =>
-          prev.map((p) =>
-            p.name.toLowerCase() === trimmed.toLowerCase()
-              ? { ...p, imageUrl: fetchedImage || p.imageUrl, candidateImageUrls: fetchedCandidates || p.candidateImageUrls }
-              : p
-          )
-        );
-      }
+      try {
+        const [fetchedImage, fetchedCandidates] = await Promise.all([fetchPersonImage(name), fetchPersonImageCandidates(name)]);
+        if (fetchedImage || fetchedCandidates) {
+          setSelectedPeople((prev) =>
+            prev.map((p) =>
+              p.name.toLowerCase() === name.toLowerCase()
+                ? { ...p, imageUrl: fetchedImage || p.imageUrl, candidateImageUrls: fetchedCandidates || p.candidateImageUrls }
+                : p
+            )
+          );
+        }
+      } catch { /* remote image fetch failed — keep initial/fallback */ }
     }
   };
 
@@ -1089,18 +1188,28 @@ const MentorTablePage: React.FC = () => {
 
                   {personQuery.trim() && (
                     <div className={styles.suggestionMenu}>
+                      {suggestions.map((s) => {
+                        const desc = isZh ? (s.descriptionZh || s.description) : s.description;
+                        return (
+                          <button type="button" key={s.name} className={styles.suggestionItem} onClick={() => addPerson(s)}>
+                            <img
+                              src={imageSrcFor(s.name, s.imageUrl, s.candidateImageUrls)}
+                              alt={s.name}
+                              className={styles.suggestionAvatar}
+                              referrerPolicy="no-referrer"
+                              onError={() => markImageBroken(s.name, s.imageUrl, s.candidateImageUrls)}
+                            />
+                            <div className={styles.suggestionText}>
+                              <span className={styles.suggestionName}>{localizeName(s.name)}</span>
+                              {desc && <span className={styles.suggestionDesc}>{desc}</span>}
+                            </div>
+                          </button>
+                        );
+                      })}
                       {isSearching && <div className={styles.searchingRow}>{isZh ? '搜索中...' : 'Searching...'}</div>}
-                      {!isSearching && suggestions.map((s) => (
-                        <button type="button" key={s.name} className={styles.suggestionItem} onClick={() => addPerson(s)}>
-                          <img
-                            src={imageSrcFor(s.name, s.imageUrl, s.candidateImageUrls)}
-                            alt={s.name}
-                            className={styles.suggestionAvatar}
-                            onError={() => markImageBroken(s.name, s.candidateImageUrls)}
-                          />
-                          <span>{localizeName(s.name)}</span>
-                        </button>
-                      ))}
+                      {!isSearching && suggestions.length === 0 && (
+                        <div className={styles.searchingRow}>{isZh ? '未找到结果，按回车添加自定义名人' : 'No results — press Enter to add as custom mentor'}</div>
+                      )}
                     </div>
                   )}
 
@@ -1120,7 +1229,8 @@ const MentorTablePage: React.FC = () => {
                             src={imageSrcFor(person.name, person.imageUrl, person.candidateImageUrls)}
                             alt={person.name}
                             className={styles.guestAvatar}
-                            onError={() => markImageBroken(person.name, person.candidateImageUrls)}
+                            referrerPolicy="no-referrer"
+                            onError={() => markImageBroken(person.name, person.imageUrl, person.candidateImageUrls)}
                           />
                           <div className={styles.guestMeta}>
                             <strong>{localizeName(person.name)}</strong>
@@ -1536,7 +1646,8 @@ const MentorTablePage: React.FC = () => {
                           <img
                             src={findImage(displayName)}
                             alt={displayName}
-                            onError={() => markImageBroken(resolveMentorName(displayName), selectedPeople[index]?.candidateImageUrls)}
+                            referrerPolicy="no-referrer"
+                            onError={() => markImageBroken(resolveMentorName(displayName), selectedPeople[index]?.imageUrl, selectedPeople[index]?.candidateImageUrls)}
                           />
                         </button>
                         {(hoveredDebugMentorId === mentor.id || openDebugMentorId === mentor.id) && (
