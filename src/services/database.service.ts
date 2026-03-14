@@ -132,18 +132,38 @@ export const DatabaseService = {
    * Get all posts of a specific purpose (help requests or confessions)
    */
   async getPostsByPurpose(purpose: 'need_help' | 'offer_help'): Promise<Post[]> {
-    const { data, error } = await supabase
-      .from('posts')
-      .select('*, replies(*)')
-      .eq('purpose', purpose)
-      .order('created_at', { ascending: false });
-      
-    if (error) {
-      console.error('Error fetching posts by purpose:', error);
+    try {
+      // Try fetching posts with replies
+      const { data, error } = await supabase
+        .from('posts')
+        .select('*, replies(*)')
+        .eq('purpose', purpose)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching posts with replies:', error.message, error.code, error.details);
+
+        // Fallback: fetch posts without the replies join (in case RLS blocks replies)
+        console.log('Retrying without replies join...');
+        const { data: fallbackData, error: fallbackError } = await supabase
+          .from('posts')
+          .select('*')
+          .eq('purpose', purpose)
+          .order('created_at', { ascending: false });
+
+        if (fallbackError) {
+          console.error('Fallback also failed:', fallbackError.message, fallbackError.code, fallbackError.details);
+          throw fallbackError;
+        }
+
+        return fallbackData || [];
+      }
+
+      return data || [];
+    } catch (error) {
+      console.error('Exception fetching posts by purpose:', error);
       throw error;
     }
-    
-    return data || [];
   },
   
   /**
@@ -322,37 +342,42 @@ export const DatabaseService = {
 };
 
 /**
- * Generate a unique access code for posts
+ * Generate a unique access code for posts.
+ * Uses crypto.getRandomValues() for better randomness.
+ * 8-char uppercase alphanumeric, checked for uniqueness against Supabase.
+ *
+ * This is the SINGLE source of truth for access code generation —
+ * do NOT create access codes inline elsewhere.
  */
-async function generateAccessCode(): Promise<string> {
-  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+export async function generateAccessCode(): Promise<string> {
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
   const length = 8;
   let result = '';
   let isUnique = false;
-  
-  // 最多尝试10次，以避免无限循环
+
   for (let attempts = 0; attempts < 10 && !isUnique; attempts++) {
-    // 生成一个新的随机代码
+    // Generate random code using crypto API for better entropy
+    const randomValues = new Uint8Array(length);
+    crypto.getRandomValues(randomValues);
     result = '';
     for (let i = 0; i < length; i++) {
-      result += characters.charAt(Math.floor(Math.random() * characters.length));
+      result += characters[randomValues[i] % characters.length];
     }
-    
-    // 检查这个代码是否已经存在
+
+    // Check uniqueness against Supabase
     const { data, error } = await supabase
       .from('posts')
       .select('access_code')
       .eq('access_code', result)
       .maybeSingle();
-    
-    // 如果没有结果，表示这个代码是唯一的
+
     isUnique = !data && !error;
   }
-  
+
   if (!isUnique) {
-    // 如果10次尝试后都没有找到唯一的代码，使用时间戳来确保唯一性
+    // Fallback: append timestamp to guarantee uniqueness
     result = `${result}-${Date.now()}`;
   }
-  
+
   return result;
 } 
