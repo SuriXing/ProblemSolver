@@ -1,12 +1,11 @@
 import { useState, Suspense, useEffect } from 'react';
-import { HashRouter, Routes, Route } from 'react-router-dom';
+import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import './i18n'; // Import i18n setup
 import { IS_PROD } from './utils/environment';
 import { TranslationProvider } from './context/TranslationContext';
 import { useTranslation } from 'react-i18next';
 
 // Import all your page components
-import LandingPage from './components/pages/LandingPage';
 import HomePage from './components/pages/HomePage';
 import HelpPage from './components/pages/HelpPage';
 import ConfessionPage from './components/pages/ConfessionPage';
@@ -18,8 +17,6 @@ import SharePage from './components/pages/SharePage';
 import HelpDetailPage from './components/pages/HelpDetailPage';
 import NotFoundPage from './components/pages/NotFoundPage';
 import LoadingPage from './components/pages/LoadingPage';
-import MentorTablePage from './components/pages/MentorTablePage';
-
 // Import admin components
 import AdminLoginPage from './components/pages/AdminLoginPage';
 import AdminDashboardPage from './components/pages/AdminDashboardPage';
@@ -56,8 +53,8 @@ function App() {
           ) : (
             <>
               <Routes>
-                <Route path="/" element={<LandingPage />} />
-                <Route path="/problem-solver" element={<HomePage />} />
+                <Route path="/" element={<HomePage />} />
+                <Route path="/problem-solver" element={<Navigate to="/" replace />} />
                 <Route path="/help" element={<HelpPage />} />
                 <Route path="/help/:accessCode" element={<HelpDetailPage />} />
                 <Route path="/help-success" element={<HelpSuccessPage />} />
@@ -81,10 +78,6 @@ function App() {
                 />
                 <Route path="/topics/:topicId" element={<TopicDetailPage />} />
                 <Route path="/share/:accessCode" element={<SharePage />} />
-                <Route path="/mentor-table" element={<MentorTablePage />} />
-                <Route path="/mentor-table/" element={<MentorTablePage />} />
-                <Route path="/名人桌" element={<MentorTablePage />} />
-                
                 {/* Admin routes */}
                 <Route path="/admin/login" element={<AdminLoginPage />} />
                 <Route 
