@@ -15,16 +15,10 @@ export default defineConfig(({ mode }) => {
         '@': path.resolve(__dirname, './src'),
       },
     },
-    base: './',
+    base: '/',
     server: {
       port: 3000,
       open: true,
-      proxy: {
-        '/api': {
-          target: 'http://127.0.0.1:8787',
-          changeOrigin: true,
-        },
-      },
       // Add more detailed logging
       hmr: {
         overlay: true,
@@ -48,7 +42,6 @@ export default defineConfig(({ mode }) => {
       rollupOptions: {
         input: {
           main: path.resolve(__dirname, 'index.html'),
-          'mentor-table': path.resolve(__dirname, 'mentor-table.html'),
         },
         output: {
           inlineDynamicImports: false,
