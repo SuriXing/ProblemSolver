@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faGlobe, faHistory, faHandsHelping, faUsers } from '@fortawesome/free-solid-svg-icons';
+import { faGlobe, faHistory, faLightbulb } from '@fortawesome/free-solid-svg-icons';
 import { useTranslationContext } from '../../context/TranslationContext';
 import type { SupportedLanguages } from '../../types/i18n.types';
 import { withLocalSuffix } from '../../utils/environmentLabel';
@@ -27,7 +27,6 @@ const Header: React.FC = () => {
     await changeLanguage(languageCode);
   };
   const siteNameLabel = withLocalSuffix(t('siteName'));
-  const mentorTableLabel = t('mentorTableNav');
 
   // Close the instruction box when clicking outside if pinned
   useEffect(() => {
@@ -57,7 +56,7 @@ const Header: React.FC = () => {
       <div className="container">
         <div className="logo">
           <Link to="/">
-            <FontAwesomeIcon icon={faHandsHelping} className="logo-icon" />
+            <FontAwesomeIcon icon={faLightbulb} className="logo-icon" />
             <span>{siteNameLabel}</span>
           </Link>
         </div>
@@ -66,10 +65,6 @@ const Header: React.FC = () => {
             <FontAwesomeIcon icon={faHistory} />
             <span>{t('goToPastQuestions')}</span>
           </Link>
-          <a href="/mentor-table.html" target="_blank" rel="noopener noreferrer" className="nav-link">
-            <FontAwesomeIcon icon={faUsers} />
-            <span>{mentorTableLabel}</span>
-          </a>
           {localStorage.getItem('hideInstruction') !== '1' && (
             <div
               className="instruction-container"
