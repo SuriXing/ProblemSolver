@@ -1,12 +1,4 @@
-/* Footer Styles */
-.footer {
-  background-color: var(--gray-100);
-  padding: 1.5rem 0;
-  text-align: center;
-  border-top: 1px solid var(--gray-200);
-  margin-top: 2rem;
-}
-
+/* Footer Styles — theme-aware via CSS custom properties */
 .footer-links {
   display: flex;
   justify-content: center;
@@ -16,20 +8,20 @@
 }
 
 .footer-links a {
-  color: var(--gray-600);
+  color: var(--text-secondary);
   text-decoration: none;
   font-size: 0.875rem;
   transition: color 0.2s ease;
 }
 
 .footer-links a:hover {
-  color: var(--primary);
+  color: var(--primary-color);
   text-decoration: underline;
 }
 
 .copyright {
   font-size: 0.75rem;
-  color: var(--gray-500);
+  color: var(--text-muted);
 }
 
 @media (max-width: 576px) {

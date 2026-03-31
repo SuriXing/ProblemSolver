@@ -10,16 +10,16 @@
 
   /* Dark mode (default) */
   --bg-page: #0a0a14;
-  --bg-surface: rgba(18, 20, 34, 0.78);
+  --bg-surface: rgba(18, 20, 34, 0.92);
   --bg-surface-solid: #12141f;
-  --bg-input: rgba(30, 33, 52, 0.85);
+  --bg-input: rgba(30, 33, 52, 0.92);
   --border-subtle: color-mix(in srgb, var(--primary-color) 18%, transparent);
   --border-focus: var(--primary-color);
   --text-primary: #e8ebf5;
   --text-secondary: #a7adc2;
   --text-muted: #6b7080;
   --text-color: #e8ebf5;
-  --aurora-opacity: 1;
+  --aurora-opacity: 0.35;
 
   /* Legacy aliases referenced by older page CSS */
   --color-primary: var(--primary-color);
@@ -48,7 +48,7 @@
   --light-gray: #6b7280;
   --lighter-gray: color-mix(in srgb, var(--primary-color) 12%, transparent);
   --card-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
-  --aurora-opacity: 0.35;
+  --aurora-opacity: 0.45;
 }
 
 html {
