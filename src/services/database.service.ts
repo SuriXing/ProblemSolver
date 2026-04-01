@@ -92,21 +92,25 @@ export const DatabaseService = {
   async getPostByAccessCode(accessCode: string): Promise<Post | null> {
     try {
       console.log(i18next.t('fetchingPost', { accessCode }));
-      
+
       // 首先检查访问码是否为空
       if (!accessCode || accessCode.trim() === '') {
         console.log(i18next.t('emptyAccessCode'));
         return null;
       }
-      
+
       // 添加额外的日志
       console.log(i18next.t('queryCheck'));
-      
+
+      // Normalize to uppercase so lookups are case-insensitive
+      // (codes are always generated in uppercase; users may type lowercase)
+      const normalized = accessCode.trim().toUpperCase();
+
       // 查询帖子和回复
       const { data, error } = await supabase
         .from('posts')
         .select('*, replies(*)')
-        .eq('access_code', accessCode.trim())
+        .eq('access_code', normalized)
         .single();
       
       // 记录结果
@@ -283,7 +287,7 @@ export const DatabaseService = {
       const { error } = await supabase
         .from('posts')
         .update({ status })
-        .eq('access_code', accessCode);
+        .eq('access_code', accessCode.trim().toUpperCase());
       if (error) {
         console.error('Error updating post status:', error);
         return false;
