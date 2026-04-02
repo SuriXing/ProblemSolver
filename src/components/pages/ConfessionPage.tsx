@@ -6,6 +6,7 @@ import TagSelector from '../ui/TagSelector';
 import '../../styles/ConfessionPage.css';
 import StorageSystem from '../../utils/StorageSystem';
 import { DatabaseService } from '../../services/database.service';
+import { checkThrottle, recordAction, THROTTLE_RULES } from '../../utils/rateLimit';
 
 const ConfessionPage: React.FC = () => {
   const { t } = useTranslation();
@@ -62,7 +63,17 @@ const ConfessionPage: React.FC = () => {
       console.log('Form validation failed');
       return;
     }
-    
+
+    const throttle = checkThrottle(THROTTLE_RULES.confession);
+    if (!throttle.allowed) {
+      const secs = Math.ceil(throttle.retryAfterMs / 1000);
+      alert(
+        (t('throttleTryAgainIn', { seconds: secs }) as string) ||
+          `You're posting too fast. Please try again in ${secs}s.`
+      );
+      return;
+    }
+
     setIsSubmitting(true);
     
     try {
@@ -103,6 +114,7 @@ const ConfessionPage: React.FC = () => {
         return;
       }
 
+      recordAction(THROTTLE_RULES.confession);
       const accessCode = post.access_code || 'UNKNOWN';
       console.log('Submission successful, access code:', accessCode);
 
@@ -169,14 +181,21 @@ const ConfessionPage: React.FC = () => {
                 ref={textareaRef}
                 className={`confession-textarea ${errors.confession ? 'error' : ''}`}
                 value={confession}
-                onChange={(e) => setConfession(e.target.value)}
+                onChange={(e) => setConfession(e.target.value.slice(0, 4000))}
                 placeholder={t('confessionPlaceholder') || 'Type your confession here...'}
                 rows={8}
+                maxLength={4000}
                 aria-label={t('confessionTextareaLabel') || 'Write your confession'}
                 aria-required="true"
                 aria-invalid={errors.confession ? 'true' : 'false'}
-                aria-describedby={errors.confession ? 'confession-error' : undefined}
+                aria-describedby={errors.confession ? 'confession-error' : 'confession-char-count'}
               />
+              <div
+                id="confession-char-count"
+                style={{ fontSize: '0.85rem', color: confession.length > 3800 ? '#e53935' : '#888', textAlign: 'right', marginTop: 4 }}
+              >
+                {confession.length} / 4000
+              </div>
               {errors.confession && (
                 <div id="confession-error" className="error-message" role="alert">
                   {errors.confession}
