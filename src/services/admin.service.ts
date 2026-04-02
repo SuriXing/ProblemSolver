@@ -146,6 +146,17 @@ class AdminService {
 
   static async getDashboardStats(): Promise<AdminStats> {
     try {
+      if (!(await this.isAuthenticatedVerified())) {
+        return {
+          totalPosts: 0,
+          totalReplies: 0,
+          activeUsers: 0,
+          pendingReports: 0,
+          todayPosts: 0,
+          weeklyPosts: 0,
+        };
+      }
+
       const today = new Date();
       const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
 
@@ -193,6 +204,10 @@ class AdminService {
     limit: number = 20,
   ): Promise<{ posts: Post[]; total: number }> {
     try {
+      if (!(await this.isAuthenticatedVerified())) {
+        return { posts: [], total: 0 };
+      }
+
       const offset = (page - 1) * limit;
 
       const { data: posts, error } = await supabase
@@ -270,6 +285,10 @@ class AdminService {
 
   static async getPostReplies(postId: string): Promise<Reply[]> {
     try {
+      if (!(await this.isAuthenticatedVerified())) {
+        return [];
+      }
+
       const { data: replies, error } = await supabase
         .from('replies')
         .select('*')
@@ -299,12 +318,36 @@ class AdminService {
     }
   }
 
+  /**
+   * Search posts by content/title.
+   *
+   * Sanitizes query input:
+   *   - drops any PostgREST special chars (,)(.*%) so the user's text can't
+   *     break out of the ilike filter and inject a second filter clause
+   *   - caps length at 100 chars
+   *   - empty/too-short queries return empty (don't dump the whole table)
+   *
+   * Does NOT search by access_code — U-X5 revoked SELECT on that column.
+   * A regex filter over access_code would also be a user-enumeration tool,
+   * which is the exploit U-X5 closed.
+   */
   static async searchPosts(query: string): Promise<Post[]> {
     try {
+      if (!(await this.isAuthenticatedVerified())) {
+        return [];
+      }
+
+      const sanitized = query
+        .replace(/[(),.*%]/g, '')
+        .trim()
+        .slice(0, 100);
+
+      if (sanitized.length < 2) return [];
+
       const { data: posts, error } = await supabase
         .from('posts')
         .select('*')
-        .or(`content.ilike.%${query}%,access_code.ilike.%${query}%,title.ilike.%${query}%`)
+        .or(`content.ilike.%${sanitized}%,title.ilike.%${sanitized}%`)
         .order('created_at', { ascending: false })
         .limit(50);
       if (error) throw error;
