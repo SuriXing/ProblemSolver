@@ -302,6 +302,37 @@ class AdminService {
     }
   }
 
+  /**
+   * All replies across all posts, joined with the parent post's title for
+   * context. Used by the admin "评论管理" (Comments) tab.
+   *
+   * Sorted newest first so unread tracking works naturally — the most recent
+   * activity is at the top.
+   */
+  static async getAllReplies(limit: number = 200): Promise<ReplyWithPost[]> {
+    try {
+      if (!(await this.isAuthenticatedVerified())) {
+        return [];
+      }
+
+      const { data: replies, error } = await supabase
+        .from('replies')
+        .select('*, posts(id, title, content, status, access_code)')
+        .order('created_at', { ascending: false })
+        .limit(limit);
+
+      if (error) {
+        console.error('getAllReplies failed:', error.message, error.code);
+        return [];
+      }
+
+      return (replies ?? []) as ReplyWithPost[];
+    } catch (error) {
+      console.error('Exception fetching all replies:', error);
+      return [];
+    }
+  }
+
   static async deleteReply(replyId: string): Promise<{ success: boolean; error?: string }> {
     try {
       if (!(await this.isAuthenticatedVerified())) {
@@ -415,6 +446,16 @@ export interface AppError {
   error_stack: string | null;
   extra: Record<string, unknown> | null;
   fingerprint: string | null;
+}
+
+export interface ReplyWithPost extends Reply {
+  posts: {
+    id: string;
+    title: string | null;
+    content: string;
+    status: string;
+    access_code: string | null;
+  } | null;
 }
 
 export default AdminService;
