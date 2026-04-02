@@ -20,117 +20,148 @@ export interface AdminStats {
 }
 
 class AdminService {
-  private static readonly ADMIN_CREDENTIALS = {
-    // Default admin account - in production, this should be in environment variables
-    username: 'admin',
-    password: 'admin123', // Should be hashed in production
-    email: 'admin@problem-solver.com'
-  };
-
   private static readonly SESSION_KEY = 'admin_session';
-  private static currentAdmin: AdminUser | null = null;
 
   /**
-   * Authenticate admin user
+   * Authenticate via Supabase Auth.
+   *
+   * Before U-X6 this was a hardcoded `admin === 'admin' && password === 'admin123'`
+   * check that trusted a localStorage JSON blob as the session. Any user could
+   * open devtools, run `localStorage.setItem('admin_session', '{...}')`, and
+   * become admin without knowing the password. The password itself was in the
+   * bundle for anyone to read.
+   *
+   * Now: we delegate to Supabase Auth. The caller proves knowledge of an email
+   * + password registered in the Supabase project. Supabase returns a signed
+   * JWT that we can't forge on the client. isAuthenticated() then verifies the
+   * JWT via supabase.auth.getUser(), which hits Supabase's servers and
+   * validates the signature.
+   *
+   * Setup: admin account must be created manually in the Supabase dashboard
+   * (Authentication → Users → Add user). Public signups MUST be disabled in
+   * Authentication → Settings, otherwise anyone can self-register and become
+   * "authenticated" — which, combined with the admin RLS policies, would let
+   * them moderate content. See docs/admin-setup.md.
    */
-  static async login(username: string, password: string): Promise<{ success: boolean; admin?: AdminUser; error?: string }> {
+  static async login(
+    email: string,
+    password: string,
+  ): Promise<{ success: boolean; admin?: AdminUser; error?: string }> {
     try {
-      // Simple authentication - in production, use proper password hashing
-      if (username === this.ADMIN_CREDENTIALS.username && password === this.ADMIN_CREDENTIALS.password) {
-        const admin: AdminUser = {
-          id: 'admin-001',
-          username: this.ADMIN_CREDENTIALS.username,
-          email: this.ADMIN_CREDENTIALS.email,
-          role: 'super_admin',
-          created_at: new Date().toISOString(),
-          last_login: new Date().toISOString()
-        };
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
-        // Store session
-        localStorage.setItem(this.SESSION_KEY, JSON.stringify(admin));
-        this.currentAdmin = admin;
-
-        return { success: true, admin };
-      } else {
-        return { success: false, error: '用户名或密码错误' };
+      if (error || !data.user) {
+        return { success: false, error: error?.message || 'Invalid credentials' };
       }
+
+      const admin: AdminUser = {
+        id: data.user.id,
+        username: data.user.email ?? email,
+        email: data.user.email ?? email,
+        role: 'super_admin',
+        created_at: data.user.created_at,
+        last_login: new Date().toISOString(),
+      };
+
+      // Cache for synchronous reads (ProtectedRoute needs sync). The real
+      // source of truth is the Supabase session — this is just a hint for the
+      // router to avoid a flash of the login page on refresh.
+      try {
+        sessionStorage.setItem(this.SESSION_KEY, JSON.stringify(admin));
+      } catch {
+        // sessionStorage unavailable — fine, getUser() will still work.
+      }
+
+      return { success: true, admin };
     } catch (error) {
       console.error('Admin login error:', error);
-      return { success: false, error: '登录失败，请重试' };
+      return { success: false, error: 'Login failed, please try again' };
     }
   }
 
   /**
-   * Check if user is currently logged in as admin
+   * Check whether the caller has a valid Supabase session.
+   *
+   * This is the sync version — used by ProtectedRoute to avoid a flash of
+   * content during navigation. It reads the Supabase-managed session from
+   * localStorage (written by the Supabase JS client, tamper-evident because
+   * it contains a signed JWT).
+   *
+   * A tampered session will fail at the next network call — the signed JWT
+   * won't validate against Supabase's signing key, and all privileged
+   * operations will return a 401. So the worst case of this sync check being
+   * fooled is a brief UI flicker before the first API call rejects.
    */
   static isAuthenticated(): boolean {
-    if (this.currentAdmin) return true;
-
     try {
-      const stored = localStorage.getItem(this.SESSION_KEY);
-      if (stored) {
-        this.currentAdmin = JSON.parse(stored);
-        return true;
-      }
-    } catch (error) {
-      console.error('Error checking admin auth:', error);
+      // Supabase JS v2 stores session in localStorage under this key prefix.
+      // We don't parse or trust it — we just check that the session exists.
+      // The real validation happens server-side on every request.
+      const keys = Object.keys(localStorage);
+      const hasSupabaseSession = keys.some(
+        (k) => k.startsWith('sb-') && k.endsWith('-auth-token'),
+      );
+      return hasSupabaseSession;
+    } catch {
+      return false;
     }
-
-    return false;
   }
 
   /**
-   * Get current admin user
+   * Async variant — hits Supabase to re-verify the JWT signature. Use this
+   * before any privileged operation that has UI consequences beyond a simple
+   * redirect (e.g., showing "welcome admin" on the dashboard).
    */
-  static getCurrentAdmin(): AdminUser | null {
-    if (this.currentAdmin) return this.currentAdmin;
-
+  static async isAuthenticatedVerified(): Promise<boolean> {
     try {
-      const stored = localStorage.getItem(this.SESSION_KEY);
-      if (stored) {
-        this.currentAdmin = JSON.parse(stored);
-        return this.currentAdmin;
-      }
-    } catch (error) {
-      console.error('Error getting current admin:', error);
+      const { data, error } = await supabase.auth.getUser();
+      return !error && !!data.user;
+    } catch {
+      return false;
     }
+  }
 
+  static getCurrentAdmin(): AdminUser | null {
+    try {
+      const stored = sessionStorage.getItem(this.SESSION_KEY);
+      if (stored) return JSON.parse(stored);
+    } catch {
+      // fall through
+    }
     return null;
   }
 
-  /**
-   * Logout admin user
-   */
-  static logout(): void {
-    localStorage.removeItem(this.SESSION_KEY);
-    this.currentAdmin = null;
+  static async logout(): Promise<void> {
+    try {
+      await supabase.auth.signOut();
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+    try {
+      sessionStorage.removeItem(this.SESSION_KEY);
+    } catch {
+      // ignore
+    }
   }
 
-  /**
-   * Get dashboard statistics
-   */
   static async getDashboardStats(): Promise<AdminStats> {
     try {
       const today = new Date();
       const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
 
-      // Get total posts
       const { count: totalPosts } = await supabase
         .from('posts')
         .select('*', { count: 'exact', head: true });
 
-      // Get total replies
       const { count: totalReplies } = await supabase
         .from('replies')
         .select('*', { count: 'exact', head: true });
 
-      // Get today's posts
       const { count: todayPosts } = await supabase
         .from('posts')
         .select('*', { count: 'exact', head: true })
         .gte('created_at', today.toISOString().split('T')[0]);
 
-      // Get weekly posts
       const { count: weeklyPosts } = await supabase
         .from('posts')
         .select('*', { count: 'exact', head: true })
@@ -139,10 +170,10 @@ class AdminService {
       return {
         totalPosts: totalPosts || 0,
         totalReplies: totalReplies || 0,
-        activeUsers: 0, // Placeholder - would need user tracking
-        pendingReports: 0, // Placeholder - would need report system
+        activeUsers: 0,
+        pendingReports: 0,
         todayPosts: todayPosts || 0,
-        weeklyPosts: weeklyPosts || 0
+        weeklyPosts: weeklyPosts || 0,
       };
     } catch (error) {
       console.error('Error getting dashboard stats:', error);
@@ -152,15 +183,15 @@ class AdminService {
         activeUsers: 0,
         pendingReports: 0,
         todayPosts: 0,
-        weeklyPosts: 0
+        weeklyPosts: 0,
       };
     }
   }
 
-  /**
-   * Get all posts with pagination
-   */
-  static async getAllPosts(page: number = 1, limit: number = 20): Promise<{ posts: Post[]; total: number }> {
+  static async getAllPosts(
+    page: number = 1,
+    limit: number = 20,
+  ): Promise<{ posts: Post[]; total: number }> {
     try {
       const offset = (page - 1) * limit;
 
@@ -178,7 +209,7 @@ class AdminService {
 
       return {
         posts: posts || [],
-        total: total || 0
+        total: total || 0,
       };
     } catch (error) {
       console.error('Error getting posts:', error);
@@ -187,61 +218,56 @@ class AdminService {
   }
 
   /**
-   * Delete a post (admin action)
+   * Admin mutations.
+   *
+   * After U-X5 we REVOKEd table-level UPDATE from anon/authenticated and
+   * dropped the permissive RLS policies. U-X6 adds a follow-up migration
+   * (2026_04_15_admin_auth.sql) that re-GRANTs UPDATE/DELETE to the
+   * `authenticated` role and creates policies scoped to authenticated users
+   * only. With public signups disabled in the Supabase dashboard, this means
+   * ONLY the manually-created admin account(s) can perform these operations.
    */
   static async deletePost(postId: string): Promise<{ success: boolean; error?: string }> {
     try {
-      if (!this.isAuthenticated()) {
-        return { success: false, error: '未授权操作' };
+      if (!(await this.isAuthenticatedVerified())) {
+        return { success: false, error: 'Unauthorized' };
       }
 
-      // Delete replies first
-      await supabase
+      const { error: repliesError } = await supabase
         .from('replies')
         .delete()
         .eq('post_id', postId);
+      if (repliesError) throw repliesError;
 
-      // Delete the post
-      const { error } = await supabase
-        .from('posts')
-        .delete()
-        .eq('id', postId);
-
+      const { error } = await supabase.from('posts').delete().eq('id', postId);
       if (error) throw error;
 
       return { success: true };
     } catch (error) {
       console.error('Error deleting post:', error);
-      return { success: false, error: '删除失败' };
+      return { success: false, error: 'Delete failed' };
     }
   }
 
-  /**
-   * Update post status
-   */
-  static async updatePostStatus(postId: string, status: 'open' | 'solved' | 'closed'): Promise<{ success: boolean; error?: string }> {
+  static async updatePostStatus(
+    postId: string,
+    status: 'open' | 'solved' | 'closed',
+  ): Promise<{ success: boolean; error?: string }> {
     try {
-      if (!this.isAuthenticated()) {
-        return { success: false, error: '未授权操作' };
+      if (!(await this.isAuthenticatedVerified())) {
+        return { success: false, error: 'Unauthorized' };
       }
 
-      const { error } = await supabase
-        .from('posts')
-        .update({ status })
-        .eq('id', postId);
-
+      const { error } = await supabase.from('posts').update({ status }).eq('id', postId);
       if (error) throw error;
 
       return { success: true };
     } catch (error) {
       console.error('Error updating post status:', error);
-      return { success: false, error: '更新失败' };
+      return { success: false, error: 'Update failed' };
     }
   }
 
-  /**
-   * Get all replies for a post
-   */
   static async getPostReplies(postId: string): Promise<Reply[]> {
     try {
       const { data: replies, error } = await supabase
@@ -249,9 +275,7 @@ class AdminService {
         .select('*')
         .eq('post_id', postId)
         .order('created_at', { ascending: true });
-
       if (error) throw error;
-
       return replies || [];
     } catch (error) {
       console.error('Error getting replies:', error);
@@ -259,32 +283,22 @@ class AdminService {
     }
   }
 
-  /**
-   * Delete a reply (admin action)
-   */
   static async deleteReply(replyId: string): Promise<{ success: boolean; error?: string }> {
     try {
-      if (!this.isAuthenticated()) {
-        return { success: false, error: '未授权操作' };
+      if (!(await this.isAuthenticatedVerified())) {
+        return { success: false, error: 'Unauthorized' };
       }
 
-      const { error } = await supabase
-        .from('replies')
-        .delete()
-        .eq('id', replyId);
-
+      const { error } = await supabase.from('replies').delete().eq('id', replyId);
       if (error) throw error;
 
       return { success: true };
     } catch (error) {
       console.error('Error deleting reply:', error);
-      return { success: false, error: '删除失败' };
+      return { success: false, error: 'Delete failed' };
     }
   }
 
-  /**
-   * Search posts by content or access code
-   */
   static async searchPosts(query: string): Promise<Post[]> {
     try {
       const { data: posts, error } = await supabase
@@ -293,9 +307,7 @@ class AdminService {
         .or(`content.ilike.%${query}%,access_code.ilike.%${query}%,title.ilike.%${query}%`)
         .order('created_at', { ascending: false })
         .limit(50);
-
       if (error) throw error;
-
       return posts || [];
     } catch (error) {
       console.error('Error searching posts:', error);
@@ -303,21 +315,17 @@ class AdminService {
     }
   }
 
-  /**
-   * Get system logs (placeholder for future implementation)
-   */
   static async getSystemLogs(): Promise<any[]> {
-    // This would connect to a logging system in production
     return [
       {
         id: '1',
         timestamp: new Date().toISOString(),
         level: 'info',
         message: 'Admin system initialized',
-        user: 'system'
-      }
+        user: 'system',
+      },
     ];
   }
 }
 
-export default AdminService; 
+export default AdminService;

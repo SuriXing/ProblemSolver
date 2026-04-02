@@ -38,10 +38,10 @@ describe('AdminLoginPage', () => {
     mockIsAuthenticated.mockReturnValue(false);
   });
 
-  it('renders login form with username and password fields', () => {
+  it('renders login form with email and password fields', () => {
     render(<MemoryRouter><AdminLoginPage /></MemoryRouter>);
-    expect(screen.getByPlaceholderText('用户名')).toBeInTheDocument();
-    expect(screen.getByPlaceholderText('密码')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText(/邮箱/)).toBeInTheDocument();
+    expect(screen.getByPlaceholderText(/密码/)).toBeInTheDocument();
   });
 
   it('renders login button', () => {
@@ -67,8 +67,8 @@ describe('AdminLoginPage', () => {
 
     render(<MemoryRouter><AdminLoginPage /></MemoryRouter>);
 
-    fireEvent.change(screen.getByPlaceholderText('用户名'), { target: { value: 'admin' } });
-    fireEvent.change(screen.getByPlaceholderText('密码'), { target: { value: 'admin123' } });
+    fireEvent.change(screen.getByPlaceholderText(/邮箱/), { target: { value: 'admin@problem-solver.com' } });
+    fireEvent.change(screen.getByPlaceholderText(/密码/), { target: { value: 'admin123' } });
 
     const loginBtn = screen.getByRole('button', { name: /登/ });
     fireEvent.click(loginBtn);
@@ -83,8 +83,8 @@ describe('AdminLoginPage', () => {
 
     render(<MemoryRouter><AdminLoginPage /></MemoryRouter>);
 
-    fireEvent.change(screen.getByPlaceholderText('用户名'), { target: { value: 'admin' } });
-    fireEvent.change(screen.getByPlaceholderText('密码'), { target: { value: 'wrong' } });
+    fireEvent.change(screen.getByPlaceholderText(/邮箱/), { target: { value: 'admin@problem-solver.com' } });
+    fireEvent.change(screen.getByPlaceholderText(/密码/), { target: { value: 'wrong' } });
 
     fireEvent.click(screen.getByRole('button', { name: /登/ }));
 
@@ -98,13 +98,13 @@ describe('AdminLoginPage', () => {
 
     render(<MemoryRouter><AdminLoginPage /></MemoryRouter>);
 
-    fireEvent.change(screen.getByPlaceholderText('用户名'), { target: { value: 'admin' } });
-    fireEvent.change(screen.getByPlaceholderText('密码'), { target: { value: 'pass' } });
+    fireEvent.change(screen.getByPlaceholderText(/邮箱/), { target: { value: 'admin@problem-solver.com' } });
+    fireEvent.change(screen.getByPlaceholderText(/密码/), { target: { value: 'pass' } });
 
     fireEvent.click(screen.getByRole('button', { name: /登/ }));
 
     await waitFor(() => {
-      expect(screen.getByText('登录过程中发生错误')).toBeInTheDocument();
+      expect(screen.getByText('An error occurred during login')).toBeInTheDocument();
     });
   });
 
