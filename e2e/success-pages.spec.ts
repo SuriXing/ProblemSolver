@@ -13,17 +13,25 @@ test.describe('Success Pages', () => {
     await expect(page.locator('text=TEST1234')).toBeVisible({ timeout: 10000 });
   });
 
-  test('success page has navigation actions', async ({ page }) => {
+  test('success page copy button copies access code to clipboard', async ({ page, context }) => {
+    await context.grantPermissions(['clipboard-read', 'clipboard-write']);
     await page.goto('/#/');
     await page.evaluate(() => {
-      localStorage.setItem('accessCode', 'ABC12345');
+      localStorage.setItem('accessCode', 'CLIP2345');
     });
     await page.goto('/#/success');
 
-    // Should have the success check icon or actions section
-    await page.waitForTimeout(2000);
-    const content = await page.textContent('body');
-    expect(content).toContain('ABC12345');
+    // Wait for the access code to render in the #access-code span
+    await expect(page.locator('#access-code')).toHaveText('CLIP2345', { timeout: 10000 });
+
+    // The copy button is the button immediately adjacent to #access-code
+    const copyBtn = page.locator('#access-code + button');
+    await expect(copyBtn).toBeVisible();
+    await copyBtn.click();
+
+    // Verify the real browser clipboard now contains the access code
+    const clipboardText = await page.evaluate(() => navigator.clipboard.readText());
+    expect(clipboardText).toBe('CLIP2345');
   });
 
   test('help success page shows stats', async ({ page }) => {

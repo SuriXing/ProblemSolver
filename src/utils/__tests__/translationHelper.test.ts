@@ -52,13 +52,16 @@ describe('translationHelper', () => {
   });
 
   describe('translate', () => {
-    it('returns the key when no translation found (mock returns key)', () => {
-      // Our i18n mock returns the key by default (no defaultValue set)
-      const result = translate('someKey');
-      expect(typeof result).toBe('string');
+    it('returns the exact key string when no translation found', () => {
+      // Our i18n mock returns the key itself when no defaultValue is set
+      expect(translate('someKey')).toBe('someKey');
     });
 
-    it('does not throw on error', () => {
+    it('returns the exact namespaced key string', () => {
+      expect(translate('my.nested.key')).toBe('my.nested.key');
+    });
+
+    it('does not throw on error paths', () => {
       expect(() => translate('any.key')).not.toThrow();
     });
   });
