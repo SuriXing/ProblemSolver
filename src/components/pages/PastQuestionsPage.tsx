@@ -99,16 +99,14 @@ const PastQuestionsPage: React.FC<PastQuestionsPageProps> = ({ showDebug, debugP
       }
       setFetchedPost(post);
 
-      // Fix "0 replies" bug: prefer whichever source has data.
-      // The join in getPostByAccessCode may be blocked by RLS, OR the separate
-      // replies query may be blocked by RLS. Try both and use whichever works.
+      // Prefer whichever source has replies. The separate query is the primary
+      // path; the join result is a defensive fallback for RLS edge cases.
       let finalReplies: any[] = [];
       if (post.id) {
         const separateReplies = await DatabaseService.getRepliesByPostId(post.id);
         if (separateReplies && separateReplies.length > 0) {
           finalReplies = separateReplies;
         } else if (post.replies && post.replies.length > 0) {
-          // Fall back to replies from the join query on the post
           finalReplies = post.replies;
         }
       }

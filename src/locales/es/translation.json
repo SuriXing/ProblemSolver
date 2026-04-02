@@ -186,5 +186,15 @@
   "replyCannotBeEmpty": "La respuesta no puede estar vacía",
   "cannotSubmitNoPost": "No se puede enviar: la publicación aún no está cargada",
   "tagAnxiety": "Ansiedad",
-  "tagWork": "Trabajo"
+  "tagWork": "Trabajo",
+  "adminLogin": "Inicio de sesión de administrador",
+  "notebookOpen": "Abrir libreta de códigos de acceso",
+  "notebookClose": "Cerrar libreta de códigos de acceso",
+  "confessionTextareaLabel": "Escribe tu confesión",
+  "accessCodeInputLabel": "Código de acceso",
+  "helpSearchLabel": "Buscar publicaciones de ayuda",
+  "addEntryLabel": "Añadir a la libreta",
+  "accessCodeFieldLabel": "Campo de código de acceso",
+  "notebookNoteLabel": "Nota sobre este código de acceso",
+  "confessionFailedToSubmit": "Lo sentimos, no pudimos guardar tu confesión en este momento. Por favor, revisa tu conexión e inténtalo de nuevo."
 }

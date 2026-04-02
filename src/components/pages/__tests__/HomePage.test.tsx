@@ -63,7 +63,9 @@ describe('HomePage', () => {
 
   it('navigates to /admin/login when admin button is clicked', () => {
     render(<MemoryRouter><HomePage /></MemoryRouter>);
-    const adminBtn = screen.getByTitle('管理员登录');
+    // U-X3: admin button now has aria-label for screen readers (WCAG 4.1.2).
+    // Match by accessible name, not by Chinese title attribute.
+    const adminBtn = screen.getByRole('button', { name: /admin login|adminLogin/i });
     fireEvent.click(adminBtn);
     expect(mockNavigate).toHaveBeenCalledWith('/admin/login');
   });

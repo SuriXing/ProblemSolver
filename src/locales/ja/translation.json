@@ -186,5 +186,15 @@
   "replyCannotBeEmpty": "返信内容を入力してください",
   "cannotSubmitNoPost": "送信できません：投稿がまだ読み込まれていません",
   "tagAnxiety": "不安",
-  "tagWork": "仕事"
+  "tagWork": "仕事",
+  "adminLogin": "管理者ログイン",
+  "notebookOpen": "アクセスコードノートを開く",
+  "notebookClose": "アクセスコードノートを閉じる",
+  "confessionTextareaLabel": "あなたの悩みを書いてください",
+  "accessCodeInputLabel": "アクセスコード",
+  "helpSearchLabel": "ヘルプ投稿を検索",
+  "addEntryLabel": "ノートに追加",
+  "accessCodeFieldLabel": "アクセスコード入力",
+  "notebookNoteLabel": "このアクセスコードについてのメモ",
+  "confessionFailedToSubmit": "申し訳ありませんが、現在告白を保存できません。接続を確認して再試行してください。"
 }

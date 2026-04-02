@@ -202,5 +202,15 @@
   "replyCannotBeEmpty": "回复内容不能为空",
   "cannotSubmitNoPost": "无法提交：帖子尚未加载",
   "tagAnxiety": "焦虑",
-  "tagWork": "工作"
+  "tagWork": "工作",
+  "adminLogin": "管理员登录",
+  "notebookOpen": "打开访问码记事本",
+  "notebookClose": "关闭访问码记事本",
+  "confessionTextareaLabel": "写下你的心事",
+  "accessCodeInputLabel": "访问码",
+  "helpSearchLabel": "搜索求助帖子",
+  "addEntryLabel": "添加到记事本",
+  "accessCodeFieldLabel": "访问码字段",
+  "notebookNoteLabel": "关于此访问码的备注",
+  "confessionFailedToSubmit": "抱歉，目前无法保存你的心事。请检查网络连接并重试。"
 }
