@@ -1,8 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import '../../../test/mocks/supabase';
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render as rtlRender, screen, fireEvent } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 
 import AccessCodeNotebook, { saveAccessCodeToNotebook } from '../AccessCodeNotebook';
+
+// Wrap all renders in MemoryRouter — the notebook uses useNavigate internally
+const render = (ui: React.ReactElement) => rtlRender(<MemoryRouter>{ui}</MemoryRouter>);
 
 const NOTEBOOK_KEY = 'accessCodeNotebook';
 
@@ -151,10 +156,11 @@ describe('AccessCodeNotebook', () => {
     expect(screen.getByText('ENTER1')).toBeInTheDocument();
   });
 
-  it('renders debug button', () => {
+  it('does not render Debug or Admin buttons (removed in favor of clean UI)', () => {
     render(<AccessCodeNotebook />);
     fireEvent.click(screen.getByTitle('Open notebook'));
-    expect(screen.getByText('Debug')).toBeInTheDocument();
+    expect(screen.queryByText('Debug')).not.toBeInTheDocument();
+    expect(screen.queryByText('Admin')).not.toBeInTheDocument();
   });
 
   it('closes panel when toggle is clicked again', () => {
