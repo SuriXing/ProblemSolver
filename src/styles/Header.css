@@ -21,6 +21,16 @@
   justify-content: space-between;
   align-items: center;
   gap: 1rem;
+  /* U-X2: ensure flex children can shrink instead of overflowing on mobile.
+     Without min-width: 0, the language dropdown's intrinsic content width
+     pushes the container past the viewport on small screens. */
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.header .container > *,
+.header .nav-actions > * {
+  min-width: 0;
 }
 
 .header .nav-actions {
@@ -195,13 +205,20 @@
 
 /* 响应式设计 */
 @media (max-width: 768px) {
+  .header .container {
+    padding: 0 1rem;
+  }
+
   .nav-actions {
     gap: 0.5rem;
+    min-width: 0;
+    flex-wrap: nowrap;
   }
 
   .nav-link span,
   .history-link span,
-  .language-button span {
+  .language-button span,
+  .instruction-button span {
     display: none;
   }
 
@@ -210,10 +227,36 @@
   .language-button,
   .instruction-button {
     padding: 0.5rem;
+    min-width: 44px;
+    min-height: 44px;
+    justify-content: center;
   }
 
   .language-dropdown {
-    right: -1rem;
+    right: 0;
+    left: auto;
+    /* Ensure the open dropdown can't push the viewport */
+    max-width: calc(100vw - 2rem);
+  }
+}
+
+/* Extra-small phones (≤ 480px): make the logo text smaller too */
+@media (max-width: 480px) {
+  .header .container {
+    padding: 0 0.75rem;
+    gap: 0.5rem;
+  }
+
+  .logo {
+    font-size: 1rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .logo-icon {
+    margin-right: 0.35rem;
+    font-size: 1.2rem;
   }
 }
 

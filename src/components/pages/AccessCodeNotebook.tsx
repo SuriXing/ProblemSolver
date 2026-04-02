@@ -197,16 +197,18 @@ const AccessCodeNotebook = forwardRef<AccessCodeNotebookRef>((props, ref) => {
   return (
     <div
       ref={notebookRef}
+      className="access-code-notebook"
       style={{
         position: 'fixed',
-        left: 20,
-        bottom: 20,
+        left: 12,
+        bottom: 12,
         zIndex: 9999,
         background: '#fff',
         borderRadius: 10,
         boxShadow: '0 2px 12px rgba(0,0,0,0.13)',
-        width: open ? 260 : 48,
-        minHeight: 48,
+        width: open ? 260 : 44,
+        minHeight: 44,
+        maxWidth: 'calc(100vw - 24px)',
         transition: 'width 0.2s',
         overflow: 'hidden',
         border: '1px solid #eee',

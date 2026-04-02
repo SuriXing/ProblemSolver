@@ -44,7 +44,24 @@ html[data-theme-mode="light"] .footer,
 @media (max-width: 768px) {
   .main-content {
     padding-top: 56px;
+    /* U-X2: leave room at the bottom so the fixed Notebook (bottom-left)
+       and ThemePicker (bottom-right) icons don't visually overlap content
+       at the very bottom of the page (e.g. confession textarea). */
+    padding-bottom: 80px;
   }
+}
+
+/* U-X2: hide the screen-reader-only label class globally if not already defined */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 /* Theme-aware styling is handled via CSS custom properties in src/index.css.
