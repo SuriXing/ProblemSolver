@@ -257,55 +257,65 @@ export const DatabaseService = {
   },
   
   /**
-   * Mark a reply as the solution to a post
+   * Mark a reply as the solution to a post.
+   *
+   * As of U-X5 this calls the `mark_reply_solution` Postgres function
+   * (SECURITY DEFINER) which validates the caller knows the post's access
+   * code. Direct UPDATE on replies/posts from the anon key is no longer
+   * allowed — the permissive UPDATE policies were dropped in
+   * `2026_04_14_security_trio.sql`.
    */
-  async markReplyAsSolution(replyId: string, postId: string): Promise<boolean> {
+  async markReplyAsSolution(replyId: string, accessCode: string): Promise<boolean> {
     try {
-      // First, unmark any existing solution
-      await supabase
-        .from('replies')
-        .update({ is_solution: false })
-        .eq('post_id', postId)
-        .eq('is_solution', true);
-      
-      // Then mark the new solution
-      const { error } = await supabase
-        .from('replies')
-        .update({ is_solution: true })
-        .eq('id', replyId);
-      
-      if (error) {
-        console.error('Error marking reply as solution:', error);
+      if (!accessCode || !replyId) {
+        console.error('markReplyAsSolution: missing accessCode or replyId');
         return false;
       }
-      
-      // Update the post status to solved
-      await supabase
-        .from('posts')
-        .update({ status: 'solved' })
-        .eq('id', postId);
-      
-      return true;
+
+      const { data, error } = await supabase.rpc('mark_reply_solution', {
+        p_access_code: accessCode.trim().toUpperCase(),
+        p_reply_id: replyId,
+      });
+
+      if (error) {
+        console.error('mark_reply_solution RPC error:', error.message, error.code);
+        return false;
+      }
+
+      // The function returns a boolean — true only if the access code matched
+      // the reply's post and all three updates succeeded.
+      return data === true;
     } catch (error) {
       console.error('Exception marking reply as solution:', error);
       return false;
     }
   },
-  
+
   /**
-   * Update the status of a post by its access code
+   * Update the status of a post by its access code.
+   *
+   * As of U-X5 this calls the `mark_post_solved` Postgres function
+   * (SECURITY DEFINER) which validates the access code server-side. Direct
+   * UPDATE on posts from the anon key is no longer allowed.
    */
   async updatePostStatusByAccessCode(accessCode: string, status: 'solved' | 'open'): Promise<boolean> {
     try {
-      const { error } = await supabase
-        .from('posts')
-        .update({ status })
-        .eq('access_code', accessCode.trim().toUpperCase());
-      if (error) {
-        console.error('Error updating post status:', error);
+      if (!accessCode) {
+        console.error('updatePostStatusByAccessCode: missing accessCode');
         return false;
       }
-      return true;
+
+      const { data, error } = await supabase.rpc('mark_post_solved', {
+        p_access_code: accessCode.trim().toUpperCase(),
+        p_status: status,
+      });
+
+      if (error) {
+        console.error('mark_post_solved RPC error:', error.message, error.code);
+        return false;
+      }
+
+      return data === true;
     } catch (error) {
       console.error('Exception updating post status:', error);
       return false;

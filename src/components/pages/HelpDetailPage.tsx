@@ -111,7 +111,7 @@ const HelpDetailPage: React.FC = () => {
     if (!post) return;
     
     try {
-      const success = await DatabaseService.markReplyAsSolution(post.id, replyId);
+      const success = await DatabaseService.markReplyAsSolution(replyId, accessCode ?? '');
       
       if (success) {
         // Refresh the replies to show the updated solution status
