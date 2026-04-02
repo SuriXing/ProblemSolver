@@ -17,6 +17,7 @@ vi.mock('../../../utils/environmentLabel', () => ({
 }));
 
 const mockIsAuthenticated = vi.fn();
+const mockIsAuthenticatedVerified = vi.fn();
 const mockGetCurrentAdmin = vi.fn();
 const mockGetDashboardStats = vi.fn();
 const mockGetAllPosts = vi.fn();
@@ -24,10 +25,12 @@ const mockDeletePost = vi.fn();
 const mockUpdatePostStatus = vi.fn();
 const mockSearchPosts = vi.fn();
 const mockLogout = vi.fn();
+const mockGetRecentErrors = vi.fn();
 
 vi.mock('../../../services/admin.service', () => ({
   default: {
     isAuthenticated: () => mockIsAuthenticated(),
+    isAuthenticatedVerified: () => mockIsAuthenticatedVerified(),
     getCurrentAdmin: () => mockGetCurrentAdmin(),
     getDashboardStats: () => mockGetDashboardStats(),
     getAllPosts: (...args: any[]) => mockGetAllPosts(...args),
@@ -35,6 +38,7 @@ vi.mock('../../../services/admin.service', () => ({
     updatePostStatus: (...args: any[]) => mockUpdatePostStatus(...args),
     searchPosts: (...args: any[]) => mockSearchPosts(...args),
     logout: () => mockLogout(),
+    getRecentErrors: (...args: any[]) => mockGetRecentErrors(...args),
   },
 }));
 
@@ -66,15 +70,19 @@ describe('AdminDashboardPage', () => {
   beforeEach(() => {
     mockNavigate.mockClear();
     mockIsAuthenticated.mockReturnValue(true);
+    mockIsAuthenticatedVerified.mockResolvedValue(true);
     mockGetCurrentAdmin.mockReturnValue(mockAdmin);
     mockGetDashboardStats.mockResolvedValue(mockStats);
     mockGetAllPosts.mockResolvedValue(mockPosts);
+    mockGetRecentErrors.mockResolvedValue([]);
   });
 
-  it('redirects to login when not authenticated', () => {
-    mockIsAuthenticated.mockReturnValue(false);
+  it('redirects to login when not authenticated', async () => {
+    mockIsAuthenticatedVerified.mockResolvedValue(false);
     render(<MemoryRouter><AdminDashboardPage /></MemoryRouter>);
-    expect(mockNavigate).toHaveBeenCalledWith('/admin/login');
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith('/admin/login');
+    });
   });
 
   it('returns null when no admin is found', () => {
