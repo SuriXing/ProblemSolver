@@ -126,7 +126,14 @@ GRANT EXECUTE ON FUNCTION get_post_by_access_code(text) TO anon, authenticated;
 -- The service layer already calls supabase.rpc('increment_views', ...) with
 -- a fallback; U-X8 removed the fallback as dead code, and this migration
 -- adds the missing function so the primary path works.
+--
+-- NOTE: a previous version of this function existed with a different return
+-- type (likely void from an earlier dashboard-added function). CREATE OR
+-- REPLACE can't change the return type, so we DROP first. This is safe:
+-- the old function had no callers outside of this very rewrite.
 -- ----------------------------------------------------------------------------
+
+DROP FUNCTION IF EXISTS increment_views(uuid);
 
 CREATE OR REPLACE FUNCTION increment_views(post_id uuid)
 RETURNS boolean
