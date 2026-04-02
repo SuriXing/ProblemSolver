@@ -73,6 +73,90 @@ html[data-theme-mode="light"] .footer,
   background-color: rgba(91, 123, 250, 0.14) !important;
 }
 
+/* U-X11.2: clean post card layout for the admin dashboard. */
+.admin-posts-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.admin-post-card {
+  position: relative;
+  background: #ffffff;
+  border: 1px solid #e8e8e8;
+  border-radius: 10px;
+  padding: 18px 20px 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.admin-post-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transform: translateY(-1px);
+}
+
+.admin-post-card--unread {
+  background: #f6f9ff;
+  border-color: #c8d4ff;
+}
+
+.admin-post-card__status {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  display: flex;
+  align-items: center;
+}
+
+.admin-post-card__content {
+  font-size: 16px;
+  line-height: 1.55;
+  color: #1f2937;
+  margin-bottom: 14px;
+  padding-right: 140px; /* leave room for the status pill */
+  word-wrap: break-word;
+  white-space: pre-wrap;
+}
+
+.admin-post-card__meta {
+  display: flex;
+  gap: 18px;
+  font-size: 13px;
+  color: #6b7280;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.admin-post-card__meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.admin-post-card__actions {
+  display: flex;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid #f0f0f0;
+}
+
+@media (max-width: 600px) {
+  .admin-post-card {
+    padding: 16px;
+  }
+  .admin-post-card__content {
+    padding-right: 0;
+    margin-top: 28px; /* push below the status pill */
+  }
+  .admin-post-card__status {
+    top: 12px;
+    right: 12px;
+  }
+  .admin-post-card__actions {
+    flex-wrap: wrap;
+  }
+}
+
 /* Theme-aware styling is handled via CSS custom properties in src/index.css.
  * prefers-color-scheme overrides were removed so the in-app theme toggle
  * actually works regardless of the OS setting. */
