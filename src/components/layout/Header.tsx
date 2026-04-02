@@ -90,7 +90,7 @@ const Header: React.FC = () => {
                     left: '50%',
                     transform: 'translateX(-50%)',
                     background: '#222',
-                    color: '#fff',
+                    color: 'var(--text-on-primary, #f5f7ff)',
                     borderRadius: 10,
                     boxShadow: '0 4px 16px rgba(0,0,0,0.10)',
                     padding: '20px 24px',
@@ -107,7 +107,7 @@ const Header: React.FC = () => {
                     cursor: 'pointer',
                   }}
                 >
-                  <div style={{ fontWeight: 600, marginBottom: 10, fontSize: '1.08rem', color: '#fff' }}>
+                  <div style={{ fontWeight: 600, marginBottom: 10, fontSize: '1.08rem', color: 'var(--text-on-primary, #f5f7ff)' }}>
                     🌱 {siteNameLabel}
                   </div>
                   <div style={{ marginBottom: 12 }}>
@@ -130,7 +130,7 @@ const Header: React.FC = () => {
                       style={{
                         background: 'none',
                         border: '1px solid #fff',
-                        color: '#fff',
+                        color: 'var(--text-on-primary, #f5f7ff)',
                         borderRadius: 6,
                         padding: '6px 14px',
                         cursor: 'pointer',
@@ -152,7 +152,7 @@ const Header: React.FC = () => {
                       style={{
                         background: 'none',
                         border: '1px solid #fff',
-                        color: '#fff',
+                        color: 'var(--text-on-primary, #f5f7ff)',
                         borderRadius: 6,
                         padding: '6px 14px',
                         cursor: 'pointer',

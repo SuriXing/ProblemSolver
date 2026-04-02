@@ -161,7 +161,7 @@
   height: 80px;
   border-radius: 50%;
   margin-bottom: var(--space-4);
-  color: var(--white);
+  color: var(--text-on-primary, #ffffff);
   font-size: 1.875rem;
 }
 
@@ -195,7 +195,7 @@
 .btn-primary {
   display: inline-block;
   background-color: var(--primary-dark);
-  color: var(--white);
+  color: var(--text-on-primary, #ffffff);
   padding: 0.5rem 1rem;
   border-radius: 50px;
   font-weight: 500;
@@ -289,7 +289,7 @@
 
 .footer {
   margin-top: auto;
-  color: #999;
+  color: var(--text-secondary, #4b5563); /* was #999 → 2.8:1 on white, fails AA */
   font-size: 0.9rem;
 }
 
