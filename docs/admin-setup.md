@@ -5,11 +5,23 @@ admin is a real user account you create in the Supabase dashboard.
 
 ## First-time setup (do this once before launch)
 
-1. **Disable public signups.** Open the Supabase dashboard for this project.
-   Go to **Authentication → Providers → Email**. Turn **OFF** "Enable email
-   signup." This is the single switch that makes the admin RLS policies
-   safe — it stops random visitors from self-registering and becoming
-   "authenticated" (which the admin policies treat as equivalent to admin).
+1. **Disable public signups — project-wide.** Open the Supabase dashboard
+   for this project. Go to **Authentication → Settings** and turn OFF
+   **"Allow new user signups."** This is the project-wide kill switch and
+   blocks every auth provider (email, OAuth, magic link, SAML, phone). The
+   per-provider "Enable email signup" toggle is NOT sufficient — if any
+   OAuth provider is also enabled, a random visitor who clicks "Sign in
+   with Google" still becomes authenticated and the admin RLS policies
+   will treat them as an admin.
+
+   Also audit **Authentication → Providers** and disable every provider
+   that isn't being used for admin login. If you're using email+password
+   for admin, leave only the Email provider enabled and flip every OAuth
+   provider off.
+
+   Finally, open **Authentication → Users** and confirm that the only
+   row(s) there are the admins you expect. If any unfamiliar user exists,
+   delete them before running the admin migrations.
 
 2. **Create the admin user.** Still in Authentication, go to **Users → Add
    user → Create new user**. Use a real email address you control. Pick a
