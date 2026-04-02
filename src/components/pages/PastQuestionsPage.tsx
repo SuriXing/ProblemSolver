@@ -146,9 +146,9 @@ const PastQuestionsPage: React.FC<PastQuestionsPageProps> = ({ showDebug, debugP
             id="access-code-input"
             className="accessCodeInput"
             value={accessCode}
-            onChange={e => setAccessCode(e.target.value)}
+            onChange={e => setAccessCode(e.target.value.toUpperCase())}
             placeholder={t('enterAccessCode')}
-            style={{ marginBottom: 16, maxWidth: 300, textAlign: 'center' }}
+            style={{ marginBottom: 16, maxWidth: 300, textAlign: 'center', textTransform: 'uppercase' }}
             autoComplete="off"
           />
           <button type="submit" className="btn-primary" style={{ width: '100%', maxWidth: 300 }} disabled={fetchingPost}>

@@ -37,6 +37,9 @@ export const saveAccessCodeToNotebook = (accessCode: string, note: string = '') 
 const AccessCodeNotebook = forwardRef<AccessCodeNotebookRef>((props, ref) => {
   const [entries, setEntries] = useState<NotebookEntry[]>([]);
   const [code, setCode] = useState('');
+  const [note, setNote] = useState('');
+  const [editingIdx, setEditingIdx] = useState<number | null>(null);
+  const [editingNote, setEditingNote] = useState('');
   const [open, setOpen] = useState(false);
   const [savedFlash, setSavedFlash] = useState(false);
   const notebookRef = useRef<HTMLDivElement>(null);
@@ -100,10 +103,31 @@ const AccessCodeNotebook = forwardRef<AccessCodeNotebookRef>((props, ref) => {
 
   const addEntry = () => {
     if (!code.trim()) return;
-    const newEntry = { code: code.trim(), note: '' };
+    const newEntry = { code: code.trim().toUpperCase(), note: note.trim() };
     saveEntries([...entries, newEntry]);
     setCode('');
+    setNote('');
     showSavedFlash();
+  };
+
+  const startEditingNote = (idx: number) => {
+    setEditingIdx(idx);
+    setEditingNote(entries[idx].note || '');
+  };
+
+  const saveEditingNote = () => {
+    if (editingIdx === null) return;
+    const updated = entries.map((entry, i) =>
+      i === editingIdx ? { ...entry, note: editingNote.trim() } : entry
+    );
+    saveEntries(updated);
+    setEditingIdx(null);
+    setEditingNote('');
+  };
+
+  const cancelEditingNote = () => {
+    setEditingIdx(null);
+    setEditingNote('');
   };
 
   const addAccessCode = (accessCode: string, accessNote: string = '') => {
@@ -184,17 +208,32 @@ const AccessCodeNotebook = forwardRef<AccessCodeNotebookRef>((props, ref) => {
         🗒️
       </button>
       {open && (
-        <div style={{ padding: '10px 12px 12px 12px' }}>
+        <div style={{ padding: '10px 12px 12px 12px', width: 280 }}>
           <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 8 }}>Notebook</div>
-          <div style={{ display: 'flex', gap: 4, marginBottom: 8 }}>
+
+          {/* Code input */}
+          <div style={{ display: 'flex', gap: 4, marginBottom: 6 }}>
             <input
               type="text"
               placeholder="Access code"
               value={code}
-              onChange={e => setCode(e.target.value)}
+              onChange={e => setCode(e.target.value.toUpperCase())}
               onKeyDown={e => e.key === 'Enter' && addEntry()}
-              style={{ flex: 1, padding: '4px 6px', borderRadius: 4, border: '1px solid #ddd', fontSize: 13 }}
+              style={{ flex: 1, padding: '4px 6px', borderRadius: 4, border: '1px solid #ddd', fontSize: 13, fontFamily: 'monospace', textTransform: 'uppercase' }}
               maxLength={32}
+            />
+          </div>
+
+          {/* Note input */}
+          <div style={{ display: 'flex', gap: 4, marginBottom: 8 }}>
+            <input
+              type="text"
+              placeholder="Note (e.g. School issue)"
+              value={note}
+              onChange={e => setNote(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && addEntry()}
+              style={{ flex: 1, padding: '4px 6px', borderRadius: 4, border: '1px solid #ddd', fontSize: 12, color: '#666' }}
+              maxLength={60}
             />
             <button
               onClick={addEntry}
@@ -203,11 +242,13 @@ const AccessCodeNotebook = forwardRef<AccessCodeNotebookRef>((props, ref) => {
             >+
             </button>
           </div>
+
           {savedFlash && (
             <div style={{ color: '#52c41a', fontSize: 13, fontWeight: 600, textAlign: 'center', marginBottom: 6 }}>
               Saved!
             </div>
           )}
+
           <div style={{ marginBottom: 8, display: 'flex', gap: 4 }}>
             <button
               onClick={debugNotebook}
@@ -222,19 +263,75 @@ const AccessCodeNotebook = forwardRef<AccessCodeNotebookRef>((props, ref) => {
             >Admin
             </button>
           </div>
-          <div style={{ maxHeight: 120, overflowY: 'auto' }}>
+
+          <div style={{ maxHeight: 200, overflowY: 'auto' }}>
             {entries.length === 0 ? (
               <div style={{ color: '#888', fontSize: 13, textAlign: 'center' }}>No codes saved</div>
             ) : (
               <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
                 {entries.map((entry, idx) => (
-                  <li key={idx} style={{ display: 'flex', alignItems: 'center', marginBottom: 6 }}>
-                    <span style={{ fontFamily: 'monospace', fontSize: 13, background: '#f5f7fa', borderRadius: 3, padding: '2px 6px', marginRight: 4 }}>{entry.code}</span>
-                    <button
-                      onClick={() => removeEntry(idx)}
-                      style={{ background: 'none', border: 'none', color: '#e53935', cursor: 'pointer', fontSize: 15, marginLeft: 'auto' }}
-                      title="Remove"
-                    >×</button>
+                  <li
+                    key={idx}
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 3,
+                      marginBottom: 8,
+                      padding: '6px 8px',
+                      background: '#f8f9fb',
+                      borderRadius: 5,
+                      border: '1px solid #eef0f4',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <span style={{ fontFamily: 'monospace', fontSize: 12, color: '#333', fontWeight: 600 }}>{entry.code}</span>
+                      <button
+                        onClick={() => removeEntry(idx)}
+                        style={{ background: 'none', border: 'none', color: '#e53935', cursor: 'pointer', fontSize: 14, marginLeft: 'auto', padding: 0, lineHeight: 1 }}
+                        title="Remove"
+                      >×</button>
+                    </div>
+                    {editingIdx === idx ? (
+                      <div style={{ display: 'flex', gap: 3 }}>
+                        <input
+                          type="text"
+                          value={editingNote}
+                          onChange={e => setEditingNote(e.target.value)}
+                          onKeyDown={e => {
+                            if (e.key === 'Enter') saveEditingNote();
+                            if (e.key === 'Escape') cancelEditingNote();
+                          }}
+                          autoFocus
+                          placeholder="Add a note..."
+                          style={{ flex: 1, padding: '2px 5px', borderRadius: 3, border: '1px solid #4f7cff', fontSize: 11 }}
+                          maxLength={60}
+                        />
+                        <button
+                          onClick={saveEditingNote}
+                          style={{ background: '#52c41a', color: '#fff', border: 'none', borderRadius: 3, padding: '2px 6px', fontSize: 10, cursor: 'pointer' }}
+                          title="Save"
+                        >✓</button>
+                        <button
+                          onClick={cancelEditingNote}
+                          style={{ background: '#999', color: '#fff', border: 'none', borderRadius: 3, padding: '2px 6px', fontSize: 10, cursor: 'pointer' }}
+                          title="Cancel"
+                        >×</button>
+                      </div>
+                    ) : (
+                      <div
+                        onClick={() => startEditingNote(idx)}
+                        style={{
+                          fontSize: 11,
+                          color: entry.note ? '#555' : '#aaa',
+                          fontStyle: entry.note ? 'normal' : 'italic',
+                          cursor: 'pointer',
+                          padding: '1px 2px',
+                        }}
+                        title="Click to edit note"
+                      >
+                        {entry.note || '+ Add a note'}
+                      </div>
+                    )}
                   </li>
                 ))}
               </ul>
