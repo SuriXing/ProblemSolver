@@ -139,7 +139,7 @@
 }
 
 .btn-primary {
-  background-color: var(--primary-color, #5B7BFA);
+  background-color: var(--primary-dark, #4360D3);
   color: white;
   border: none;
   border-radius: 4px;
@@ -150,7 +150,7 @@
 }
 
 .btn-primary:hover {
-  background-color: #4360D3;
+  background-color: #34499F;
 }
 
 .btn-primary:disabled {
