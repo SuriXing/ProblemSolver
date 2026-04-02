@@ -13,11 +13,19 @@
 
 .footer {
   padding: 1.5rem 0;
-  background-color: #f8f9fa;
+  background-color: rgba(18, 20, 34, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-top: 1px solid color-mix(in srgb, var(--primary-color) 15%, transparent);
   text-align: center;
   font-size: 0.9rem;
-  color: #a7adc2;
-  transition: opacity 0.3s ease-out;
+  color: var(--text-secondary);
+  transition: opacity 0.3s ease-out, background-color 0.3s ease;
+}
+
+html[data-theme-mode="light"] .footer,
+:root[data-theme-mode="light"] .footer {
+  background-color: rgba(255, 255, 255, 0.85) !important;
 }
 
 .footer .container {
@@ -39,15 +47,6 @@
   }
 }
 
-/* 暗色主题支持 */
-@media (prefers-color-scheme: dark) {
-  .footer {
-    background-color: #1a1a1a;
-    color: #999;
-  }
-  
-  .layout.language-changing .main-content,
-  .layout.language-changing .footer {
-    opacity: 0.3;
-  }
-}
+/* Theme-aware styling is handled via CSS custom properties in src/index.css.
+ * prefers-color-scheme overrides were removed so the in-app theme toggle
+ * actually works regardless of the OS setting. */

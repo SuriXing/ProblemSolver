@@ -217,60 +217,7 @@
   }
 }
 
-/* 暗色主题支持 */
-@media (prefers-color-scheme: dark) {
-  .header {
-    background-color: #1a1a1a;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  }
-
-  .logo {
-    color: #6b8eff;
-  }
-
-  .nav-link,
-  .history-link,
-  .language-button,
-  .instruction-button {
-    color: #ccc;
-  }
-
-  .nav-link:hover,
-  .history-link:hover,
-  .language-button:hover,
-  .instruction-button:hover {
-    background-color: #2a2a2a;
-    color: #6b8eff;
-  }
-
-  .language-dropdown {
-    background-color: #1a1a1a;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-  }
-
-  .language-option {
-    color: #ccc;
-  }
-
-  .language-option:hover {
-    background-color: #2a2a2a;
-    color: #6b8eff;
-  }
-
-  .language-option.active {
-    color: #6b8eff;
-    background-color: #2a2a2a;
-  }
-}
-
-/* Dark theme instruction button overrides */
-@media (prefers-color-scheme: dark) {
-  .instruction-button:hover {
-    background: rgba(255, 255, 255, 0.1) !important;
-    border-color: #ccc !important;
-  }
-  
-  .instruction-button:active {
-    background: rgba(255, 255, 255, 0.15) !important;
-  }
-}
+/* Theme-aware styling is handled via var(--bg-surface) / var(--text-*) tokens
+ * set in src/index.css and updated by the in-app theme toggle.
+ * prefers-color-scheme overrides were removed so the toggle actually works
+ * regardless of the OS setting. */
