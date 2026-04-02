@@ -271,6 +271,81 @@
   margin-bottom: 0.5rem;
 }
 
+/* Notice cards (notebook tip + mentor table cross-promo) */
+.notebookNotice,
+.mentorNotice {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  max-width: 700px;
+  margin: 0 auto 1.25rem;
+  padding: 1.1rem 1.3rem;
+  border-radius: 12px;
+  text-align: left;
+  background-color: var(--bg-surface);
+  border: 1px solid color-mix(in srgb, var(--primary-color) 22%, transparent);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.08);
+}
+
+.mentorNotice {
+  border-color: color-mix(in srgb, #ff6b9d 28%, transparent);
+  background: color-mix(in srgb, #ff6b9d 6%, var(--bg-surface));
+}
+
+.noticeIcon {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  background: color-mix(in srgb, var(--primary-color) 18%, transparent);
+  color: var(--primary-color);
+}
+
+.mentorNotice .noticeIcon {
+  background: color-mix(in srgb, #ff6b9d 20%, transparent);
+  color: #ff6b9d;
+}
+
+.noticeBody {
+  flex: 1;
+}
+
+.noticeBody h4 {
+  margin: 0 0 0.35rem;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.noticeBody p {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: var(--text-secondary);
+}
+
+.mentorLink {
+  display: inline-block;
+  margin-top: 0.7rem;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+  background: #ff6b9d;
+  color: #fff;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.mentorLink:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(255, 107, 157, 0.3);
+}
+
 /* Responsive styles */
 @media (max-width: 768px) {
   .successIcon {

@@ -2,12 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTypeSafeTranslation } from '../../utils/translationHelper';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCircleCheck, faEye, faCopy, faHome, faHandsHelping, faCircleInfo, faShare } from '@fortawesome/free-solid-svg-icons';
+import { faCircleCheck, faEye, faCopy, faHome, faHandsHelping, faCircleInfo, faShare, faBookmark, faComments } from '@fortawesome/free-solid-svg-icons';
 import StorageSystem, { UserData } from '../../utils/StorageSystem';
 import styles from './SuccessPage.module.css';
 import { useTranslation } from 'react-i18next';
 import Layout from '../layout/Layout';
-import { saveAccessCodeToNotebook } from './AccessCodeNotebook';
 
 const SuccessPage: React.FC = () => {
   const { t } = useTypeSafeTranslation();
@@ -26,19 +25,13 @@ const SuccessPage: React.FC = () => {
       console.log('Access code from location state:', location.state.accessCode);
       setAccessCode(location.state.accessCode);
       localStorage.setItem('accessCode', location.state.accessCode);
-      // Auto-save to notebook
-      console.log('Auto-saving access code to notebook:', location.state.accessCode);
-      saveAccessCodeToNotebook(location.state.accessCode);
     } else {
       // Fall back to localStorage (when returning to the page)
       const storedAccessCode = localStorage.getItem('accessCode');
-      
+
       if (storedAccessCode) {
         console.log('Access code from localStorage:', storedAccessCode);
         setAccessCode(storedAccessCode);
-        // Auto-save to notebook if not already saved
-        console.log('Auto-saving stored access code to notebook:', storedAccessCode);
-        saveAccessCodeToNotebook(storedAccessCode);
       } else {
         console.warn('No access code found in state or localStorage');
       }
@@ -116,14 +109,44 @@ const SuccessPage: React.FC = () => {
           </div>
           {copied && <p className={styles.copyStatus}>{t('copied')}</p>}
           <p className={styles.accessCodeDesc}>{t('saveAccessCode')}</p>
-          <p className={styles.notebookTip}>
-            Tip: You can also save this code in the small notebook at the bottom-left corner.
-          </p>
           <button id="view-post-btn" className={styles.viewPostBtn} onClick={viewPost}>
             <FontAwesomeIcon icon={faEye} /> <span>{t('viewMyPost')}</span>
           </button>
         </div>
-        
+
+        {/* Notebook save tip */}
+        <div className={styles.notebookNotice}>
+          <div className={styles.noticeIcon}>
+            <FontAwesomeIcon icon={faBookmark} />
+          </div>
+          <div className={styles.noticeBody}>
+            <h4>Save your code to the Notebook</h4>
+            <p>
+              Open the small notebook in the bottom-left corner to save this code
+              with a note (e.g. "School issue") so you never lose track of which
+              problem is which.
+            </p>
+          </div>
+        </div>
+
+        {/* Mentor Table cross-promo */}
+        <div className={styles.mentorNotice}>
+          <div className={styles.noticeIcon}>
+            <FontAwesomeIcon icon={faComments} />
+          </div>
+          <div className={styles.noticeBody}>
+            <h4>Want advice from famous minds?</h4>
+            <p>
+              While you wait for replies, try the <strong>Mentor Table</strong> —
+              sit down with AI versions of Bill Gates, Oprah, Miyazaki, and more
+              to get their perspective on your situation.
+            </p>
+            <Link to="/mentor-table" className={styles.mentorLink}>
+              Try Mentor Table →
+            </Link>
+          </div>
+        </div>
+
         <div className={styles.successActions}>
           <div className={styles.actionButtons}>
             <Link to="/">
@@ -134,7 +157,7 @@ const SuccessPage: React.FC = () => {
             </Link>
           </div>
         </div>
-        
+
         <div className={styles.successInfoBox}>
           <div className={styles.tooltipHeader}>
             <h3><FontAwesomeIcon icon={faCircleInfo} /> <span>{t('whatHappensNext')}</span></h3>
