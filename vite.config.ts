@@ -46,6 +46,10 @@ export default defineConfig(({ mode }) => {
       sourcemap: true, // Enable for debugging
       target: 'es2015',
       rollupOptions: {
+        input: {
+          main: path.resolve(__dirname, 'index.html'),
+          'mentor-table': path.resolve(__dirname, 'mentor-table.html'),
+        },
         output: {
           inlineDynamicImports: false,
         }
