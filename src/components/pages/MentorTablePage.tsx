@@ -78,24 +78,16 @@ const DEFAULT_PLACEHOLDER_AVATAR = getVerifiedPlaceholderImage();
 
 const onboardingSlides = [
   {
-    title: '名人桌功能说明',
-    body: '你可以选择咨询对象并输入问题，然后查看每位对象给出的建议。'
+    title: '欢迎来到名人桌',
+    body: '把你的问题抛给一桌名人、角色或性格类型——每个人都会从自己的视角给你建议。就像同时和爱因斯坦、哆啦A梦、还有你最喜欢的游戏角色聊天一样。'
   },
   {
-    title: '支持对象类型',
-    body: '支持：名人、MBTI（如 INTJ）、动漫角色、游戏角色、电影角色（如钢铁侠）。'
+    title: '怎么用？',
+    body: '1. 搜索并添加你想咨询的对象（名人、MBTI类型、动漫/游戏/电影角色都可以）\n2. 选一个场景，写下你的问题\n3. 点击开始，等待每位对象的回复\n\n你还可以单独追问某个人，或同时问所有人。'
   },
   {
-    title: '如何使用',
-    body: '步骤：选择对象 → 选择场景 → 输入问题 → 开始查看回复。'
-  },
-  {
-    title: '回复与记录',
-    body: '你可以给单个人留言，也可以回复所有人。会话总结可以保存到右下角记忆抽屉。'
-  },
-  {
-    title: '说明显示设置',
-    body: '最后一步你可以选择“下次继续显示”或“下次不再显示”本说明。'
+    title: '准备好了吗？',
+    body: '有用的回复可以保存到右下角的记忆抽屉，方便以后查看。选择下次是否还显示这个说明，然后开始吧！'
   }
 ];
 
@@ -119,7 +111,7 @@ function styleClassForCard(style: SceneStyle): string {
   return styles.messageCardLibrary;
 }
 
-const MentorTablePage: React.FC = () => {
+const MentorTablePage: React.FC<{ standalone?: boolean }> = ({ standalone = false }) => {
   const navigate = useNavigate();
   const { i18n } = useTranslation();
   const isZh = i18n.language?.toLowerCase().startsWith('zh');
@@ -1020,24 +1012,16 @@ const MentorTablePage: React.FC = () => {
     ? onboardingSlides
     : [
         {
-          title: 'What This Feature Does',
-          body: 'Choose who to consult, describe your problem, and receive individual advice.'
+          title: 'Welcome to Mentor Table',
+          body: 'Throw your question at a table of famous people, fictional characters, or personality types — each one gives you advice from their own perspective. It\'s like chatting with Einstein, Doraemon, and your favorite game character all at once.'
         },
         {
-          title: 'Supported Targets',
-          body: 'You can add celebrities, MBTI types (e.g., INTJ), cartoon characters, game characters, and movie characters.'
+          title: 'How does it work?',
+          body: '1. Search and add who you want advice from (celebrities, MBTI types, cartoon/game/movie characters — all work)\n2. Pick a scene, then describe your problem\n3. Hit start and wait for each one to reply\n\nYou can also follow up with one person, or ask everyone at once.'
         },
         {
-          title: 'How to Use',
-          body: 'Steps: Pick targets → Pick a scene → Enter your problem → Start the session.'
-        },
-        {
-          title: 'Replies and Notes',
-          body: 'You can reply to one target or all targets. Save key takeaways in the memory drawer.'
-        },
-        {
-          title: 'Instruction Display Setting',
-          body: 'At the end, choose whether this instruction should appear the next time.'
+          title: 'Ready?',
+          body: 'Save useful replies to the memory drawer (bottom-right) for later. Choose whether to show this guide next time, then jump in!'
         }
       ];
 
@@ -1086,8 +1070,7 @@ const MentorTablePage: React.FC = () => {
     })
     .filter((item): item is SuggestionDeckEntry => item !== null);
 
-  return (
-    <Layout>
+  const content = (
       <section className={styles.roomPage}>
         <div className={`${styles.roomScene} ${themeClass} ${sessionMode === 'booting' ? styles.ritualBooting : ''}`}>
           <div className={styles.backLayer} />
@@ -1966,8 +1949,10 @@ const MentorTablePage: React.FC = () => {
           </div>
         )}
       </section>
-    </Layout>
   );
+
+  if (standalone) return content;
+  return <Layout>{content}</Layout>;
 };
 
 export default MentorTablePage;

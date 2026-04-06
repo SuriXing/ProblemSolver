@@ -66,10 +66,10 @@ const Header: React.FC = () => {
             <FontAwesomeIcon icon={faHistory} />
             <span>{t('goToPastQuestions')}</span>
           </Link>
-          <Link to="/mentor-table" className="nav-link">
+          <a href="/mentor-table.html" target="_blank" rel="noopener noreferrer" className="nav-link">
             <FontAwesomeIcon icon={faUsers} />
             <span>{mentorTableLabel}</span>
-          </Link>
+          </a>
           {localStorage.getItem('hideInstruction') !== '1' && (
             <div
               className="instruction-container"

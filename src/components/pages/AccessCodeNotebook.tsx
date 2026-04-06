@@ -39,6 +39,7 @@ const AccessCodeNotebook = forwardRef<AccessCodeNotebookRef>((props, ref) => {
   const [code, setCode] = useState('');
   const [note, setNote] = useState('');
   const [open, setOpen] = useState(false);
+  const [savedFlash, setSavedFlash] = useState(false);
   const notebookRef = useRef<HTMLDivElement>(null);
 
   const loadEntries = () => {
@@ -47,10 +48,8 @@ const AccessCodeNotebook = forwardRef<AccessCodeNotebookRef>((props, ref) => {
       if (saved) {
         const parsedEntries = JSON.parse(saved);
         setEntries(parsedEntries);
-        console.log('Loaded notebook entries:', parsedEntries);
       } else {
         setEntries([]);
-        console.log('No notebook entries found');
       }
     } catch (error) {
       console.error('Error loading notebook entries:', error);
@@ -74,14 +73,14 @@ const AccessCodeNotebook = forwardRef<AccessCodeNotebookRef>((props, ref) => {
     };
   }, []);
 
-  useEffect(() => {
+  const saveEntries = (newEntries: NotebookEntry[]) => {
+    setEntries(newEntries);
     try {
-      localStorage.setItem(NOTEBOOK_KEY, JSON.stringify(entries));
-      console.log('Saved notebook entries to localStorage:', entries);
+      localStorage.setItem(NOTEBOOK_KEY, JSON.stringify(newEntries));
     } catch (error) {
       console.error('Error saving notebook entries:', error);
     }
-  }, [entries]);
+  };
 
   // Close notebook on outside click
   useEffect(() => {
@@ -95,24 +94,25 @@ const AccessCodeNotebook = forwardRef<AccessCodeNotebookRef>((props, ref) => {
     return () => document.removeEventListener('mousedown', handleClick);
   }, [open]);
 
+  const showSavedFlash = () => {
+    setSavedFlash(true);
+    setTimeout(() => setSavedFlash(false), 1500);
+  };
+
   const addEntry = () => {
     if (!code.trim()) return;
     const newEntry = { code: code.trim(), note: note.trim() };
-    const newEntries = [...entries, newEntry];
-    setEntries(newEntries);
+    saveEntries([...entries, newEntry]);
     setCode('');
     setNote('');
-    console.log('Added new entry manually:', newEntry);
+    showSavedFlash();
   };
 
   const addAccessCode = (accessCode: string, accessNote: string = '') => {
-    // Check if code already exists
     const exists = entries.some(entry => entry.code === accessCode);
     if (!exists && accessCode.trim()) {
       const newEntry = { code: accessCode.trim(), note: accessNote.trim() };
-      const newEntries = [...entries, newEntry];
-      setEntries(newEntries);
-      console.log('Added new entry via ref:', newEntry);
+      saveEntries([...entries, newEntry]);
     }
   };
 
@@ -121,9 +121,7 @@ const AccessCodeNotebook = forwardRef<AccessCodeNotebookRef>((props, ref) => {
   }));
 
   const removeEntry = (idx: number) => {
-    const newEntries = entries.filter((_, i) => i !== idx);
-    setEntries(newEntries);
-    console.log('Removed entry at index:', idx);
+    saveEntries(entries.filter((_, i) => i !== idx));
   };
 
   const debugNotebook = () => {
@@ -216,6 +214,11 @@ const AccessCodeNotebook = forwardRef<AccessCodeNotebookRef>((props, ref) => {
             >+
             </button>
           </div>
+          {savedFlash && (
+            <div style={{ color: '#52c41a', fontSize: 13, fontWeight: 600, textAlign: 'center', marginBottom: 6 }}>
+              Saved!
+            </div>
+          )}
           <div style={{ marginBottom: 8, display: 'flex', gap: 4 }}>
             <button
               onClick={debugNotebook}
