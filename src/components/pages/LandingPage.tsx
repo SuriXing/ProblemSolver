@@ -30,12 +30,18 @@ const LandingPage: React.FC = () => {
     const saved = localStorage.getItem('landing-theme');
     return (saved === 'light' || saved === 'dark') ? saved : 'dark';
   });
-  const [visible, setVisible] = useState(false);
+  const [step, setStep] = useState(0);
 
   useEffect(() => {
     document.title = "Suri's Lab";
-    const timer = setTimeout(() => setVisible(true), 50);
-    return () => clearTimeout(timer);
+    const timers = [
+      setTimeout(() => setStep(1), 100),   // brand pill
+      setTimeout(() => setStep(2), 350),   // title
+      setTimeout(() => setStep(3), 650),   // tagline
+      setTimeout(() => setStep(4), 900),   // card 1
+      setTimeout(() => setStep(5), 1100),  // card 2
+    ];
+    return () => timers.forEach(t => clearTimeout(t));
   }, []);
 
   useEffect(() => {
@@ -59,21 +65,21 @@ const LandingPage: React.FC = () => {
       </button>
 
       <div className="landing-content">
-        <div className={`landing-brand-pill ${visible ? 'visible' : ''}`}>
+        <div className={`landing-brand-pill ${step >= 1 ? 'visible' : ''}`}>
           ✨ Suri's Lab
         </div>
 
-        <h1 className={`landing-title ${visible ? 'visible' : ''}`}>
+        <h1 className={`landing-title ${step >= 2 ? 'visible' : ''}`}>
           Tools for<br />Curious Minds
         </h1>
 
-        <p className={`landing-tagline ${visible ? 'visible' : ''}`}>
+        <p className={`landing-tagline ${step >= 3 ? 'visible' : ''}`}>
           A growing collection of apps to help people think, ask, and learn from the best.
         </p>
 
         <div className="landing-cards">
           <div
-            className={`landing-card card-ps ${visible ? 'visible' : ''}`}
+            className={`landing-card card-ps ${step >= 4 ? 'visible' : ''}`}
             onClick={() => navigate('/problem-solver')}
             role="button"
             tabIndex={0}
@@ -88,7 +94,7 @@ const LandingPage: React.FC = () => {
           </div>
 
           <div
-            className={`landing-card card-mt ${visible ? 'visible' : ''}`}
+            className={`landing-card card-mt ${step >= 5 ? 'visible' : ''}`}
             onClick={() => navigate('/mentor-table')}
             role="button"
             tabIndex={0}
