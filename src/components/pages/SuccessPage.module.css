@@ -45,7 +45,7 @@
 }
 
 .accessCodeDisplay {
-  background-color: white;
+  background-color: var(--bg-surface);
   border-radius: 8px;
   padding: 1rem;
   display: flex;
@@ -92,7 +92,7 @@
 
 .notebookTip {
   font-size: 0.9rem;
-  color: #4f7cff;
+  color: var(--primary-color, #5B7BFA);
   margin: -0.8rem auto 1.2rem;
   max-width: 560px;
 }
@@ -120,7 +120,7 @@
 }
 
 .sharePostBtn {
-  background-color: #fff;
+  background-color: var(--bg-surface);
   color: var(--primary-color);
   border: 1.5px solid var(--primary-color);
   border-radius: 4px;
@@ -143,7 +143,7 @@
 }
 
 .messageCard {
-  background-color: white;
+  background-color: var(--bg-surface);
   border-radius: 10px;
   padding: 1.5rem;
   margin: 0 auto;
@@ -211,7 +211,7 @@
 }
 
 .actionButtons a {
-  background-color: #4f7cff;
+  background-color: var(--primary-color, #5B7BFA);
   color: white;
   border: none;
   border-radius: 4px;

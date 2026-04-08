@@ -4,7 +4,7 @@
 .hero-small {
   padding: 60px 0;
   text-align: center;
-  background-color: white;
+  background-color: var(--bg-surface);
   margin-bottom: 30px;
 }
 
@@ -79,7 +79,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: white;
+  background-color: var(--bg-surface);
   border-radius: var(--border-radius);
   padding: 15px 20px;
   margin-bottom: 20px;
@@ -103,7 +103,7 @@
 }
 
 .filter-button.active {
-  background-color: rgba(79, 124, 255, 0.1);
+  background-color: color-mix(in srgb, var(--primary-color) 10%, transparent);
   color: var(--primary-color);
   font-weight: 500;
 }
@@ -150,7 +150,7 @@
 }
 
 .topic-card {
-  background-color: white;
+  background-color: var(--bg-surface);
   border-radius: var(--border-radius);
   padding: 20px;
   box-shadow: var(--card-shadow);
@@ -190,7 +190,7 @@
 }
 
 .topic-category {
-  background-color: rgba(79, 124, 255, 0.1);
+  background-color: color-mix(in srgb, var(--primary-color) 10%, transparent);
   color: var(--primary-color);
   padding: 3px 10px;
   border-radius: 20px;
@@ -283,7 +283,7 @@
 }
 
 .pagination-button:hover:not(.active):not(.disabled) {
-  background-color: rgba(79, 124, 255, 0.1);
+  background-color: color-mix(in srgb, var(--primary-color) 10%, transparent);
   color: var(--primary-color);
 }
 

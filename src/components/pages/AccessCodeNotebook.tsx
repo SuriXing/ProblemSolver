@@ -37,7 +37,6 @@ export const saveAccessCodeToNotebook = (accessCode: string, note: string = '') 
 const AccessCodeNotebook = forwardRef<AccessCodeNotebookRef>((props, ref) => {
   const [entries, setEntries] = useState<NotebookEntry[]>([]);
   const [code, setCode] = useState('');
-  const [note, setNote] = useState('');
   const [open, setOpen] = useState(false);
   const [savedFlash, setSavedFlash] = useState(false);
   const notebookRef = useRef<HTMLDivElement>(null);
@@ -101,10 +100,9 @@ const AccessCodeNotebook = forwardRef<AccessCodeNotebookRef>((props, ref) => {
 
   const addEntry = () => {
     if (!code.trim()) return;
-    const newEntry = { code: code.trim(), note: note.trim() };
+    const newEntry = { code: code.trim(), note: '' };
     saveEntries([...entries, newEntry]);
     setCode('');
-    setNote('');
     showSavedFlash();
   };
 
@@ -194,18 +192,9 @@ const AccessCodeNotebook = forwardRef<AccessCodeNotebookRef>((props, ref) => {
               placeholder="Access code"
               value={code}
               onChange={e => setCode(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && addEntry()}
               style={{ flex: 1, padding: '4px 6px', borderRadius: 4, border: '1px solid #ddd', fontSize: 13 }}
               maxLength={32}
-            />
-          </div>
-          <div style={{ display: 'flex', gap: 4, marginBottom: 8 }}>
-            <input
-              type="text"
-              placeholder="Note (optional)"
-              value={note}
-              onChange={e => setNote(e.target.value)}
-              style={{ flex: 1, padding: '4px 6px', borderRadius: 4, border: '1px solid #ddd', fontSize: 13 }}
-              maxLength={40}
             />
             <button
               onClick={addEntry}
@@ -241,7 +230,6 @@ const AccessCodeNotebook = forwardRef<AccessCodeNotebookRef>((props, ref) => {
                 {entries.map((entry, idx) => (
                   <li key={idx} style={{ display: 'flex', alignItems: 'center', marginBottom: 6 }}>
                     <span style={{ fontFamily: 'monospace', fontSize: 13, background: '#f5f7fa', borderRadius: 3, padding: '2px 6px', marginRight: 4 }}>{entry.code}</span>
-                    {entry.note && <span style={{ color: '#666', fontSize: 12, marginRight: 4 }}>({entry.note})</span>}
                     <button
                       onClick={() => removeEntry(idx)}
                       style={{ background: 'none', border: 'none', color: '#e53935', cursor: 'pointer', fontSize: 15, marginLeft: 'auto' }}

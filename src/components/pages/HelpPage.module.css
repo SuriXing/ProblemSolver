@@ -14,7 +14,7 @@
   display: flex;
   justify-content: flex-end;
   align-items: center;
-  background-color: white;
+  background-color: var(--bg-surface);
   border-radius: var(--border-radius);
   padding: 15px 20px;
   margin-bottom: 10px;
@@ -46,7 +46,7 @@
 }
 
 .filterButton.active {
-  background-color: rgba(79, 124, 255, 0.1);
+  background-color: color-mix(in srgb, var(--primary-color) 10%, transparent);
   color: var(--primary-color);
   font-weight: 500;
 }
@@ -92,7 +92,7 @@
 }
 
 .topicCard {
-  background-color: white;
+  background-color: var(--bg-surface);
   border-radius: var(--border-radius);
   padding: 20px;
   box-shadow: var(--card-shadow);
@@ -143,7 +143,7 @@
 }
 
 .topicCategory {
-  background-color: rgba(79, 124, 255, 0.1);
+  background-color: color-mix(in srgb, var(--primary-color) 10%, transparent);
   color: var(--primary-color);
   padding: 3px 10px;
   border-radius: 20px;
@@ -235,7 +235,7 @@
 }
 
 .paginationButton:hover:not(.active):not(.disabled) {
-  background-color: rgba(79, 124, 255, 0.1);
+  background-color: color-mix(in srgb, var(--primary-color) 10%, transparent);
   color: var(--primary-color);
 }
 
@@ -260,7 +260,7 @@
 
 .heroSection {
   padding: 60px 0;
-  background: linear-gradient(135deg, #4f7cff 0%, #6a5acd 100%);
+  background: linear-gradient(135deg, var(--primary-color, #5B7BFA) 0%, #6a5acd 100%);
   color: white;
   text-align: center;
 }
@@ -313,7 +313,7 @@
 }
 
 .tag:hover {
-  background-color: rgba(79, 124, 255, 0.1);
+  background-color: color-mix(in srgb, var(--primary-color) 10%, transparent);
   color: var(--primary-color);
 }
 

@@ -8,7 +8,7 @@ export function getSupabaseUrl(): string {
   const primaryUrl = SUPABASE_URL;
   
   // Always provide a fallback value for development
-  const fallbackUrl = 'https://liyladrzzmiqpfqwyceg.supabase.co';
+  const fallbackUrl = 'https://bihltxhebindflclsutw.supabase.co';
 
   return primaryUrl || fallbackUrl;
 }
@@ -21,7 +21,7 @@ export function getSupabaseAnonKey(): string {
   const primaryKey = SUPABASE_ANON_KEY;
   
   // Fallback for local development if needed
-  const fallbackKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxpeWxhZHJ6em1pcXBmcXd5Y2VnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYzNDQ4MjgsImV4cCI6MjA2MTkyMDgyOH0.GatvzQKLFA-3rShIwgHMRYr6UE3nC-QBTuXD_ubYlpo';
+  const fallbackKey = 'sb_publishable_ochy1eHzpFRMSCOndm3FQg_mLvGhDrL';
   
   return primaryKey || fallbackKey;
 }
