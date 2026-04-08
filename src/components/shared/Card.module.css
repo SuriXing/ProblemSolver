@@ -6,7 +6,7 @@
 }
 
 .default {
-  background-color: white;
+  background-color: var(--bg-surface);
 }
 
 .highlight {

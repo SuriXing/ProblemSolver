@@ -81,7 +81,7 @@
 }
 
 .topicDetail {
-  background-color: white;
+  background-color: var(--bg-surface);
   border-radius: 10px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
   padding: 2rem;
@@ -252,7 +252,7 @@
 }
 
 .replyCard {
-  background-color: white;
+  background-color: var(--bg-surface);
   border-radius: 10px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
   padding: 1.5rem;
@@ -304,7 +304,7 @@
 }
 
 .postReply {
-  background-color: white;
+  background-color: var(--bg-surface);
   border-radius: 10px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
   padding: 2rem;
@@ -331,7 +331,7 @@
 .replyTextarea {
   min-height: 150px;
   padding: 1rem;
-  border: 1px solid #eee;
+  border: 1px solid color-mix(in srgb, var(--primary-color) 18%, transparent);
   border-radius: 8px;
   font-family: inherit;
   font-size: 1rem;

@@ -6,7 +6,7 @@
 .success-content {
   max-width: 600px;
   margin: 0 auto;
-  background-color: white;
+  background-color: var(--bg-surface);
   padding: 2rem;
   border-radius: 8px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
@@ -14,7 +14,7 @@
 
 .success-title {
   font-size: 2rem;
-  color: #4285F4;
+  color: var(--primary-color, #5B7BFA);
   margin-bottom: 1rem;
 }
 
@@ -47,8 +47,8 @@
 
 .access-code {
   font-family: monospace;
-  background-color: white;
-  border: 1px solid #ddd;
+  background-color: var(--bg-surface);
+  border: 1px solid color-mix(in srgb, var(--primary-color) 18%, transparent);
   padding: 0.8rem 1.5rem;
   border-radius: 4px;
   font-size: 1.2rem;
@@ -57,7 +57,7 @@
 }
 
 .copy-button {
-  background-color: #4285F4;
+  background-color: var(--primary-color, #5B7BFA);
   color: white;
   border: none;
   border-radius: 4px;
@@ -68,7 +68,7 @@
 }
 
 .copy-button:hover {
-  background-color: #3367d6;
+  background-color: #4360D3;
 }
 
 .copy-message {

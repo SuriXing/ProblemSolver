@@ -121,7 +121,7 @@
 }
 
 .shareCard {
-  background-color: white;
+  background-color: var(--bg-surface);
   border-radius: 10px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
   padding: 2rem;
@@ -141,7 +141,7 @@
 .shareLinkInput {
   flex-grow: 1;
   padding: 0.8rem 1rem;
-  border: 1px solid #ddd;
+  border: 1px solid color-mix(in srgb, var(--primary-color) 18%, transparent);
   border-right: none;
   border-radius: 4px 0 0 4px;
   font-size: 0.9rem;

@@ -1,12 +1,12 @@
 /* Global Styles */
 :root {
-    --primary-color: #4f7cff;
-    --secondary-color: #fff;
-    --background-color: #f5f7fa;
-    --text-color: #333;
-    --light-gray: #888;
-    --lighter-gray: #eee;
-    --card-shadow: 0 8px 16px rgba(0, 0, 0, 0.05);
+    --primary-color: #5B7BFA;
+    --secondary-color: #4A90FA;
+    --background-color: #0a0a14;
+    --text-color: #e8ebf5;
+    --light-gray: #a7adc2;
+    --lighter-gray: color-mix(in srgb, var(--primary-color) 18%, transparent);
+    --card-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
     --transition: all 0.3s ease;
     --border-radius: 12px;
 }
@@ -20,8 +20,8 @@
 body {
     font-family: 'PingFang SC', 'Helvetica Neue', 'Microsoft YaHei', sans-serif;
     line-height: 1.6;
-    color: var(--text-color);
-    background-color: var(--background-color);
+    color: var(--text-primary, #e8ebf5);
+    background-color: #0a0a14;
     opacity: 0;
     transition: opacity 0.5s ease;
 }
@@ -62,7 +62,7 @@ a:hover {
 
 .btn-primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(79, 124, 255, 0.3);
+    box-shadow: 0 5px 15px color-mix(in srgb, var(--primary-color) 30%, transparent);
     color: white;
 }
 

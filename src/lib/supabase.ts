@@ -11,8 +11,8 @@ const ENV = import.meta.env || {};
 console.log('- ENV available:', Object.keys(ENV).length > 0 ? 'yes' : 'no');
 
 // Define fallback values for local development
-const supabaseUrl = ENV.VITE_SUPABASE_URL || 'https://liyladrzzmiqpfqwyceg.supabase.co';
-const supabaseAnonKey = ENV.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxpeWxhZHJ6em1pcXBmcXd5Y2VnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYzNDQ4MjgsImV4cCI6MjA2MTkyMDgyOH0.GatvzQKLFA-3rShIwgHMRYr6UE3nC-QBTuXD_ubYlpo';
+const supabaseUrl = ENV.VITE_SUPABASE_URL || 'https://bihltxhebindflclsutw.supabase.co';
+const supabaseAnonKey = ENV.VITE_SUPABASE_ANON_KEY || 'sb_publishable_ochy1eHzpFRMSCOndm3FQg_mLvGhDrL';
 
 // Debug values
 console.log('VITE_SUPABASE_URL value type:', typeof supabaseUrl);

@@ -19,21 +19,21 @@
 
 .tag-chip {
   background-color: #f1f1f1;
-  border: 1px solid var(--primary, #4285F4);
+  border: 1px solid var(--primary, #5B7BFA);
   border-radius: 16px;
   padding: 0.3rem 0.8rem;
   font-size: 0.9rem;
   font-family: inherit;
   cursor: pointer;
   transition: all 0.2s;
-  color: var(--primary, #4285F4);
+  color: var(--primary, #5B7BFA);
   background: #f5faff;
 }
 
 .tag-chip.selected {
-  background-color: var(--primary, #4285F4);
+  background-color: var(--primary, #5B7BFA);
   color: #fff;
-  border-color: var(--primary, #4285F4);
+  border-color: var(--primary, #5B7BFA);
 }
 
 .tag-input-container {
@@ -43,7 +43,7 @@
 .tag-input {
   width: 100%;
   padding: 0.6rem;
-  border: 1px solid #ddd;
+  border: 1px solid color-mix(in srgb, var(--primary-color) 18%, transparent);
   border-radius: 4px;
   font-family: inherit;
   transition: border-color 0.2s;
@@ -52,7 +52,7 @@
 
 .tag-input:focus {
   outline: none;
-  border-color: var(--primary, #4285F4);
+  border-color: var(--primary, #5B7BFA);
   box-shadow: 0 0 0 2px rgba(66, 133, 244, 0.15);
 }
 
@@ -60,7 +60,7 @@
   width: 100%;
   min-height: 150px;
   padding: 1rem;
-  border: 1px solid #ddd;
+  border: 1px solid color-mix(in srgb, var(--primary-color) 18%, transparent);
   border-radius: 4px;
   font-family: inherit;
   transition: border-color 0.2s;
@@ -70,7 +70,7 @@
 
 .confession-textarea:focus {
   outline: none;
-  border-color: var(--primary, #4285F4);
+  border-color: var(--primary, #5B7BFA);
   box-shadow: 0 0 0 2px rgba(66, 133, 244, 0.15);
 }
 
@@ -112,7 +112,7 @@
 .email-input {
   width: 100%;
   padding: 0.7rem;
-  border: 1px solid #ddd;
+  border: 1px solid color-mix(in srgb, var(--primary-color) 18%, transparent);
   border-radius: 4px;
   box-sizing: border-box;
 }
@@ -129,7 +129,7 @@
 }
 
 .btn-primary {
-  background-color: #4285F4;
+  background-color: var(--primary-color, #5B7BFA);
   color: white;
   border: none;
   border-radius: 4px;
@@ -140,7 +140,7 @@
 }
 
 .btn-primary:hover {
-  background-color: #3367d6;
+  background-color: #4360D3;
 }
 
 .btn-primary:disabled {
@@ -150,7 +150,7 @@
 
 .btn-secondary {
   background-color: transparent;
-  color: #4285F4;
+  color: var(--primary-color, #5B7BFA);
   border: none;
   padding: 0.7rem 1.5rem;
   cursor: pointer;
@@ -179,8 +179,8 @@
 .tag {
   display: inline-flex;
   align-items: center;
-  background-color: #e3f2fd;
-  color: #2962ff;
+  background-color: color-mix(in srgb, var(--primary-color) 18%, transparent);
+  color: var(--primary-color);
   border-radius: 16px;
   padding: 0.3rem 0.6rem;
   font-size: 0.9rem;
@@ -189,7 +189,7 @@
 .remove-tag {
   background: none;
   border: none;
-  color: #2962ff;
+  color: var(--primary-color);
   margin-left: 0.3rem;
   font-size: 1.2rem;
   cursor: pointer;
@@ -219,7 +219,7 @@
 }
 
 .confession-form {
-  background-color: #fff;
+  background-color: var(--bg-surface);
   border-radius: 8px;
   padding: 2rem;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
@@ -234,9 +234,9 @@
 }
 
 .btn-primary-outline {
-  background: #fff;
-  color: var(--primary, #4285F4);
-  border: 1.5px solid var(--primary, #4285F4);
+  background: var(--bg-surface);
+  color: var(--primary, #5B7BFA);
+  border: 1.5px solid var(--primary, #5B7BFA);
   border-radius: 4px;
   padding: 0.7rem 1.5rem;
   cursor: pointer;
@@ -245,9 +245,9 @@
 }
 
 .btn-primary-outline:hover {
-  background: var(--primary, #4285F4);
+  background: var(--primary, #5B7BFA);
   color: #fff;
-  border-color: var(--primary, #4285F4);
+  border-color: var(--primary, #5B7BFA);
 }
 
 .confession-main {
