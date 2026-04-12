@@ -32,6 +32,8 @@
     "coverage": "vitest run --coverage",
     "test:e2e": "cypress run",
     "test:e2e:open": "cypress open",
+    "test:playwright": "playwright test",
+    "test:playwright:ui": "playwright test --ui",
     "serve": "serve -s dist -l 5000"
   },
   "devDependencies": {

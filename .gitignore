@@ -34,3 +34,16 @@ node_modules/
 # Cypress artifacts
 cypress/videos/
 cypress/screenshots/
+
+# Test coverage output
+coverage/
+
+# OPC harness state
+.harness/
+
+# Superpowers brainstorm artifacts
+.superpowers/
+
+# Playwright artifacts
+playwright-report/
+test-results/
