@@ -198,7 +198,9 @@ export const DatabaseService = {
   },
   
   /**
-   * Create a new reply to a post
+   * Create a new reply to a post.
+   * If the post author opted into email notifications, fires a
+   * fire-and-forget request to /api/send-reply-notification.
    */
   async createReply(replyData: Omit<InsertTables<'replies'>, 'id' | 'created_at' | 'updated_at'>): Promise<Reply | null> {
     try {
@@ -207,13 +209,21 @@ export const DatabaseService = {
         .insert([replyData])
         .select()
         .single();
-      
+
       if (error) {
         console.error('Error creating reply:', error);
         return null;
       }
-      
-      return data as Reply;
+
+      const createdReply = data as Reply;
+
+      // Fire-and-forget: notify the post author if they opted in.
+      // We do NOT await this — the reply creation should not be blocked by email.
+      triggerReplyNotification(createdReply).catch((err) => {
+        console.warn('[email] Notification trigger failed (non-fatal):', err);
+      });
+
+      return createdReply;
     } catch (error) {
       console.error('Exception creating reply:', error);
       return null;
@@ -339,4 +349,75 @@ export async function generateAccessCode(): Promise<string> {
   }
 
   return result;
-} 
+}
+
+/**
+ * Send an email notification to the post author when a reply is created,
+ * but only if they opted in (notify_via_email=true) and provided an email.
+ *
+ * Flow:
+ *   1. Look up the parent post to get notify_via_email + notify_email
+ *   2. If opted in, POST to /api/send-reply-notification (Vercel function)
+ *   3. Errors are logged but never thrown — email is non-critical
+ *
+ * In dev mode (`npm run dev` = pure Vite), /api/ routes are not served,
+ * so the fetch will 404. We log this clearly so it's obvious what happened.
+ * To test locally with the real Vercel function, run `vercel dev`.
+ */
+async function triggerReplyNotification(reply: Reply): Promise<void> {
+  if (!reply.post_id) return;
+
+  // Fetch the post to get notification preferences
+  const { data: post, error } = await supabase
+    .from('posts')
+    .select('id, content, access_code, notify_email, notify_via_email')
+    .eq('id', reply.post_id)
+    .maybeSingle();
+
+  if (error || !post) {
+    console.log('[email] Could not fetch post for notification:', error?.message || 'not found');
+    return;
+  }
+
+  if (!post.notify_via_email || !post.notify_email) {
+    // User did not opt in — nothing to do
+    return;
+  }
+
+  try {
+    const response = await fetch('/api/send-reply-notification', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: post.notify_email,
+        postId: post.id,
+        accessCode: post.access_code,
+        postContent: post.content,
+        replyContent: reply.content,
+      }),
+    });
+
+    if (!response.ok) {
+      // 404 in dev mode, 502 if Resend fails, etc. Not fatal.
+      console.log(
+        `[email] Notification endpoint returned ${response.status}. ` +
+          `In dev mode this is expected — run 'vercel dev' to test the real handler. ` +
+          `Would have emailed: ${post.notify_email}`
+      );
+      return;
+    }
+
+    const result = await response.json().catch(() => ({}));
+    if (result.sent) {
+      console.log('[email] Notification sent successfully to', post.notify_email);
+    } else {
+      console.log('[email] Notification skipped:', result.reason || 'unknown');
+    }
+  } catch (err) {
+    // Network error — typical in dev mode since the endpoint doesn't exist
+    console.log(
+      `[email] Notification fetch failed (expected in dev mode): ${String(err)}. ` +
+        `Would have emailed: ${post.notify_email}`
+    );
+  }
+}
