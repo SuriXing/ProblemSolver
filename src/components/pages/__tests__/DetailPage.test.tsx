@@ -76,12 +76,12 @@ describe('DetailPage', () => {
     expect(screen.getByText('loading')).toBeInTheDocument();
   });
 
-  it('renders component without crashing when valid access code', () => {
+  it('starts in loading state with valid access code before setTimeout fires', () => {
     mockCheckAccessCode.mockReturnValue(true);
     mockRetrievePostData.mockReturnValue(samplePost);
-    const { container } = render(<MemoryRouter><DetailPage /></MemoryRouter>);
-    // Component renders (may be in loading state due to setTimeout)
-    expect(container).toBeTruthy();
+    render(<MemoryRouter><DetailPage /></MemoryRouter>);
+    // Before setTimeout(1000) fires, component shows loading spinner
+    expect(screen.getByText('loading')).toBeInTheDocument();
   });
 
   it('shows error for invalid access code', async () => {

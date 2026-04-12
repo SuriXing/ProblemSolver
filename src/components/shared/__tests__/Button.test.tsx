@@ -48,9 +48,9 @@ describe('Button', () => {
     expect(screen.getByRole('button')).toHaveClass('my-class');
   });
 
-  it('applies variant class', () => {
+  it('applies variant class to button', () => {
     const { container } = render(<Button text="Outline" variant="outline" />);
-    const button = container.querySelector('button');
-    expect(button).toBeTruthy();
+    const button = container.querySelector('button')!;
+    expect(button.className).toContain('outline');
   });
 });

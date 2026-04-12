@@ -45,8 +45,9 @@ describe('App', () => {
     expect(screen.getByText('HomePage')).toBeInTheDocument();
   });
 
-  it('renders the TranslationProvider wrapper', () => {
-    const { container } = render(<AppWrapper />);
-    expect(container).toBeTruthy();
+  it('wraps content in TranslationProvider', () => {
+    render(<AppWrapper />);
+    // TranslationProvider is mocked as a plain div, so HomePage should be a descendant
+    expect(screen.getByText('HomePage')).toBeInTheDocument();
   });
 });
