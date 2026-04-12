@@ -141,9 +141,14 @@ const SuccessPage: React.FC = () => {
               sit down with AI versions of Bill Gates, Oprah, Miyazaki, and more
               to get their perspective on your situation.
             </p>
-            <Link to="/mentor-table" className={styles.mentorLink}>
+            <a
+              href="http://localhost:9999/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.mentorLink}
+            >
               Try Mentor Table →
-            </Link>
+            </a>
           </div>
         </div>
 

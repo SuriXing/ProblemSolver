@@ -95,10 +95,10 @@ const LandingPage: React.FC = () => {
 
           <div
             className={`landing-card card-mt ${step >= 5 ? 'visible' : ''}`}
-            onClick={() => navigate('/mentor-table')}
+            onClick={() => window.open('http://localhost:9999/', '_blank')}
             role="button"
             tabIndex={0}
-            onKeyDown={(e) => e.key === 'Enter' && navigate('/mentor-table')}
+            onKeyDown={(e) => e.key === 'Enter' && window.open('http://localhost:9999/', '_blank')}
           >
             <div className="landing-icon-box icon-mt">
               <MentorTableIcon />

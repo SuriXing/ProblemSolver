@@ -77,7 +77,10 @@ const ConfessionPage: React.FC = () => {
         tags: selectedTags,
         status: 'open',
         purpose: 'need_help',
-        user_id: isAnonymous ? undefined : `anon-${crypto.getRandomValues(new Uint8Array(8)).reduce((acc, v) => acc + v.toString(16).padStart(2, '0'), '')}`
+        user_id: isAnonymous ? undefined : `anon-${crypto.getRandomValues(new Uint8Array(8)).reduce((acc, v) => acc + v.toString(16).padStart(2, '0'), '')}`,
+        // Email notification opt-in — persisted so the reply trigger can look it up
+        notify_via_email: notifyViaEmail,
+        notify_email: notifyViaEmail ? email.trim() : null,
       });
 
       if (!post) {

@@ -48,12 +48,14 @@ describe('LandingPage', () => {
     expect(mockNavigate).toHaveBeenCalledWith('/problem-solver');
   });
 
-  it('navigates to /mentor-table on Mentor Table card click', () => {
+  it('opens Mentor Table external URL in new tab on card click', () => {
+    const openSpy = vi.spyOn(window, 'open').mockImplementation(() => null);
     render(<MemoryRouter><LandingPage /></MemoryRouter>);
     act(() => { vi.advanceTimersByTime(1200); });
 
     fireEvent.click(screen.getByText('Mentor Table'));
-    expect(mockNavigate).toHaveBeenCalledWith('/mentor-table');
+    expect(openSpy).toHaveBeenCalledWith('http://localhost:9999/', '_blank');
+    openSpy.mockRestore();
   });
 
   it('navigates to /admin/login on admin button click', () => {

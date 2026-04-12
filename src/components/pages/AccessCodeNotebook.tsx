@@ -1,8 +1,11 @@
 import React, { useState, useEffect, useRef, useImperativeHandle, forwardRef } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { DatabaseService } from '../../services/database.service';
 
 interface NotebookEntry {
   code: string;
   note: string;
+  solved?: boolean;
 }
 
 export interface AccessCodeNotebookRef {
@@ -35,6 +38,7 @@ export const saveAccessCodeToNotebook = (accessCode: string, note: string = '') 
 };
 
 const AccessCodeNotebook = forwardRef<AccessCodeNotebookRef>((props, ref) => {
+  const navigate = useNavigate();
   const [entries, setEntries] = useState<NotebookEntry[]>([]);
   const [code, setCode] = useState('');
   const [note, setNote] = useState('');
@@ -42,6 +46,7 @@ const AccessCodeNotebook = forwardRef<AccessCodeNotebookRef>((props, ref) => {
   const [editingNote, setEditingNote] = useState('');
   const [open, setOpen] = useState(false);
   const [savedFlash, setSavedFlash] = useState(false);
+  const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
   const notebookRef = useRef<HTMLDivElement>(null);
 
   const loadEntries = () => {
@@ -146,29 +151,47 @@ const AccessCodeNotebook = forwardRef<AccessCodeNotebookRef>((props, ref) => {
     saveEntries(entries.filter((_, i) => i !== idx));
   };
 
-  const debugNotebook = () => {
-    console.log('=== NOTEBOOK DEBUG ===');
-    console.log('Current entries state:', entries);
-    console.log('LocalStorage raw:', localStorage.getItem(NOTEBOOK_KEY));
-    try {
-      const stored = localStorage.getItem(NOTEBOOK_KEY);
-      if (stored) {
-        console.log('LocalStorage parsed:', JSON.parse(stored));
-      } else {
-        console.log('No data in localStorage');
+  // Copy just the access code — that's what the user actually wants to share
+  const copyCode = (idx: number) => {
+    const entry = entries[idx];
+    navigator.clipboard.writeText(entry.code).then(
+      () => {
+        setCopiedIdx(idx);
+        setTimeout(() => setCopiedIdx(null), 1500);
+      },
+      () => {
+        console.error('Failed to copy code to clipboard');
       }
-    } catch (error) {
-      console.error('Error parsing localStorage:', error);
+    );
+  };
+
+  // Navigate to the problem page with the access code — PastQuestionsPage auto-fetches
+  const goToProblem = (idx: number) => {
+    const entry = entries[idx];
+    setOpen(false);
+    navigate(`/past-questions?code=${entry.code}`);
+  };
+
+  // Toggle solved state locally AND update the DB post status
+  const toggleSolved = async (idx: number) => {
+    const entry = entries[idx];
+    const newSolved = !entry.solved;
+
+    // Optimistic local update first — UI feels instant
+    const updated = entries.map((e, i) => (i === idx ? { ...e, solved: newSolved } : e));
+    saveEntries(updated);
+
+    // Then update the DB. If it fails, the user still sees their local state;
+    // we log the error but don't revert because the local notebook is the user's
+    // personal view and the DB status is secondary.
+    try {
+      await DatabaseService.updatePostStatusByAccessCode(
+        entry.code,
+        newSolved ? 'solved' : 'open'
+      );
+    } catch (err) {
+      console.error('Failed to update post status in DB:', err);
     }
-    console.log('=== END DEBUG ===');
-  };
-
-  const openNameDetectionDemo = () => {
-    window.open('#/name-detection-demo', '_blank');
-  };
-
-  const openAdminLogin = () => {
-    window.open('#/admin/login', '_blank');
   };
 
   return (
@@ -208,7 +231,7 @@ const AccessCodeNotebook = forwardRef<AccessCodeNotebookRef>((props, ref) => {
         🗒️
       </button>
       {open && (
-        <div style={{ padding: '10px 12px 12px 12px', width: 280 }}>
+        <div style={{ padding: '10px 12px 12px 12px', boxSizing: 'border-box', width: '100%' }}>
           <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 8 }}>Notebook</div>
 
           {/* Code input */}
@@ -219,7 +242,7 @@ const AccessCodeNotebook = forwardRef<AccessCodeNotebookRef>((props, ref) => {
               value={code}
               onChange={e => setCode(e.target.value.toUpperCase())}
               onKeyDown={e => e.key === 'Enter' && addEntry()}
-              style={{ flex: 1, padding: '4px 6px', borderRadius: 4, border: '1px solid #ddd', fontSize: 13, fontFamily: 'monospace', textTransform: 'uppercase' }}
+              style={{ flex: 1, minWidth: 0, padding: '4px 6px', borderRadius: 4, border: '1px solid #ddd', fontSize: 13, fontFamily: 'monospace', textTransform: 'uppercase', boxSizing: 'border-box' }}
               maxLength={32}
             />
           </div>
@@ -232,12 +255,12 @@ const AccessCodeNotebook = forwardRef<AccessCodeNotebookRef>((props, ref) => {
               value={note}
               onChange={e => setNote(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && addEntry()}
-              style={{ flex: 1, padding: '4px 6px', borderRadius: 4, border: '1px solid #ddd', fontSize: 12, color: '#666' }}
+              style={{ flex: 1, minWidth: 0, padding: '4px 6px', borderRadius: 4, border: '1px solid #ddd', fontSize: 12, color: '#666', boxSizing: 'border-box' }}
               maxLength={60}
             />
             <button
               onClick={addEntry}
-              style={{ background: '#4f7cff', color: '#fff', border: 'none', borderRadius: 4, padding: '4px 10px', fontSize: 13, cursor: 'pointer', fontWeight: 500 }}
+              style={{ background: '#4f7cff', color: '#fff', border: 'none', borderRadius: 4, padding: '4px 10px', fontSize: 13, cursor: 'pointer', fontWeight: 500, flexShrink: 0 }}
               title="Add"
             >+
             </button>
@@ -248,21 +271,6 @@ const AccessCodeNotebook = forwardRef<AccessCodeNotebookRef>((props, ref) => {
               Saved!
             </div>
           )}
-
-          <div style={{ marginBottom: 8, display: 'flex', gap: 4 }}>
-            <button
-              onClick={debugNotebook}
-              style={{ background: '#ff6b6b', color: '#fff', border: 'none', borderRadius: 4, padding: '4px 8px', fontSize: 11, cursor: 'pointer' }}
-              title="Debug"
-            >Debug
-            </button>
-            <button
-              onClick={openAdminLogin}
-              style={{ background: '#722ed1', color: '#fff', border: 'none', borderRadius: 4, padding: '4px 8px', fontSize: 11, cursor: 'pointer' }}
-              title="Admin Login"
-            >Admin
-            </button>
-          </div>
 
           <div style={{ maxHeight: 200, overflowY: 'auto' }}>
             {entries.length === 0 ? (
@@ -278,13 +286,26 @@ const AccessCodeNotebook = forwardRef<AccessCodeNotebookRef>((props, ref) => {
                       gap: 3,
                       marginBottom: 8,
                       padding: '6px 8px',
-                      background: '#f8f9fb',
+                      background: entry.solved ? '#f0faf0' : '#f8f9fb',
                       borderRadius: 5,
-                      border: '1px solid #eef0f4',
+                      border: entry.solved ? '1px solid #d4edda' : '1px solid #eef0f4',
                     }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <span style={{ fontFamily: 'monospace', fontSize: 12, color: '#333', fontWeight: 600 }}>{entry.code}</span>
+                      <span
+                        style={{
+                          fontFamily: 'monospace',
+                          fontSize: 12,
+                          color: entry.solved ? '#52c41a' : '#333',
+                          fontWeight: 600,
+                          textDecoration: entry.solved ? 'line-through' : 'none',
+                        }}
+                      >
+                        {entry.code}
+                      </span>
+                      {entry.solved && (
+                        <span style={{ fontSize: 10, color: '#52c41a', fontWeight: 600 }}>✓ solved</span>
+                      )}
                       <button
                         onClick={() => removeEntry(idx)}
                         style={{ background: 'none', border: 'none', color: '#e53935', cursor: 'pointer', fontSize: 14, marginLeft: 'auto', padding: 0, lineHeight: 1 }}
@@ -332,6 +353,62 @@ const AccessCodeNotebook = forwardRef<AccessCodeNotebookRef>((props, ref) => {
                         {entry.note || '+ Add a note'}
                       </div>
                     )}
+
+                    {/* Per-entry action row: copy code, open problem, toggle solved */}
+                    <div style={{ display: 'flex', gap: 4, marginTop: 4 }}>
+                      <button
+                        onClick={() => copyCode(idx)}
+                        style={{
+                          flex: 1,
+                          background: copiedIdx === idx ? '#52c41a' : '#eef2ff',
+                          color: copiedIdx === idx ? '#fff' : '#4f7cff',
+                          border: 'none',
+                          borderRadius: 3,
+                          padding: '3px 6px',
+                          fontSize: 10,
+                          cursor: 'pointer',
+                          fontWeight: 500,
+                          transition: 'background 0.15s',
+                        }}
+                        title="Copy access code to clipboard"
+                      >
+                        {copiedIdx === idx ? '✓ Copied' : '📋 Copy code'}
+                      </button>
+                      <button
+                        onClick={() => goToProblem(idx)}
+                        style={{
+                          flex: 1,
+                          background: '#eef2ff',
+                          color: '#4f7cff',
+                          border: 'none',
+                          borderRadius: 3,
+                          padding: '3px 6px',
+                          fontSize: 10,
+                          cursor: 'pointer',
+                          fontWeight: 500,
+                        }}
+                        title="Open this problem"
+                      >
+                        ↗ Open
+                      </button>
+                      <button
+                        onClick={() => toggleSolved(idx)}
+                        style={{
+                          flex: 1,
+                          background: entry.solved ? '#52c41a' : '#f0faf0',
+                          color: entry.solved ? '#fff' : '#52c41a',
+                          border: entry.solved ? 'none' : '1px solid #d4edda',
+                          borderRadius: 3,
+                          padding: '3px 6px',
+                          fontSize: 10,
+                          cursor: 'pointer',
+                          fontWeight: 500,
+                        }}
+                        title={entry.solved ? 'Mark as not solved' : 'Mark as solved'}
+                      >
+                        {entry.solved ? '✓ Solved' : 'Mark solved'}
+                      </button>
+                    </div>
                   </li>
                 ))}
               </ul>

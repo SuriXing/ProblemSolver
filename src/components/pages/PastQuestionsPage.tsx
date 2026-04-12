@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useTypeSafeTranslation } from '../../utils/translationHelper';
 import Layout from '../layout/Layout';
 import DebugMenu from '../DebugMenu';
@@ -55,6 +55,7 @@ interface PastQuestionsPageProps {
 const PastQuestionsPage: React.FC<PastQuestionsPageProps> = ({ showDebug, debugProps }) => {
   const { t } = useTypeSafeTranslation();
   const navigate = useNavigate();
+  const location = useLocation();
   const [questions, setQuestions] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -79,32 +80,70 @@ const PastQuestionsPage: React.FC<PastQuestionsPageProps> = ({ showDebug, debugP
     }
   }, []);
 
-  // Fetch post and replies by access code
-  const handleAccessCodeSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // Shared fetch logic — used by both manual form submit and auto-populate from URL/sessionStorage
+  const fetchPostByCode = useCallback(async (code: string) => {
+    const trimmed = code.trim();
+    if (!trimmed) return;
+
     setFetchingPost(true);
     setFetchError(null);
     setFetchedPost(null);
     setReplies([]);
+
     try {
-      const post = await DatabaseService.getPostByAccessCode(accessCode.trim());
+      const post = await DatabaseService.getPostByAccessCode(trimmed);
       if (!post) {
         setFetchError(t('postNotFound'));
         setFetchingPost(false);
         return;
       }
       setFetchedPost(post);
-      // Fetch replies if available
+
+      // Fix "0 replies" bug: prefer whichever source has data.
+      // The join in getPostByAccessCode may be blocked by RLS, OR the separate
+      // replies query may be blocked by RLS. Try both and use whichever works.
+      let finalReplies: any[] = [];
       if (post.id) {
-        const fetchedReplies = await DatabaseService.getRepliesByPostId(post.id);
-        setReplies(fetchedReplies || []);
+        const separateReplies = await DatabaseService.getRepliesByPostId(post.id);
+        if (separateReplies && separateReplies.length > 0) {
+          finalReplies = separateReplies;
+        } else if (post.replies && post.replies.length > 0) {
+          // Fall back to replies from the join query on the post
+          finalReplies = post.replies;
+        }
       }
+      setReplies(finalReplies);
     } catch (err) {
       setFetchError(t('errorRetrievingData'));
     } finally {
       setFetchingPost(false);
     }
+  }, [t]);
+
+  const handleAccessCodeSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    fetchPostByCode(accessCode);
   };
+
+  // Auto-populate access code from URL query (?code=XYZ) or sessionStorage
+  // (set by SharePage redirect or notebook "go to problem" action)
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const codeFromUrl = params.get('code');
+    const codeFromSession = sessionStorage.getItem('temp_access_code');
+    const autoCode = codeFromUrl || codeFromSession;
+
+    if (autoCode) {
+      const upper = autoCode.trim().toUpperCase();
+      setAccessCode(upper);
+      // Clear sessionStorage so navigating away doesn't re-trigger
+      sessionStorage.removeItem('temp_access_code');
+      // Auto-fetch the post
+      fetchPostByCode(upper);
+    }
+    // Run once on mount — intentionally omit fetchPostByCode to avoid loops
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleProblemSolved = async () => {
     if (!fetchedPost?.access_code) return;

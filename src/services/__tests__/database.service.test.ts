@@ -413,6 +413,151 @@ describe('DatabaseService.createReply', () => {
 });
 
 // ---------------------------------------------------------------------------
+// Email notification on reply creation (fire-and-forget)
+// ---------------------------------------------------------------------------
+
+describe('DatabaseService.createReply — email notification trigger', () => {
+  const replyData = { post_id: 'post-1', content: 'helpful reply' };
+
+  // Helper: make supabase.from return different responses depending on the table
+  // Called first for 'replies' (insert), then for 'posts' (notification lookup)
+  function mockSupabaseSequence(repliesResult: any, postResult: any) {
+    supabaseMock.from.mockImplementation((table: string) => {
+      if (table === 'replies') return createQueryBuilder(repliesResult);
+      if (table === 'posts') return createQueryBuilder(postResult);
+      return createQueryBuilder({ data: null, error: null });
+    });
+  }
+
+  beforeEach(() => {
+    // Mock global fetch for the /api/send-reply-notification call
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ sent: true, id: 'email-id-123' }),
+    }));
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('POSTs to /api/send-reply-notification when post author opted in', async () => {
+    mockSupabaseSequence(
+      { data: fakeReply, error: null },
+      {
+        data: {
+          id: 'post-1',
+          content: 'original post text',
+          access_code: 'ABC12345',
+          notify_email: 'author@example.com',
+          notify_via_email: true,
+        },
+        error: null,
+      },
+    );
+
+    await DatabaseService.createReply(replyData);
+    // Let the fire-and-forget promise chain resolve
+    await new Promise((r) => setTimeout(r, 10));
+
+    expect(global.fetch).toHaveBeenCalledWith(
+      '/api/send-reply-notification',
+      expect.objectContaining({
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: expect.stringContaining('author@example.com'),
+      }),
+    );
+    // Verify the body includes all the fields the API expects.
+    // replyContent comes from the Supabase insert result (fakeReply.content),
+    // not from the input replyData — the post-insert object is what gets sent.
+    const body = JSON.parse((global.fetch as any).mock.calls[0][1].body);
+    expect(body).toEqual({
+      email: 'author@example.com',
+      postId: 'post-1',
+      accessCode: 'ABC12345',
+      postContent: 'original post text',
+      replyContent: fakeReply.content,
+    });
+  });
+
+  it('does NOT send notification when notify_via_email is false', async () => {
+    mockSupabaseSequence(
+      { data: fakeReply, error: null },
+      {
+        data: {
+          id: 'post-1',
+          content: 'original',
+          notify_email: 'author@example.com',
+          notify_via_email: false, // opted out
+        },
+        error: null,
+      },
+    );
+
+    await DatabaseService.createReply(replyData);
+    await new Promise((r) => setTimeout(r, 10));
+
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
+  it('does NOT send notification when notify_email is missing', async () => {
+    mockSupabaseSequence(
+      { data: fakeReply, error: null },
+      {
+        data: {
+          id: 'post-1',
+          content: 'original',
+          notify_email: null,
+          notify_via_email: true, // opted in but no email saved
+        },
+        error: null,
+      },
+    );
+
+    await DatabaseService.createReply(replyData);
+    await new Promise((r) => setTimeout(r, 10));
+
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
+  it('does NOT send notification when parent post cannot be fetched', async () => {
+    mockSupabaseSequence(
+      { data: fakeReply, error: null },
+      { data: null, error: { message: 'not found' } },
+    );
+
+    await DatabaseService.createReply(replyData);
+    await new Promise((r) => setTimeout(r, 10));
+
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
+  it('swallows fetch errors — reply creation still succeeds', async () => {
+    mockSupabaseSequence(
+      { data: fakeReply, error: null },
+      {
+        data: {
+          id: 'post-1',
+          content: 'original',
+          notify_email: 'a@b.com',
+          notify_via_email: true,
+        },
+        error: null,
+      },
+    );
+    // Simulate the dev-mode case where /api/ route doesn't exist
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('Network error')));
+
+    const result = await DatabaseService.createReply(replyData);
+    await new Promise((r) => setTimeout(r, 10));
+
+    // Reply still returned successfully — email failure is non-fatal
+    expect(result).toEqual(fakeReply);
+  });
+});
+
+// ---------------------------------------------------------------------------
 // getRepliesByPostId
 // ---------------------------------------------------------------------------
 

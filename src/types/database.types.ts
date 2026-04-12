@@ -13,6 +13,9 @@ export type Post = {
   status: 'open' | 'solved' | 'closed';
   access_code?: string; // For direct access to posts
   replies?: Reply[]; // Add replies property
+  // Email notification opt-in (added 2026-04-12)
+  notify_email?: string | null;
+  notify_via_email?: boolean | null;
   // Legacy properties for compatibility with existing code
   confessionText?: string;
   selectedTags?: string[];
