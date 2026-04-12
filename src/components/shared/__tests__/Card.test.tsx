@@ -13,19 +13,22 @@ describe('Card', () => {
     expect(container.firstChild).toHaveClass('custom');
   });
 
-  it('defaults to default variant', () => {
+  it('applies default variant class by default', () => {
     const { container } = render(<Card>Content</Card>);
-    expect(container.firstChild).toBeTruthy();
+    const div = container.firstChild as HTMLElement;
+    expect(div.className).toContain('default');
   });
 
-  it('accepts highlight variant', () => {
+  it('applies highlight variant class', () => {
     const { container } = render(<Card variant="highlight">Content</Card>);
-    expect(container.firstChild).toBeTruthy();
+    const div = container.firstChild as HTMLElement;
+    expect(div.className).toContain('highlight');
   });
 
-  it('accepts outline variant', () => {
+  it('applies outline variant class', () => {
     const { container } = render(<Card variant="outline">Content</Card>);
-    expect(container.firstChild).toBeTruthy();
+    const div = container.firstChild as HTMLElement;
+    expect(div.className).toContain('outline');
   });
 
   it('renders complex children', () => {

@@ -25,7 +25,8 @@ test.describe('Navigation', () => {
 
   test('past questions page loads', async ({ page }) => {
     await page.goto('/#/past-questions');
-    await expect(page.locator('text=/past|access/i')).toBeVisible({ timeout: 10000 });
+    // The page has an access code input
+    await expect(page.locator('#access-code-input')).toBeVisible({ timeout: 10000 });
   });
 
   test('admin login page loads', async ({ page }) => {
