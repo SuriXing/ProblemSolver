@@ -36,10 +36,17 @@ describe('ThemePicker', () => {
   it('closes panel when a theme is selected', () => {
     render(<ThemePicker />);
     fireEvent.click(screen.getByTitle('Change theme'));
-    // Click a theme
+    // All theme options visible while open
+    expect(screen.getByText(/Dark Purple/)).toBeInTheDocument();
+    expect(screen.getByText(/Dark Blue/)).toBeInTheDocument();
+
+    // Click a theme to select and close
     fireEvent.click(screen.getByText(/Dark Purple/));
-    // Panel should close - theme button should still exist
-    expect(screen.getByTitle('Change theme')).toBeInTheDocument();
+
+    // Theme list options should no longer be visible (panel closed)
+    expect(screen.queryByText(/Dark Teal/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Dark Sunset/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Dark Forest/)).not.toBeInTheDocument();
   });
 
   it('closes on outside click', () => {

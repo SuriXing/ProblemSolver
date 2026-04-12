@@ -32,42 +32,57 @@ vi.mock('../../../utils/environmentLabel', () => ({
 import Layout from '../Layout';
 
 describe('Layout', () => {
-  it('renders children in main content area', () => {
-    render(
+  it('applies layout class to root container', () => {
+    const { container } = render(
+      <MemoryRouter>
+        <Layout>
+          <div>Content</div>
+        </Layout>
+      </MemoryRouter>
+    );
+    expect(container.querySelector('.layout')).toBeInTheDocument();
+  });
+
+  it('renders children inside main-content wrapper', () => {
+    const { container } = render(
       <MemoryRouter>
         <Layout>
           <div data-testid="child">Page content</div>
         </Layout>
       </MemoryRouter>
     );
-    expect(screen.getByTestId('child')).toBeInTheDocument();
-    expect(screen.getByText('Page content')).toBeInTheDocument();
+    const main = container.querySelector('main.main-content');
+    expect(main).toBeInTheDocument();
+    // Child must be a descendant of main — verifies layout slots children correctly
+    expect(main?.contains(screen.getByTestId('child'))).toBe(true);
   });
 
-  it('renders Aurora background', () => {
+  it('renders Aurora background, ThemePicker, and Notebook together', () => {
     render(
       <MemoryRouter>
         <Layout>Content</Layout>
       </MemoryRouter>
     );
     expect(screen.getByTestId('aurora')).toBeInTheDocument();
-  });
-
-  it('renders ThemePicker', () => {
-    render(
-      <MemoryRouter>
-        <Layout>Content</Layout>
-      </MemoryRouter>
-    );
     expect(screen.getByTestId('theme-picker')).toBeInTheDocument();
+    expect(screen.getByTestId('notebook')).toBeInTheDocument();
   });
 
-  it('renders AccessCodeNotebook', () => {
-    render(
+  it('renders a semantic footer element', () => {
+    const { container } = render(
       <MemoryRouter>
         <Layout>Content</Layout>
       </MemoryRouter>
     );
-    expect(screen.getByTestId('notebook')).toBeInTheDocument();
+    expect(container.querySelector('footer')).toBeInTheDocument();
+  });
+
+  it('renders a semantic header element', () => {
+    const { container } = render(
+      <MemoryRouter>
+        <Layout>Content</Layout>
+      </MemoryRouter>
+    );
+    expect(container.querySelector('header')).toBeInTheDocument();
   });
 });

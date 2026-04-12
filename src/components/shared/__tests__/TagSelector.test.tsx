@@ -19,13 +19,19 @@ describe('TagSelector (shared)', () => {
     expect(onToggle).toHaveBeenCalledWith('Work');
   });
 
-  it('applies selected class to selected tags', () => {
-    const { container } = render(
+  it('applies selected class only to selected tags', () => {
+    render(
       <TagSelector tags={tags} selectedTags={['Anxiety']} onTagToggle={vi.fn()} />
     );
-    // The selected tag should have the 'selected' CSS module class
-    const buttons = container.querySelectorAll('button');
-    expect(buttons.length).toBe(3);
+    const anxietyBtn = screen.getByText('Anxiety');
+    const workBtn = screen.getByText('Work');
+    const familyBtn = screen.getByText('Family');
+
+    // Anxiety is selected — its className should contain 'selected'
+    expect(anxietyBtn.className).toContain('selected');
+    // Work and Family are NOT selected — their className should not
+    expect(workBtn.className).not.toContain('selected');
+    expect(familyBtn.className).not.toContain('selected');
   });
 
   it('toggles tag on click', () => {

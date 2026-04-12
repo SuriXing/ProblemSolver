@@ -18,18 +18,18 @@ describe('HelpSuccessPage', () => {
     expect(screen.getByText('thankHelperTitle')).toBeInTheDocument();
   });
 
-  it('renders helper stats with correct values', () => {
-    render(<MemoryRouter><HelpSuccessPage /></MemoryRouter>);
-    expect(screen.getByText('3')).toBeInTheDocument();
-    expect(screen.getByText('42')).toBeInTheDocument();
-    expect(screen.getByText('28')).toBeInTheDocument();
-  });
+  it('pairs each stat number with its correct label', () => {
+    // Verify stat numbers and labels appear in the same stat item blocks,
+    // not just that they exist somewhere on the page.
+    const { container } = render(<MemoryRouter><HelpSuccessPage /></MemoryRouter>);
+    const statItems = container.querySelectorAll('[class*="statItem"]');
+    expect(statItems.length).toBe(3);
 
-  it('renders stat labels', () => {
-    render(<MemoryRouter><HelpSuccessPage /></MemoryRouter>);
-    expect(screen.getByText('todayHelped')).toBeInTheDocument();
-    expect(screen.getByText('totalHelped')).toBeInTheDocument();
-    expect(screen.getByText('receivedThanks')).toBeInTheDocument();
+    // Each stat item should contain both a number and a label key
+    const statTexts = Array.from(statItems).map((item) => item.textContent);
+    expect(statTexts.some((t) => t?.includes('3') && t?.includes('todayHelped'))).toBe(true);
+    expect(statTexts.some((t) => t?.includes('42') && t?.includes('totalHelped'))).toBe(true);
+    expect(statTexts.some((t) => t?.includes('28') && t?.includes('receivedThanks'))).toBe(true);
   });
 
   it('renders home link pointing to /', () => {

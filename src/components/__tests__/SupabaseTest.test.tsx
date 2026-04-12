@@ -35,10 +35,63 @@ describe('SupabaseTest', () => {
     expect(screen.getByDisplayValue('This is a test post')).toBeInTheDocument();
   });
 
-  it('updates title and content inputs', () => {
+  it('updates title input on change', () => {
     render(<SupabaseTest />);
     const titleInput = screen.getByDisplayValue('Test Post');
     fireEvent.change(titleInput, { target: { value: 'New Title' } });
     expect(screen.getByDisplayValue('New Title')).toBeInTheDocument();
+  });
+
+  it('Test Connection success shows success message', async () => {
+    supabaseMock.from = vi.fn().mockReturnValue(createQueryBuilder({ data: null, error: null, count: 0 }));
+
+    render(<SupabaseTest />);
+    fireEvent.click(screen.getByText('Test Connection'));
+
+    await waitFor(() => {
+      expect(screen.getByText(/Connection successful/)).toBeInTheDocument();
+    });
+  });
+
+  it('Test Connection error shows failure message', async () => {
+    supabaseMock.from = vi.fn().mockReturnValue(
+      createQueryBuilder({ data: null, error: { message: 'Connection refused', code: 'X' }, count: null })
+    );
+
+    render(<SupabaseTest />);
+    fireEvent.click(screen.getByText('Test Connection'));
+
+    await waitFor(() => {
+      expect(screen.getByText(/Connection test failed: Connection refused/)).toBeInTheDocument();
+    });
+  });
+
+  it('Test Insert success displays new post ID', async () => {
+    supabaseMock.from = vi.fn().mockReturnValue(
+      createQueryBuilder({ data: { id: 'new-post-123' }, error: null })
+    );
+
+    render(<SupabaseTest />);
+    fireEvent.click(screen.getByText('Test Insert'));
+
+    await waitFor(() => {
+      expect(screen.getByText(/Insert successful.*new-post-123/)).toBeInTheDocument();
+    });
+  });
+
+  it('Test Insert error displays failure message', async () => {
+    supabaseMock.from = vi.fn().mockReturnValue(
+      createQueryBuilder({
+        data: null,
+        error: { message: 'Column missing', code: '42703', details: null },
+      })
+    );
+
+    render(<SupabaseTest />);
+    fireEvent.click(screen.getByText('Test Insert'));
+
+    await waitFor(() => {
+      expect(screen.getByText(/Insert test failed: Column missing/)).toBeInTheDocument();
+    });
   });
 });
