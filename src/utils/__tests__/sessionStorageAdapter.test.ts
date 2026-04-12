@@ -79,13 +79,19 @@ describe('SessionStorageAdapter', () => {
   });
 
   describe('clearAll', () => {
-    it('calls clearAll without error', () => {
+    it('removes all prefixed items and leaves unprefixed items intact', () => {
       SessionStorageAdapter.set('a', 1);
       SessionStorageAdapter.set('b', 2);
+      // Unprefixed item set directly — should survive clearAll
+      sessionStorage.setItem('unrelated-key', 'keep-me');
 
-      // clearAll iterates Object.keys(sessionStorage) which may not work with mock
-      // but it should not throw
-      expect(() => SessionStorageAdapter.clearAll()).not.toThrow();
+      SessionStorageAdapter.clearAll();
+
+      // Prefixed items are gone
+      expect(SessionStorageAdapter.get('a')).toBeNull();
+      expect(SessionStorageAdapter.get('b')).toBeNull();
+      // Unprefixed item untouched
+      expect(sessionStorage.getItem('unrelated-key')).toBe('keep-me');
     });
   });
 

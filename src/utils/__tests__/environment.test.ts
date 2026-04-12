@@ -44,10 +44,27 @@ describe('environment', () => {
     expect(typeof mod.NODE_ENV).toBe('string');
   });
 
-  it('exports IS_PROD and IS_DEV as booleans', async () => {
+  it('IS_PROD is falsy in test environment', async () => {
     const mod = await import('../environment');
-    expect(typeof mod.IS_PROD === 'boolean' || typeof mod.IS_PROD === 'string').toBe(true);
-    expect(typeof mod.IS_DEV === 'boolean' || typeof mod.IS_DEV === 'string').toBe(true);
+    // IS_PROD comes from `env.PROD || NODE_ENV === 'production'`.
+    // Must be a primitive usable in conditionals.
+    expect(['boolean', 'string']).toContain(typeof mod.IS_PROD);
+    // In vitest, NODE_ENV !== 'production', so IS_PROD should be falsy
+    expect(Boolean(mod.IS_PROD)).toBe(false);
+  });
+
+  it('IS_DEV is truthy in test/development environment', async () => {
+    const mod = await import('../environment');
+    // Note: at runtime env.DEV from import.meta.env may arrive as string 'true'
+    // — IS_DEV is used as a conditional, which works for both string and boolean.
+    expect(['boolean', 'string']).toContain(typeof mod.IS_DEV);
+    // In dev/test, IS_DEV should be truthy
+    expect(Boolean(mod.IS_DEV)).toBe(true);
+  });
+
+  it('IS_PROD and IS_DEV are not simultaneously truthy', async () => {
+    const mod = await import('../environment');
+    expect(Boolean(mod.IS_PROD) && Boolean(mod.IS_DEV)).toBe(false);
   });
 
   it('SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY are strings', async () => {

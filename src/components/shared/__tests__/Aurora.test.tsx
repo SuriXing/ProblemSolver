@@ -52,15 +52,10 @@ describe('Aurora', () => {
     expect(div.style.pointerEvents).toBe('none');
   });
 
-  it('accepts custom colorStops', () => {
-    const { container } = render(<Aurora colorStops={['#ff0000', '#00ff00', '#0000ff']} />);
-    expect(container.firstChild).toBeTruthy();
-  });
-
-  it('accepts amplitude and blend props', () => {
-    const { container } = render(<Aurora amplitude={2.0} blend={0.8} />);
-    expect(container.firstChild).toBeTruthy();
-  });
+  // Note: Prop-driven rendering (colorStops, amplitude, blend) cannot be meaningfully
+  // unit-tested because Aurora renders to a WebGL canvas via OGL. The mount test above
+  // (renders a container div) verifies component lifecycle works; actual visual output
+  // is covered by E2E tests and manual verification.
 
   it('cleans up on unmount', () => {
     const cancelSpy = vi.spyOn(window, 'cancelAnimationFrame');

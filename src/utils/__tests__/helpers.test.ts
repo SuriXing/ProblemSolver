@@ -51,16 +51,23 @@ describe('helpers', () => {
   });
 
   describe('formatDate', () => {
-    it('formats a date with year, month, and day', () => {
+    it('formats a date including year, month name, and day', () => {
       const date = new Date(2024, 0, 15); // Jan 15, 2024
       const result = formatDate(date);
+      // toLocaleDateString with month:'long' produces "January 15, 2024" (en-US)
+      // or similar depending on system locale — assert all three components
       expect(result).toContain('2024');
       expect(result).toContain('15');
+      // Month name should be present (not just number) — check for letters
+      expect(result).toMatch(/[A-Za-z]{3,}/);
     });
 
-    it('returns a non-empty string', () => {
-      const result = formatDate(new Date());
-      expect(result.length).toBeGreaterThan(0);
+    it('includes the month name (not numeric month)', () => {
+      // March 7, 2023 — should include "March" or locale equivalent, NOT just "03"
+      const date = new Date(2023, 2, 7);
+      const result = formatDate(date);
+      expect(result).not.toMatch(/^\d/); // Should not start with a digit
+      expect(result).toContain('2023');
     });
   });
 

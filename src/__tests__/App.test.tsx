@@ -23,7 +23,7 @@ vi.mock('../components/SupabaseTest', () => ({ default: () => <div>SupabaseTest<
 vi.mock('../components/EnvDebug', () => ({ default: () => <div>EnvDebug</div> }));
 vi.mock('../components/DebugMenu', () => ({ default: () => null }));
 vi.mock('../context/TranslationContext', () => ({
-  TranslationProvider: ({ children }: any) => <div>{children}</div>,
+  TranslationProvider: ({ children }: any) => <div data-testid="translation-provider">{children}</div>,
 }));
 vi.mock('../utils/environment', () => ({
   IS_PROD: true,
@@ -45,9 +45,10 @@ describe('App', () => {
     expect(screen.getByText('HomePage')).toBeInTheDocument();
   });
 
-  it('wraps content in TranslationProvider', () => {
+  it('wraps the routed content in TranslationProvider', () => {
     render(<AppWrapper />);
-    // TranslationProvider is mocked as a plain div, so HomePage should be a descendant
-    expect(screen.getByText('HomePage')).toBeInTheDocument();
+    const provider = screen.getByTestId('translation-provider');
+    // The provider must wrap the rendered route content — HomePage must be a descendant
+    expect(provider).toContainElement(screen.getByText('HomePage'));
   });
 });
