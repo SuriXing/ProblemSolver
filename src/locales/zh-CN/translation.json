@@ -193,5 +193,14 @@
   "checkWithCode": "随时使用您的访问代码来查看回复和更新",
   "dismiss": "关闭",
   "privacyWarningTitle": "重要隐私提醒",
-  "privacyWarningText": "我们知道您现在可能感到非常情绪化，但请记住：请勿包含真实姓名、具体位置或关于您自己或他人的身份识别细节。这样可以保护每个人的隐私，并可能防止您陷入更严重的麻烦。请保持您的分享匿名和安全。"
+  "privacyWarningText": "我们知道您现在可能感到非常情绪化，但请记住：请勿包含真实姓名、具体位置或关于您自己或他人的身份识别细节。这样可以保护每个人的隐私，并可能防止您陷入更严重的麻烦。请保持您的分享匿名和安全。",
+  "privacySettings": "隐私设置",
+  "accessCodeTesting": "访问码测试",
+  "replyPostedSuccess": "回复已发布",
+  "replyPostedButReadBlocked": "回复已保存，但数据库阻止了读取。请管理员运行回复 RLS 迁移以使回复正常显示。",
+  "replyFailedToSubmit": "提交回复失败，请重试。",
+  "replyCannotBeEmpty": "回复内容不能为空",
+  "cannotSubmitNoPost": "无法提交：帖子尚未加载",
+  "tagAnxiety": "焦虑",
+  "tagWork": "工作"
 }
