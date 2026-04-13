@@ -103,10 +103,20 @@
   display: flex;
   align-items: center;
   cursor: pointer;
+  /* U-X2: ensure the whole label is a comfortable tap target on mobile */
+  min-height: 44px;
+  padding: 4px 0;
+  font-size: 1rem;
 }
 
-.checkbox-label input {
-  margin-right: 0.5rem;
+.checkbox-label input[type="checkbox"] {
+  /* U-X2: mobile persona caught a 13×13 checkbox — bump to 20px so it's
+     a real tap target and visually proportional to the label text. */
+  width: 20px;
+  height: 20px;
+  margin-right: 0.6rem;
+  flex-shrink: 0;
+  cursor: pointer;
 }
 
 .email-input {

@@ -23,10 +23,11 @@ const ThemePicker: React.FC = () => {
   return (
     <div
       ref={containerRef}
+      className="theme-picker-fixed"
       style={{
         position: 'fixed',
-        right: 20,
-        bottom: 20,
+        right: 12,
+        bottom: 12,
         zIndex: 9999,
       }}
     >
@@ -150,10 +151,11 @@ const ThemePicker: React.FC = () => {
         </div>
       )}
       <button
+        type="button"
         onClick={() => setOpen((o) => !o)}
         style={{
-          width: 48,
-          height: 48,
+          width: 44,
+          height: 44,
           borderRadius: '50%',
           background: `linear-gradient(135deg, ${THEMES[themeId].aurora[0]}, ${THEMES[themeId].aurora[1]}, ${THEMES[themeId].aurora[2]})`,
           border: '1px solid rgba(91, 123, 250, 0.4)',
@@ -173,8 +175,9 @@ const ThemePicker: React.FC = () => {
         }}
         title="Change theme"
         aria-label="Change theme color"
+        aria-expanded={open}
       >
-        <span role="img" aria-hidden>🎨</span>
+        <span role="img" aria-hidden="true">🎨</span>
       </button>
     </div>
   );
