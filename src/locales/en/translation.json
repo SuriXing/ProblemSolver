@@ -201,5 +201,14 @@
   "checkWithCode": "Use your access code anytime to check replies and updates",
   "dismiss": "Dismiss",
   "privacyWarningTitle": "Important Privacy Notice",
-  "privacyWarningText": "We know you may be feeling very emotional right now, but please remember: DO NOT include real names, specific locations, or identifying details about yourself or others. This protects everyone's privacy and could prevent you from getting into even worse troubles. Keep your sharing anonymous and safe."
+  "privacyWarningText": "We know you may be feeling very emotional right now, but please remember: DO NOT include real names, specific locations, or identifying details about yourself or others. This protects everyone's privacy and could prevent you from getting into even worse troubles. Keep your sharing anonymous and safe.",
+  "privacySettings": "Privacy settings",
+  "accessCodeTesting": "Access code testing",
+  "replyPostedSuccess": "Reply posted",
+  "replyPostedButReadBlocked": "Reply saved, but the database is blocking read-back. Ask an admin to apply the replies RLS migration so replies appear in the list.",
+  "replyFailedToSubmit": "Failed to submit reply. Please try again.",
+  "replyCannotBeEmpty": "Reply cannot be empty",
+  "cannotSubmitNoPost": "Cannot submit: post is not loaded yet",
+  "tagAnxiety": "Anxiety",
+  "tagWork": "Work"
 }
