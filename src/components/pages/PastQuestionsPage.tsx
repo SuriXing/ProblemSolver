@@ -195,7 +195,7 @@ const PastQuestionsPage: React.FC<PastQuestionsPageProps> = ({ showDebug, debugP
 
         {/* Placeholder area below input, only show if no valid post */}
         {!fetchedPost && (
-          <div style={{ width: '100%', maxWidth: 600, minHeight: 250, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#fff', borderRadius: 8, boxShadow: '0 2px 10px rgba(0,0,0,0.07)', marginBottom: 32, padding: 32 }}>
+          <div style={{ width: '100%', maxWidth: 600, minHeight: 250, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#fff', borderRadius: 8, boxShadow: '0 2px 10px rgba(0,0,0,0.07)', marginBottom: 32, padding: 32, boxSizing: 'border-box' }}>
             {fetchError ? (
               <>
                 <img src={ErrorPlaceholderSVG} alt="error" style={{ width: 120, height: 120, marginBottom: 16 }} />

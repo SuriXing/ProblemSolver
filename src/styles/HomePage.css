@@ -244,15 +244,21 @@
   width: 100%;
   max-width: 1200px;
   margin-bottom: 3rem;
+  /* U-X2: allow shrink to viewport so children don't force overflow */
+  min-width: 0;
+  flex-wrap: wrap;
+  box-sizing: border-box;
 }
 
 .option-card {
-  flex: 1;
+  flex: 1 1 280px;
+  min-width: 0;
   max-width: 500px;
   text-align: center;
   padding: 2rem;
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  box-sizing: border-box;
 }
 
 .icon-container {
