@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, Form, Input, Button, Alert, Typography, Space } from 'antd';
-import { UserOutlined, LockOutlined, CrownOutlined } from '@ant-design/icons';
+import { MailOutlined, LockOutlined, CrownOutlined } from '@ant-design/icons';
 import AdminService from '../../services/admin.service';
 import Layout from '../layout/Layout';
 
@@ -19,21 +19,21 @@ const AdminLoginPage: React.FC = () => {
     }
   }, [navigate]);
 
-  const handleLogin = async (values: { username: string; password: string }) => {
+  const handleLogin = async (values: { email: string; password: string }) => {
     setLoading(true);
     setError(null);
 
     try {
-      const result = await AdminService.login(values.username, values.password);
-      
+      const result = await AdminService.login(values.email, values.password);
+
       if (result.success) {
-        console.log('Admin login successful:', result.admin);
+        console.log('Admin login successful');
         navigate('/admin/dashboard');
       } else {
-        setError(result.error || '登录失败');
+        setError(result.error || 'Login failed');
       }
     } catch (err) {
-      setError('登录过程中发生错误');
+      setError('An error occurred during login');
       console.error('Login error:', err);
     } finally {
       setLoading(false);
@@ -77,13 +77,17 @@ const AdminLoginPage: React.FC = () => {
             size="large"
           >
             <Form.Item
-              name="username"
-              rules={[{ required: true, message: '请输入用户名' }]}
+              name="email"
+              rules={[
+                { required: true, message: '请输入邮箱' },
+                { type: 'email', message: '邮箱格式不正确' },
+              ]}
             >
               <Input
-                prefix={<UserOutlined />}
-                placeholder="用户名"
-                autoComplete="username"
+                prefix={<MailOutlined />}
+                placeholder="邮箱 / Email"
+                autoComplete="email"
+                type="email"
               />
             </Form.Item>
 
@@ -93,7 +97,7 @@ const AdminLoginPage: React.FC = () => {
             >
               <Input.Password
                 prefix={<LockOutlined />}
-                placeholder="密码"
+                placeholder="密码 / Password"
                 autoComplete="current-password"
               />
             </Form.Item>
@@ -121,18 +125,6 @@ const AdminLoginPage: React.FC = () => {
               </Button>
             </Form.Item>
           </Form>
-
-          <div style={{ 
-            textAlign: 'center', 
-            marginTop: 16,
-            padding: 12,
-            background: '#f0f2f5',
-            borderRadius: 8
-          }}>
-            <Text type="secondary" style={{ fontSize: 12 }}>
-              测试账号: admin / admin123
-            </Text>
-          </div>
 
           <div style={{ textAlign: 'center', marginTop: 16 }}>
             <Button

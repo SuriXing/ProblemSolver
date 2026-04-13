@@ -3,7 +3,6 @@ import { supabaseMock, createQueryBuilder } from '../../test/mocks/supabase';
 import '../../test/mocks/i18n';
 
 import AdminService from '../admin.service';
-import type { AdminUser } from '../admin.service';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -29,16 +28,31 @@ const fakeReply = {
   updated_at: '2025-01-01',
 };
 
-function loginAdmin() {
-  // Directly store session so isAuthenticated() returns true
-  const admin: AdminUser = {
-    id: 'admin-001',
-    username: 'admin',
-    email: 'admin@problem-solver.com',
-    role: 'super_admin',
-    created_at: new Date().toISOString(),
-  };
-  localStorage.setItem('admin_session', JSON.stringify(admin));
+const fakeUser = {
+  id: 'uuid-admin-001',
+  email: 'admin@problem-solver.com',
+  created_at: '2025-01-01T00:00:00Z',
+};
+
+function seedSupabaseSession() {
+  // The Supabase JS client writes to localStorage under this key prefix.
+  // Our sync isAuthenticated() just checks for its presence.
+  localStorage.setItem('sb-fake-project-auth-token', JSON.stringify({ access_token: 'fake' }));
+}
+
+function clearSupabaseSession() {
+  Object.keys(localStorage)
+    .filter((k) => k.startsWith('sb-') && k.endsWith('-auth-token'))
+    .forEach((k) => localStorage.removeItem(k));
+  sessionStorage.removeItem('admin_session');
+}
+
+function mockAuthVerified(user = fakeUser) {
+  supabaseMock.auth.getUser.mockResolvedValue({ data: { user }, error: null });
+}
+
+function mockAuthUnverified() {
+  supabaseMock.auth.getUser.mockResolvedValue({ data: { user: null }, error: null });
 }
 
 // ---------------------------------------------------------------------------
@@ -47,8 +61,13 @@ function loginAdmin() {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  AdminService.logout(); // clear currentAdmin + localStorage
+  clearSupabaseSession();
   supabaseMock.from.mockReturnValue(createQueryBuilder());
+  supabaseMock.auth.signInWithPassword.mockResolvedValue({
+    data: { user: null, session: null },
+    error: null,
+  });
+  mockAuthUnverified();
 });
 
 // ---------------------------------------------------------------------------
@@ -56,64 +75,102 @@ beforeEach(() => {
 // ---------------------------------------------------------------------------
 
 describe('AdminService.login', () => {
-  it('succeeds with correct credentials', async () => {
-    const result = await AdminService.login('admin', 'admin123');
+  it('delegates to supabase.auth.signInWithPassword and returns admin on success', async () => {
+    supabaseMock.auth.signInWithPassword.mockResolvedValue({
+      data: { user: fakeUser, session: { access_token: 'jwt' } },
+      error: null,
+    });
+
+    const result = await AdminService.login('admin@problem-solver.com', 'correct-horse');
     expect(result.success).toBe(true);
     expect(result.admin).toBeDefined();
-    expect(result.admin!.username).toBe('admin');
+    expect(result.admin!.email).toBe('admin@problem-solver.com');
     expect(result.admin!.role).toBe('super_admin');
-    // Session stored
-    expect(localStorage.getItem('admin_session')).not.toBeNull();
+    expect(supabaseMock.auth.signInWithPassword).toHaveBeenCalledWith({
+      email: 'admin@problem-solver.com',
+      password: 'correct-horse',
+    });
+    // Sync session hint stored for router
+    expect(sessionStorage.getItem('admin_session')).not.toBeNull();
   });
 
-  it('fails with wrong username', async () => {
-    const result = await AdminService.login('wrong', 'admin123');
+  it('fails when supabase returns an error', async () => {
+    supabaseMock.auth.signInWithPassword.mockResolvedValue({
+      data: { user: null, session: null },
+      error: { message: 'Invalid login credentials' },
+    });
+
+    const result = await AdminService.login('admin@problem-solver.com', 'wrong');
     expect(result.success).toBe(false);
-    expect(result.error).toBeDefined();
+    expect(result.error).toBe('Invalid login credentials');
     expect(result.admin).toBeUndefined();
   });
 
-  it('fails with wrong password', async () => {
-    const result = await AdminService.login('admin', 'wrong');
+  it('fails when supabase returns no user', async () => {
+    supabaseMock.auth.signInWithPassword.mockResolvedValue({
+      data: { user: null, session: null },
+      error: null,
+    });
+
+    const result = await AdminService.login('admin@problem-solver.com', 'anything');
     expect(result.success).toBe(false);
-    expect(result.error).toBeDefined();
   });
 
-  it('fails with both wrong credentials', async () => {
-    const result = await AdminService.login('x', 'y');
+  it('fails gracefully on exception', async () => {
+    supabaseMock.auth.signInWithPassword.mockRejectedValue(new Error('network'));
+
+    const result = await AdminService.login('x@y.com', 'z');
     expect(result.success).toBe(false);
   });
 });
 
 // ---------------------------------------------------------------------------
-// isAuthenticated
+// isAuthenticated (sync — checks localStorage for supabase-managed session)
 // ---------------------------------------------------------------------------
 
 describe('AdminService.isAuthenticated', () => {
-  it('returns false when no session exists', () => {
+  it('returns false when no supabase session exists', () => {
     expect(AdminService.isAuthenticated()).toBe(false);
   });
 
-  it('returns true after successful login', async () => {
-    await AdminService.login('admin', 'admin123');
+  it('returns true when a supabase session exists in localStorage', () => {
+    seedSupabaseSession();
     expect(AdminService.isAuthenticated()).toBe(true);
   });
 
-  it('returns true when session exists in localStorage (cold start)', () => {
-    loginAdmin();
-    expect(AdminService.isAuthenticated()).toBe(true);
-  });
-
-  it('returns false after logout', async () => {
-    await AdminService.login('admin', 'admin123');
-    AdminService.logout();
+  it('returns false after clearing the session', () => {
+    seedSupabaseSession();
+    clearSupabaseSession();
     expect(AdminService.isAuthenticated()).toBe(false);
   });
+});
 
-  it('returns false when localStorage has invalid JSON', () => {
-    localStorage.setItem('admin_session', '{bad json');
-    // JSON.parse throws, should catch and return false
-    expect(AdminService.isAuthenticated()).toBe(false);
+// ---------------------------------------------------------------------------
+// isAuthenticatedVerified (async — hits supabase.auth.getUser)
+// ---------------------------------------------------------------------------
+
+describe('AdminService.isAuthenticatedVerified', () => {
+  it('returns true when supabase.auth.getUser returns a user', async () => {
+    mockAuthVerified();
+    expect(await AdminService.isAuthenticatedVerified()).toBe(true);
+  });
+
+  it('returns false when supabase returns no user', async () => {
+    mockAuthUnverified();
+    expect(await AdminService.isAuthenticatedVerified()).toBe(false);
+  });
+
+  it('returns false when supabase returns an error', async () => {
+    supabaseMock.auth.getUser.mockResolvedValue({
+      data: { user: null },
+      error: { message: 'JWT expired' },
+    });
+    expect(await AdminService.isAuthenticatedVerified()).toBe(false);
+  });
+
+  it('returns false on exception', async () => {
+    supabaseMock.auth.getUser.mockRejectedValue(new Error('network'));
+    expect(await AdminService.isAuthenticatedVerified()).toBe(false);
   });
 });
 
@@ -122,26 +179,23 @@ describe('AdminService.isAuthenticated', () => {
 // ---------------------------------------------------------------------------
 
 describe('AdminService.getCurrentAdmin', () => {
-  it('returns null when not logged in', () => {
+  it('returns null when no session hint exists', () => {
     expect(AdminService.getCurrentAdmin()).toBeNull();
   });
 
   it('returns admin after login', async () => {
-    await AdminService.login('admin', 'admin123');
+    supabaseMock.auth.signInWithPassword.mockResolvedValue({
+      data: { user: fakeUser, session: { access_token: 'jwt' } },
+      error: null,
+    });
+    await AdminService.login('admin@problem-solver.com', 'pw');
     const admin = AdminService.getCurrentAdmin();
     expect(admin).not.toBeNull();
-    expect(admin!.username).toBe('admin');
+    expect(admin!.email).toBe('admin@problem-solver.com');
   });
 
-  it('restores admin from localStorage', () => {
-    loginAdmin();
-    const admin = AdminService.getCurrentAdmin();
-    expect(admin).not.toBeNull();
-    expect(admin!.id).toBe('admin-001');
-  });
-
-  it('returns null when localStorage has invalid JSON', () => {
-    localStorage.setItem('admin_session', 'not-json');
+  it('returns null when sessionStorage has invalid JSON', () => {
+    sessionStorage.setItem('admin_session', 'not-json');
     expect(AdminService.getCurrentAdmin()).toBeNull();
   });
 });
@@ -151,12 +205,18 @@ describe('AdminService.getCurrentAdmin', () => {
 // ---------------------------------------------------------------------------
 
 describe('AdminService.logout', () => {
-  it('clears session from localStorage and memory', async () => {
-    await AdminService.login('admin', 'admin123');
-    AdminService.logout();
-    expect(localStorage.getItem('admin_session')).toBeNull();
-    expect(AdminService.getCurrentAdmin()).toBeNull();
-    expect(AdminService.isAuthenticated()).toBe(false);
+  it('calls supabase.auth.signOut and clears the session hint', async () => {
+    sessionStorage.setItem('admin_session', JSON.stringify({ id: 'x' }));
+    await AdminService.logout();
+    expect(supabaseMock.auth.signOut).toHaveBeenCalled();
+    expect(sessionStorage.getItem('admin_session')).toBeNull();
+  });
+
+  it('swallows signOut errors and still clears the hint', async () => {
+    supabaseMock.auth.signOut.mockRejectedValue(new Error('offline'));
+    sessionStorage.setItem('admin_session', JSON.stringify({ id: 'x' }));
+    await AdminService.logout();
+    expect(sessionStorage.getItem('admin_session')).toBeNull();
   });
 });
 
@@ -166,11 +226,9 @@ describe('AdminService.logout', () => {
 
 describe('AdminService.getDashboardStats', () => {
   it('returns aggregated counts', async () => {
-    // Each from() call returns a builder whose await resolves with { count }
     let n = 0;
     supabaseMock.from.mockImplementation(() => {
       n++;
-      // totalPosts=10, totalReplies=25, todayPosts=3, weeklyPosts=7
       const counts = [10, 25, 3, 7];
       return createQueryBuilder({ data: null, error: null, count: counts[n - 1] ?? 0 });
     });
@@ -227,7 +285,6 @@ describe('AdminService.getAllPosts', () => {
     supabaseMock.from.mockReturnValue(builder);
 
     await AdminService.getAllPosts(3, 10);
-    // offset = (3-1)*10 = 20, range(20, 29)
     expect(builder.range).toHaveBeenCalledWith(20, 29);
   });
 
@@ -255,25 +312,25 @@ describe('AdminService.getAllPosts', () => {
 // ---------------------------------------------------------------------------
 
 describe('AdminService.deletePost', () => {
-  it('returns unauthorized when not authenticated', async () => {
+  it('returns unauthorized when supabase.auth.getUser returns no user', async () => {
+    mockAuthUnverified();
     const result = await AdminService.deletePost('post-1');
     expect(result.success).toBe(false);
-    expect(result.error).toContain('未授权');
+    expect(result.error).toBe('Unauthorized');
   });
 
   it('deletes replies first, then post', async () => {
-    loginAdmin();
+    mockAuthVerified();
     supabaseMock.from.mockReturnValue(createQueryBuilder({ data: null, error: null }));
 
     const result = await AdminService.deletePost('post-1');
     expect(result.success).toBe(true);
-    // First call: delete replies, second call: delete post
     expect(supabaseMock.from).toHaveBeenCalledWith('replies');
     expect(supabaseMock.from).toHaveBeenCalledWith('posts');
   });
 
   it('returns failure when post delete errors', async () => {
-    loginAdmin();
+    mockAuthVerified();
     const okBuilder = createQueryBuilder({ data: null, error: null });
     const errBuilder = createQueryBuilder({ data: null, error: { message: 'delete fail' } });
 
@@ -286,7 +343,7 @@ describe('AdminService.deletePost', () => {
   });
 
   it('returns failure on exception', async () => {
-    loginAdmin();
+    mockAuthVerified();
     supabaseMock.from.mockImplementation(() => { throw new Error('boom'); });
 
     const result = await AdminService.deletePost('post-1');
@@ -300,13 +357,14 @@ describe('AdminService.deletePost', () => {
 
 describe('AdminService.updatePostStatus', () => {
   it('returns unauthorized when not authenticated', async () => {
+    mockAuthUnverified();
     const result = await AdminService.updatePostStatus('post-1', 'solved');
     expect(result.success).toBe(false);
-    expect(result.error).toContain('未授权');
+    expect(result.error).toBe('Unauthorized');
   });
 
   it('updates status successfully', async () => {
-    loginAdmin();
+    mockAuthVerified();
     supabaseMock.from.mockReturnValue(createQueryBuilder({ data: null, error: null }));
 
     const result = await AdminService.updatePostStatus('post-1', 'closed');
@@ -314,7 +372,7 @@ describe('AdminService.updatePostStatus', () => {
   });
 
   it('returns failure on supabase error', async () => {
-    loginAdmin();
+    mockAuthVerified();
     supabaseMock.from.mockReturnValue(
       createQueryBuilder({ data: null, error: { message: 'err' } }),
     );
@@ -324,7 +382,7 @@ describe('AdminService.updatePostStatus', () => {
   });
 
   it('returns failure on exception', async () => {
-    loginAdmin();
+    mockAuthVerified();
     supabaseMock.from.mockImplementation(() => { throw new Error('crash'); });
 
     const result = await AdminService.updatePostStatus('post-1', 'solved');
@@ -369,13 +427,14 @@ describe('AdminService.getPostReplies', () => {
 
 describe('AdminService.deleteReply', () => {
   it('returns unauthorized when not authenticated', async () => {
+    mockAuthUnverified();
     const result = await AdminService.deleteReply('reply-1');
     expect(result.success).toBe(false);
-    expect(result.error).toContain('未授权');
+    expect(result.error).toBe('Unauthorized');
   });
 
   it('deletes reply successfully', async () => {
-    loginAdmin();
+    mockAuthVerified();
     supabaseMock.from.mockReturnValue(createQueryBuilder({ data: null, error: null }));
 
     const result = await AdminService.deleteReply('reply-1');
@@ -383,7 +442,7 @@ describe('AdminService.deleteReply', () => {
   });
 
   it('returns failure on supabase error', async () => {
-    loginAdmin();
+    mockAuthVerified();
     supabaseMock.from.mockReturnValue(
       createQueryBuilder({ data: null, error: { message: 'err' } }),
     );
@@ -393,7 +452,7 @@ describe('AdminService.deleteReply', () => {
   });
 
   it('returns failure on exception', async () => {
-    loginAdmin();
+    mockAuthVerified();
     supabaseMock.from.mockImplementation(() => { throw new Error('crash'); });
 
     const result = await AdminService.deleteReply('reply-1');
