@@ -225,7 +225,15 @@ describe('AdminService.logout', () => {
 // ---------------------------------------------------------------------------
 
 describe('AdminService.getDashboardStats', () => {
+  it('returns zeros when not authenticated', async () => {
+    mockAuthUnverified();
+    const stats = await AdminService.getDashboardStats();
+    expect(stats.totalPosts).toBe(0);
+    expect(stats.totalReplies).toBe(0);
+  });
+
   it('returns aggregated counts', async () => {
+    mockAuthVerified();
     let n = 0;
     supabaseMock.from.mockImplementation(() => {
       n++;
@@ -243,6 +251,7 @@ describe('AdminService.getDashboardStats', () => {
   });
 
   it('returns zeroes when counts are null', async () => {
+    mockAuthVerified();
     supabaseMock.from.mockReturnValue(
       createQueryBuilder({ data: null, error: null, count: null }),
     );
@@ -255,6 +264,7 @@ describe('AdminService.getDashboardStats', () => {
   });
 
   it('returns zeroes on exception', async () => {
+    mockAuthVerified();
     supabaseMock.from.mockImplementation(() => { throw new Error('db down'); });
 
     const stats = await AdminService.getDashboardStats();
@@ -268,7 +278,15 @@ describe('AdminService.getDashboardStats', () => {
 // ---------------------------------------------------------------------------
 
 describe('AdminService.getAllPosts', () => {
+  it('returns empty when not authenticated', async () => {
+    mockAuthUnverified();
+    const result = await AdminService.getAllPosts();
+    expect(result.posts).toEqual([]);
+    expect(result.total).toBe(0);
+  });
+
   it('returns paginated posts and total count', async () => {
+    mockAuthVerified();
     const postsBuilder = createQueryBuilder({ data: [fakePost], error: null });
     const countBuilder = createQueryBuilder({ data: null, error: null, count: 42 });
 
@@ -281,6 +299,7 @@ describe('AdminService.getAllPosts', () => {
   });
 
   it('calculates offset from page and limit', async () => {
+    mockAuthVerified();
     const builder = createQueryBuilder({ data: [], error: null });
     supabaseMock.from.mockReturnValue(builder);
 
@@ -289,6 +308,7 @@ describe('AdminService.getAllPosts', () => {
   });
 
   it('returns empty on error', async () => {
+    mockAuthVerified();
     supabaseMock.from.mockReturnValue(
       createQueryBuilder({ data: null, error: { message: 'fail' } }),
     );
@@ -299,6 +319,7 @@ describe('AdminService.getAllPosts', () => {
   });
 
   it('returns empty on exception', async () => {
+    mockAuthVerified();
     supabaseMock.from.mockImplementation(() => { throw new Error('crash'); });
 
     const result = await AdminService.getAllPosts();
@@ -395,7 +416,14 @@ describe('AdminService.updatePostStatus', () => {
 // ---------------------------------------------------------------------------
 
 describe('AdminService.getPostReplies', () => {
+  it('returns empty when not authenticated', async () => {
+    mockAuthUnverified();
+    const result = await AdminService.getPostReplies('post-1');
+    expect(result).toEqual([]);
+  });
+
   it('returns replies on success', async () => {
+    mockAuthVerified();
     supabaseMock.from.mockReturnValue(
       createQueryBuilder({ data: [fakeReply], error: null }),
     );
@@ -405,6 +433,7 @@ describe('AdminService.getPostReplies', () => {
   });
 
   it('returns empty array on error', async () => {
+    mockAuthVerified();
     supabaseMock.from.mockReturnValue(
       createQueryBuilder({ data: null, error: { message: 'err' } }),
     );
@@ -414,6 +443,7 @@ describe('AdminService.getPostReplies', () => {
   });
 
   it('returns empty array on exception', async () => {
+    mockAuthVerified();
     supabaseMock.from.mockImplementation(() => { throw new Error('boom'); });
 
     const result = await AdminService.getPostReplies('post-1');
@@ -465,7 +495,20 @@ describe('AdminService.deleteReply', () => {
 // ---------------------------------------------------------------------------
 
 describe('AdminService.searchPosts', () => {
+  it('returns empty when not authenticated', async () => {
+    mockAuthUnverified();
+    const result = await AdminService.searchPosts('anything');
+    expect(result).toEqual([]);
+  });
+
+  it('returns empty when query is too short', async () => {
+    mockAuthVerified();
+    const result = await AdminService.searchPosts('a');
+    expect(result).toEqual([]);
+  });
+
   it('returns matching posts', async () => {
+    mockAuthVerified();
     supabaseMock.from.mockReturnValue(
       createQueryBuilder({ data: [fakePost], error: null }),
     );
@@ -477,7 +520,37 @@ describe('AdminService.searchPosts', () => {
     expect(builder.limit).toHaveBeenCalledWith(50);
   });
 
+  it('does not include access_code in the search filter', async () => {
+    mockAuthVerified();
+    supabaseMock.from.mockReturnValue(createQueryBuilder({ data: [], error: null }));
+
+    await AdminService.searchPosts('test');
+    const builder = supabaseMock.from.mock.results[0].value;
+    const orArg = builder.or.mock.calls[0]?.[0] as string;
+    expect(orArg).not.toContain('access_code');
+    expect(orArg).toContain('content');
+    expect(orArg).toContain('title');
+  });
+
+  it('strips PostgREST special characters to block filter injection', async () => {
+    mockAuthVerified();
+    supabaseMock.from.mockReturnValue(createQueryBuilder({ data: [], error: null }));
+
+    await AdminService.searchPosts('evil),access_code.ilike.%(A');
+    const builder = supabaseMock.from.mock.results[0].value;
+    const orArg = builder.or.mock.calls[0]?.[0] as string;
+    // Parens, commas, dots, asterisks, and percent signs all stripped so
+    // the attacker can't break out of the ilike pattern and inject a second
+    // filter clause. The literal substring "access_code" is still in the
+    // haystack — that's fine, it's just a string now, not a column reference.
+    expect(orArg).not.toContain('(');
+    expect(orArg).not.toContain(')');
+    expect(orArg).not.toContain(',access_code');
+    expect(orArg).not.toContain('%access_code');
+  });
+
   it('returns empty array on error', async () => {
+    mockAuthVerified();
     supabaseMock.from.mockReturnValue(
       createQueryBuilder({ data: null, error: { message: 'err' } }),
     );
@@ -487,6 +560,7 @@ describe('AdminService.searchPosts', () => {
   });
 
   it('returns empty array when data is null (no matches)', async () => {
+    mockAuthVerified();
     supabaseMock.from.mockReturnValue(
       createQueryBuilder({ data: null, error: null }),
     );
@@ -496,6 +570,7 @@ describe('AdminService.searchPosts', () => {
   });
 
   it('returns empty array on exception', async () => {
+    mockAuthVerified();
     supabaseMock.from.mockImplementation(() => { throw new Error('crash'); });
 
     const result = await AdminService.searchPosts('test');
