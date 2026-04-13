@@ -26,6 +26,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import SupabaseTest from './components/SupabaseTest';
 import EnvDebug from './components/EnvDebug';
 import DebugMenu from './components/DebugMenu';
+import ErrorBoundary from './components/ErrorBoundary';
 
 const AppWrapper = () => {
   const { i18n } = useTranslation();
@@ -45,6 +46,7 @@ function App() {
   const [showEnvDebug, setShowEnvDebug] = useState(false);
 
   return (
+    <ErrorBoundary>
     <TranslationProvider>
       <Suspense fallback={<div>Loading...</div>}>
         <HashRouter>
@@ -108,6 +110,7 @@ function App() {
         </HashRouter>
       </Suspense>
     </TranslationProvider>
+    </ErrorBoundary>
   );
 }
 

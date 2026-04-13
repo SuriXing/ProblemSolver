@@ -2,7 +2,10 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import './index.css';
+import { installGlobalErrorHandlers } from './utils/errorLog';
 // import './assets/css/index.css'; // Only enable if this file exists and is needed
+
+installGlobalErrorHandlers();
 
 // Log to check if this file is executing
 console.log('main.tsx is executing');
