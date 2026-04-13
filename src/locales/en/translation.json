@@ -210,5 +210,15 @@
   "replyCannotBeEmpty": "Reply cannot be empty",
   "cannotSubmitNoPost": "Cannot submit: post is not loaded yet",
   "tagAnxiety": "Anxiety",
-  "tagWork": "Work"
+  "tagWork": "Work",
+  "adminLogin": "Admin login",
+  "notebookOpen": "Open access code notebook",
+  "notebookClose": "Close access code notebook",
+  "confessionTextareaLabel": "Write your confession",
+  "accessCodeInputLabel": "Access code",
+  "helpSearchLabel": "Search help posts",
+  "addEntryLabel": "Add to notebook",
+  "accessCodeFieldLabel": "Access code field",
+  "notebookNoteLabel": "Note about this access code",
+  "confessionFailedToSubmit": "Sorry, we could not save your confession right now. Please check your connection and try again."
 }

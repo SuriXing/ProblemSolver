@@ -185,5 +185,15 @@
   "replyCannotBeEmpty": "답글 내용을 입력해주세요",
   "cannotSubmitNoPost": "전송할 수 없습니다: 게시물이 아직 로드되지 않았습니다",
   "tagAnxiety": "불안",
-  "tagWork": "직장"
+  "tagWork": "직장",
+  "adminLogin": "관리자 로그인",
+  "notebookOpen": "액세스 코드 노트북 열기",
+  "notebookClose": "액세스 코드 노트북 닫기",
+  "confessionTextareaLabel": "당신의 고민을 적어주세요",
+  "accessCodeInputLabel": "액세스 코드",
+  "helpSearchLabel": "도움말 게시물 검색",
+  "addEntryLabel": "노트북에 추가",
+  "accessCodeFieldLabel": "액세스 코드 입력란",
+  "notebookNoteLabel": "이 액세스 코드에 대한 메모",
+  "confessionFailedToSubmit": "죄송합니다. 지금 고백을 저장할 수 없습니다. 연결을 확인하고 다시 시도해주세요."
 }
