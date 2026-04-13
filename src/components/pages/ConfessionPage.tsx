@@ -69,7 +69,15 @@ const ConfessionPage: React.FC = () => {
       console.log('Attempting to submit confession via DatabaseService');
 
       // Use DatabaseService.createPost() — it handles access code generation
-      // with crypto-strength randomness + uniqueness checks
+      // with crypto-strength randomness + uniqueness checks.
+      //
+      // NOTE: notify_via_email + notify_email used to be passed here, but those
+      // columns don't exist in the deployed schema. The database rejected with
+      // PGRST204 and the silent fallback wrote to in-memory storage, losing the
+      // confession on refresh. Email opt-in is collected client-side but no
+      // longer sent to the DB until a separate `post_notifications` table is
+      // built (see runbook U-X5). The local UI state is preserved so users can
+      // still check the box; it just doesn't persist server-side yet.
       const post = await DatabaseService.createPost({
         title: 'Confession',
         content: confession,
@@ -78,9 +86,6 @@ const ConfessionPage: React.FC = () => {
         status: 'open',
         purpose: 'need_help',
         user_id: isAnonymous ? undefined : `anon-${crypto.getRandomValues(new Uint8Array(8)).reduce((acc, v) => acc + v.toString(16).padStart(2, '0'), '')}`,
-        // Email notification opt-in — persisted so the reply trigger can look it up
-        notify_via_email: notifyViaEmail,
-        notify_email: notifyViaEmail ? email.trim() : null,
       });
 
       if (!post) {

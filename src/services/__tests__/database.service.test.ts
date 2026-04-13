@@ -416,144 +416,65 @@ describe('DatabaseService.createReply', () => {
 // Email notification on reply creation (fire-and-forget)
 // ---------------------------------------------------------------------------
 
-describe('DatabaseService.createReply — email notification trigger', () => {
+describe('DatabaseService.createReply — email notification (disabled until U-X5)', () => {
+  // The email notification trigger was disabled in U-X1 because the
+  // notify_email / notify_via_email columns don't exist in the deployed
+  // Supabase schema. Until U-X5 builds the post_notifications table and a
+  // server-side endpoint, triggerReplyNotification is a no-op. These tests
+  // verify the no-op contract: createReply must NEVER POST to the email API,
+  // regardless of input shape.
+
   const replyData = { post_id: 'post-1', content: 'helpful reply' };
 
-  // Helper: make supabase.from return different responses depending on the table
-  // Called first for 'replies' (insert), then for 'posts' (notification lookup)
-  function mockSupabaseSequence(repliesResult: any, postResult: any) {
-    supabaseMock.from.mockImplementation((table: string) => {
-      if (table === 'replies') return createQueryBuilder(repliesResult);
-      if (table === 'posts') return createQueryBuilder(postResult);
-      return createQueryBuilder({ data: null, error: null });
-    });
-  }
-
   beforeEach(() => {
-    // Mock global fetch for the /api/send-reply-notification call
+    // If the no-op contract is broken, fetch will be called.
+    // Mock it to a rejecting stub so a regression is loud.
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
       ok: true,
-      json: async () => ({ sent: true, id: 'email-id-123' }),
+      json: async () => ({ sent: true }),
     }));
+    supabaseMock.from.mockReturnValue(
+      createQueryBuilder({ data: fakeReply, error: null }),
+    );
   });
 
   afterEach(() => {
     vi.unstubAllGlobals();
   });
 
-  it('POSTs to /api/send-reply-notification when post author opted in', async () => {
-    mockSupabaseSequence(
-      { data: fakeReply, error: null },
-      {
-        data: {
-          id: 'post-1',
-          content: 'original post text',
-          access_code: 'ABC12345',
-          notify_email: 'author@example.com',
-          notify_via_email: true,
-        },
-        error: null,
-      },
-    );
-
-    await DatabaseService.createReply(replyData);
-    // Let the fire-and-forget promise chain resolve
-    await new Promise((r) => setTimeout(r, 10));
-
-    expect(global.fetch).toHaveBeenCalledWith(
-      '/api/send-reply-notification',
-      expect.objectContaining({
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: expect.stringContaining('author@example.com'),
-      }),
-    );
-    // Verify the body includes all the fields the API expects.
-    // replyContent comes from the Supabase insert result (fakeReply.content),
-    // not from the input replyData — the post-insert object is what gets sent.
-    const body = JSON.parse((global.fetch as any).mock.calls[0][1].body);
-    expect(body).toEqual({
-      email: 'author@example.com',
-      postId: 'post-1',
-      accessCode: 'ABC12345',
-      postContent: 'original post text',
-      replyContent: fakeReply.content,
-    });
-  });
-
-  it('does NOT send notification when notify_via_email is false', async () => {
-    mockSupabaseSequence(
-      { data: fakeReply, error: null },
-      {
-        data: {
-          id: 'post-1',
-          content: 'original',
-          notify_email: 'author@example.com',
-          notify_via_email: false, // opted out
-        },
-        error: null,
-      },
-    );
-
+  it('does NOT POST to /api/send-reply-notification (no-op contract)', async () => {
     await DatabaseService.createReply(replyData);
     await new Promise((r) => setTimeout(r, 10));
-
     expect(global.fetch).not.toHaveBeenCalled();
   });
 
-  it('does NOT send notification when notify_email is missing', async () => {
-    mockSupabaseSequence(
-      { data: fakeReply, error: null },
-      {
-        data: {
-          id: 'post-1',
-          content: 'original',
-          notify_email: null,
-          notify_via_email: true, // opted in but no email saved
-        },
-        error: null,
-      },
-    );
-
+  it('does NOT query the posts table for notification preferences', async () => {
     await DatabaseService.createReply(replyData);
     await new Promise((r) => setTimeout(r, 10));
-
-    expect(global.fetch).not.toHaveBeenCalled();
+    // supabaseMock.from should only have been called for 'replies' (insert),
+    // never for 'posts' (the disabled notification lookup).
+    const calls = supabaseMock.from.mock.calls.map((c: any[]) => c[0]);
+    expect(calls).not.toContain('posts');
   });
 
-  it('does NOT send notification when parent post cannot be fetched', async () => {
-    mockSupabaseSequence(
-      { data: fakeReply, error: null },
-      { data: null, error: { message: 'not found' } },
-    );
-
-    await DatabaseService.createReply(replyData);
-    await new Promise((r) => setTimeout(r, 10));
-
-    expect(global.fetch).not.toHaveBeenCalled();
+  it('still returns the created reply unchanged', async () => {
+    const result = await DatabaseService.createReply(replyData);
+    expect(result).toEqual(fakeReply);
   });
 
-  it('swallows fetch errors — reply creation still succeeds', async () => {
-    mockSupabaseSequence(
-      { data: fakeReply, error: null },
-      {
-        data: {
-          id: 'post-1',
-          content: 'original',
-          notify_email: 'a@b.com',
-          notify_via_email: true,
-        },
-        error: null,
-      },
-    );
-    // Simulate the dev-mode case where /api/ route doesn't exist
+  it('createReply succeeds even if fetch is reset to throwing', async () => {
+    // Belt-and-suspenders: even if a future regression brings the trigger back
+    // and the network fails, the reply must still be returned.
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('Network error')));
-
     const result = await DatabaseService.createReply(replyData);
     await new Promise((r) => setTimeout(r, 10));
-
-    // Reply still returned successfully — email failure is non-fatal
     expect(result).toEqual(fakeReply);
+  });
+
+  it('the no-op contract holds when the reply has no post_id', async () => {
+    await DatabaseService.createReply({ ...replyData, post_id: '' as any });
+    await new Promise((r) => setTimeout(r, 10));
+    expect(global.fetch).not.toHaveBeenCalled();
   });
 });
 
