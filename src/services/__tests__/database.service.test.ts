@@ -52,82 +52,67 @@ beforeEach(() => {
 // ---------------------------------------------------------------------------
 
 describe('generateAccessCode', () => {
-  it('generates an 8-char uppercase alphanumeric code when unique on first try', async () => {
-    // crypto.getRandomValues fills with deterministic bytes
-    const spy = vi.spyOn(crypto, 'getRandomValues').mockImplementation((arr) => {
+  // All uniqueness checks go through supabase.rpc('access_code_exists') as of U-X8.
+  function fakeBytes(multiplier: number) {
+    return vi.spyOn(crypto, 'getRandomValues').mockImplementation((arr) => {
       const u8 = arr as Uint8Array;
-      for (let i = 0; i < u8.length; i++) u8[i] = i * 7;
+      for (let i = 0; i < u8.length; i++) u8[i] = i * multiplier;
       return arr;
     });
+  }
 
-    // maybeSingle returns no match → unique
-    supabaseMock.from.mockReturnValue(
-      createQueryBuilder({ data: null, error: null }),
-    );
+  it('generates an 8-char uppercase alphanumeric code when unique on first try', async () => {
+    const spy = fakeBytes(7);
+    supabaseMock.rpc.mockResolvedValue({ data: false, error: null });
 
     const code = await generateAccessCode();
     expect(code).toHaveLength(8);
     expect(/^[A-Z0-9]+$/.test(code)).toBe(true);
+    expect(supabaseMock.rpc).toHaveBeenCalledWith('access_code_exists', {
+      p_access_code: expect.any(String),
+    });
 
     spy.mockRestore();
   });
 
   it('retries when a collision is found and eventually succeeds', async () => {
-    const spy = vi.spyOn(crypto, 'getRandomValues').mockImplementation((arr) => {
-      const u8 = arr as Uint8Array;
-      for (let i = 0; i < u8.length; i++) u8[i] = i;
-      return arr;
-    });
-
-    // First call: collision (data exists), second call: unique
-    const collisionBuilder = createQueryBuilder({ data: { access_code: 'EXISTING' }, error: null });
-    const uniqueBuilder = createQueryBuilder({ data: null, error: null });
+    const spy = fakeBytes(1);
 
     let callCount = 0;
-    supabaseMock.from.mockImplementation(() => {
+    supabaseMock.rpc.mockImplementation(() => {
       callCount++;
-      return callCount <= 1 ? collisionBuilder : uniqueBuilder;
+      // First call: code exists (collision). Second: free.
+      return Promise.resolve({ data: callCount <= 1, error: null });
     });
 
     const code = await generateAccessCode();
     expect(code).toHaveLength(8);
-    expect(supabaseMock.from).toHaveBeenCalledTimes(2);
+    expect(supabaseMock.rpc).toHaveBeenCalledTimes(2);
 
     spy.mockRestore();
   });
 
   it('appends timestamp fallback after 10 failed uniqueness checks', async () => {
-    const spy = vi.spyOn(crypto, 'getRandomValues').mockImplementation((arr) => {
-      const u8 = arr as Uint8Array;
-      for (let i = 0; i < u8.length; i++) u8[i] = i;
-      return arr;
-    });
-
-    // Always return collision
-    supabaseMock.from.mockReturnValue(
-      createQueryBuilder({ data: { access_code: 'COLLISION' }, error: null }),
-    );
+    const spy = fakeBytes(1);
+    supabaseMock.rpc.mockResolvedValue({ data: true, error: null });
 
     const code = await generateAccessCode();
     expect(code).toContain('-'); // timestamp suffix
-    expect(supabaseMock.from).toHaveBeenCalledTimes(10);
+    expect(supabaseMock.rpc).toHaveBeenCalledTimes(10);
 
     spy.mockRestore();
   });
 
-  it('treats supabase error during uniqueness check as non-unique', async () => {
-    const spy = vi.spyOn(crypto, 'getRandomValues').mockImplementation((arr) => {
-      const u8 = arr as Uint8Array;
-      for (let i = 0; i < u8.length; i++) u8[i] = i;
-      return arr;
-    });
-
-    // Error on first call, success on second
-    const errorBuilder = createQueryBuilder({ data: null, error: { message: 'db error' } });
-    const okBuilder = createQueryBuilder({ data: null, error: null });
+  it('treats supabase RPC error as non-unique and retries', async () => {
+    const spy = fakeBytes(1);
 
     let n = 0;
-    supabaseMock.from.mockImplementation(() => (++n <= 1 ? errorBuilder : okBuilder));
+    supabaseMock.rpc.mockImplementation(() => {
+      n++;
+      return n <= 1
+        ? Promise.resolve({ data: null, error: { message: 'db error' } })
+        : Promise.resolve({ data: false, error: null });
+    });
 
     const code = await generateAccessCode();
     expect(code).toHaveLength(8);
@@ -149,6 +134,8 @@ describe('DatabaseService.createPost', () => {
       for (let i = 0; i < u8.length; i++) u8[i] = i * 3;
       return arr;
     });
+    // access_code uniqueness check: code is free by default
+    supabaseMock.rpc.mockResolvedValue({ data: false, error: null });
   });
 
   afterEach(() => {
@@ -156,17 +143,13 @@ describe('DatabaseService.createPost', () => {
   });
 
   it('returns the created post on success', async () => {
-    // Test connection query (first from call) + insert (second from call)
     const testBuilder = createQueryBuilder({ data: null, error: null, count: 5 });
     const insertBuilder = createQueryBuilder({ data: fakePost, error: null });
-    // generateAccessCode also calls from() once for uniqueness check
-    const uniqueBuilder = createQueryBuilder({ data: null, error: null });
 
     let n = 0;
     supabaseMock.from.mockImplementation(() => {
       n++;
-      if (n === 1) return uniqueBuilder; // generateAccessCode uniqueness
-      if (n === 2) return testBuilder;   // test connection
+      if (n === 1) return testBuilder;   // test connection
       return insertBuilder;              // insert
     });
 
@@ -175,26 +158,21 @@ describe('DatabaseService.createPost', () => {
   });
 
   it('returns null when test connection query fails', async () => {
-    const uniqueBuilder = createQueryBuilder({ data: null, error: null });
     const testBuilder = createQueryBuilder({ data: null, error: { message: 'connection failed' } });
-
-    let n = 0;
-    supabaseMock.from.mockImplementation(() => (++n === 1 ? uniqueBuilder : testBuilder));
+    supabaseMock.from.mockReturnValue(testBuilder);
 
     const result = await DatabaseService.createPost(postData);
     expect(result).toBeNull();
   });
 
   it('returns null when insert fails', async () => {
-    const uniqueBuilder = createQueryBuilder({ data: null, error: null });
     const testBuilder = createQueryBuilder({ data: null, error: null });
     const insertBuilder = createQueryBuilder({ data: null, error: { message: 'insert error', details: 'bad', hint: 'fix', code: '23505' } });
 
     let n = 0;
     supabaseMock.from.mockImplementation(() => {
       n++;
-      if (n === 1) return uniqueBuilder;
-      if (n === 2) return testBuilder;
+      if (n === 1) return testBuilder;
       return insertBuilder;
     });
 
@@ -204,7 +182,6 @@ describe('DatabaseService.createPost', () => {
 
   it('returns null on exception', async () => {
     supabaseMock.from.mockImplementation(() => { throw new Error('boom'); });
-    // generateAccessCode will also throw, caught by createPost's try/catch
     const result = await DatabaseService.createPost(postData);
     expect(result).toBeNull();
   });
@@ -248,7 +225,7 @@ describe('DatabaseService.getPostByAccessCode', () => {
   it('returns null for empty access code', async () => {
     const result = await DatabaseService.getPostByAccessCode('');
     expect(result).toBeNull();
-    expect(supabaseMock.from).not.toHaveBeenCalled();
+    expect(supabaseMock.rpc).not.toHaveBeenCalled();
   });
 
   it('returns null for whitespace-only access code', async () => {
@@ -256,26 +233,35 @@ describe('DatabaseService.getPostByAccessCode', () => {
     expect(result).toBeNull();
   });
 
-  it('normalizes access code to uppercase and returns post', async () => {
-    supabaseMock.from.mockReturnValue(createQueryBuilder({ data: fakePost, error: null }));
+  it('normalizes access code and returns post with replies', async () => {
+    supabaseMock.rpc.mockResolvedValue({ data: fakePost, error: null });
+    supabaseMock.from.mockReturnValue(
+      createQueryBuilder({ data: [fakeReply], error: null }),
+    );
 
     const result = await DatabaseService.getPostByAccessCode('abcd1234');
-    expect(result).toEqual(fakePost);
-    const builder = supabaseMock.from.mock.results[0].value;
-    expect(builder.eq).toHaveBeenCalledWith('access_code', 'ABCD1234');
+    expect(result).toMatchObject({ id: fakePost.id, replies: [fakeReply] });
+    expect(supabaseMock.rpc).toHaveBeenCalledWith('get_post_by_access_code', {
+      p_access_code: 'ABCD1234',
+    });
   });
 
-  it('returns null when no matching post (PGRST116)', async () => {
-    supabaseMock.from.mockReturnValue(
-      createQueryBuilder({ data: null, error: { message: 'not found', code: 'PGRST116' } }),
-    );
+  it('returns null when RPC returns an error', async () => {
+    supabaseMock.rpc.mockResolvedValue({ data: null, error: { message: 'rpc error', code: '42501' } });
 
     const result = await DatabaseService.getPostByAccessCode('XXXX1111');
     expect(result).toBeNull();
   });
 
+  it('returns null when no matching post', async () => {
+    supabaseMock.rpc.mockResolvedValue({ data: null, error: null });
+
+    const result = await DatabaseService.getPostByAccessCode('WRONGCOD');
+    expect(result).toBeNull();
+  });
+
   it('returns null on exception', async () => {
-    supabaseMock.from.mockImplementation(() => { throw new Error('network'); });
+    supabaseMock.rpc.mockImplementation(() => { throw new Error('network'); });
 
     const result = await DatabaseService.getPostByAccessCode('CODE1234');
     expect(result).toBeNull();
@@ -328,45 +314,15 @@ describe('DatabaseService.getPostsByPurpose', () => {
 
 describe('DatabaseService.incrementViewCount', () => {
   it('returns true when RPC succeeds', async () => {
-    supabaseMock.rpc.mockResolvedValue({ data: null, error: null });
+    supabaseMock.rpc.mockResolvedValue({ data: true, error: null });
 
     const result = await DatabaseService.incrementViewCount('post-1');
     expect(result).toBe(true);
     expect(supabaseMock.rpc).toHaveBeenCalledWith('increment_views', { post_id: 'post-1' });
   });
 
-  it('falls back to manual select+update when RPC fails', async () => {
-    supabaseMock.rpc.mockResolvedValue({ data: null, error: { message: 'rpc not found' } });
-
-    // Fallback: first from call is select (views), second is update
-    const selectBuilder = createQueryBuilder({ data: { views: 5 }, error: null });
-    const updateBuilder = createQueryBuilder({ data: null, error: null });
-
-    let n = 0;
-    supabaseMock.from.mockImplementation(() => (++n === 1 ? selectBuilder : updateBuilder));
-
-    const result = await DatabaseService.incrementViewCount('post-1');
-    expect(result).toBe(true);
-  });
-
-  it('returns false when fallback fetch fails', async () => {
-    supabaseMock.rpc.mockResolvedValue({ data: null, error: { message: 'rpc fail' } });
-    supabaseMock.from.mockReturnValue(
-      createQueryBuilder({ data: null, error: { message: 'fetch error' } }),
-    );
-
-    const result = await DatabaseService.incrementViewCount('post-1');
-    expect(result).toBe(false);
-  });
-
-  it('returns false when fallback update fails', async () => {
-    supabaseMock.rpc.mockResolvedValue({ data: null, error: { message: 'rpc fail' } });
-
-    const selectBuilder = createQueryBuilder({ data: { views: 3 }, error: null });
-    const updateBuilder = createQueryBuilder({ data: null, error: { message: 'update error' } });
-
-    let n = 0;
-    supabaseMock.from.mockImplementation(() => (++n === 1 ? selectBuilder : updateBuilder));
+  it('returns false when RPC returns an error', async () => {
+    supabaseMock.rpc.mockResolvedValue({ data: null, error: { message: 'rpc fail', code: '42501' } });
 
     const result = await DatabaseService.incrementViewCount('post-1');
     expect(result).toBe(false);

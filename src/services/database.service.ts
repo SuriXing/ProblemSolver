@@ -87,47 +87,56 @@ export const DatabaseService = {
   },
   
   /**
-   * Get a post by its access code
+   * Get a post by its access code.
+   *
+   * After U-X5 REVOKEd SELECT (access_code) from anon, a direct
+   * `.eq('access_code', ...)` on the posts table fails with permission
+   * denied — Postgres column-level SELECT is also required for columns
+   * referenced in a WHERE clause, not just in the result list. U-X8 added
+   * a SECURITY DEFINER function `get_post_by_access_code` that runs with
+   * the owner's privileges and bypasses the column REVOKE. The caller is
+   * already proving knowledge of the access code, so returning the post
+   * (including access_code) is not a new leak.
    */
   async getPostByAccessCode(accessCode: string): Promise<Post | null> {
     try {
       console.log(i18next.t('fetchingPost', { accessCode }));
 
-      // 首先检查访问码是否为空
       if (!accessCode || accessCode.trim() === '') {
         console.log(i18next.t('emptyAccessCode'));
         return null;
       }
 
-      // 添加额外的日志
       console.log(i18next.t('queryCheck'));
 
-      // Normalize to uppercase so lookups are case-insensitive
-      // (codes are always generated in uppercase; users may type lowercase)
       const normalized = accessCode.trim().toUpperCase();
 
-      // 查询帖子和回复
-      const { data, error } = await supabase
-        .from('posts')
-        .select('*, replies(*)')
-        .eq('access_code', normalized)
-        .single();
-      
-      // 记录结果
+      const { data: post, error } = await supabase.rpc('get_post_by_access_code', {
+        p_access_code: normalized,
+      });
+
       if (error) {
-        console.error('获取帖子出错:', error);
-        
-        if (error.code === 'PGRST116') {
-          console.log(i18next.t('noMatchingPost'));
-        }
-        
+        console.error('get_post_by_access_code RPC error:', error.message, error.code);
         return null;
       }
-      
-      console.log(i18next.t('postRetrieveStatus', { found: data ? true : false }));
-      return data as Post;
+
+      if (!post) {
+        console.log(i18next.t('noMatchingPost'));
+        return null;
+      }
+
+      // Fetch replies separately — replies table still allows SELECT.
+      const { data: replies } = await supabase
+        .from('replies')
+        .select('*')
+        .eq('post_id', (post as any).id)
+        .order('created_at', { ascending: true });
+
+      const result = { ...(post as any), replies: replies ?? [] } as Post;
+      console.log(i18next.t('postRetrieveStatus', { found: true }));
+      return result;
     } catch (error) {
-      console.error('获取帖子时发生异常:', error);
+      console.error('Exception fetching post by access code:', error);
       return null;
     }
   },
@@ -171,24 +180,20 @@ export const DatabaseService = {
   },
   
   /**
-   * Increment the view count of a post
+   * Increment the view count of a post.
+   *
+   * Relies on the `increment_views(post_id)` Postgres function which runs
+   * as SECURITY DEFINER. The non-atomic fallback that used to live here
+   * (select views → update views) was removed in U-X8: after U-X5 revoked
+   * UPDATE privilege from anon/authenticated, the fallback became dead
+   * code that silently masked RPC errors.
    */
   async incrementViewCount(postId: string): Promise<boolean> {
     try {
       const { error } = await supabase.rpc('increment_views', { post_id: postId });
       if (error) {
-        // Fallback: non-atomic update if RPC not available
-        const { data: post, error: fetchError } = await supabase
-          .from('posts')
-          .select('views')
-          .eq('id', postId)
-          .single();
-        if (fetchError || !post) return false;
-        const { error: updateError } = await supabase
-          .from('posts')
-          .update({ views: (post.views || 0) + 1 })
-          .eq('id', postId);
-        if (updateError) return false;
+        console.error('increment_views RPC error:', error.message, error.code);
+        return false;
       }
       return true;
     } catch (error) {
@@ -346,14 +351,15 @@ export async function generateAccessCode(): Promise<string> {
       result += characters[randomValues[i] % characters.length];
     }
 
-    // Check uniqueness against Supabase
-    const { data, error } = await supabase
-      .from('posts')
-      .select('access_code')
-      .eq('access_code', result)
-      .maybeSingle();
+    // Check uniqueness via the SECURITY DEFINER RPC. Direct SELECT on
+    // access_code was revoked in U-X5 (it's the column enumeration fix),
+    // so we delegate the existence check to a function that runs with
+    // the owner's privileges. See supabase/migrations/2026_04_17_access_code_rpcs.sql.
+    const { data: exists, error } = await supabase.rpc('access_code_exists', {
+      p_access_code: result,
+    });
 
-    isUnique = !data && !error;
+    isUnique = !error && exists === false;
   }
 
   if (!isUnique) {
