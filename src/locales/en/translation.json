@@ -205,6 +205,7 @@
   "privacySettings": "Privacy settings",
   "accessCodeTesting": "Access code testing",
   "replyPostedSuccess": "Reply posted",
+  "throttleTryAgainIn": "You're posting too fast. Please try again in {{seconds}}s.",
   "replyPostedButReadBlocked": "Reply saved, but the database is blocking read-back. Ask an admin to apply the replies RLS migration so replies appear in the list.",
   "replyFailedToSubmit": "Failed to submit reply. Please try again.",
   "replyCannotBeEmpty": "Reply cannot be empty",

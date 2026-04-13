@@ -180,6 +180,7 @@
   "privacyWarningText": "지금 매우 감정적인 상태일 수 있다는 것을 알고 있지만, 기억해 주세요: 실명, 구체적인 위치, 또는 자신이나 타인을 식별할 수 있는 세부사항을 포함하지 마세요. 이것은 모든 사람의 개인정보를 보호하고 더 심각한 문제에 빠지는 것을 예방할 수 있습니다. 익명으로 안전하게 공유하세요.",
   "privacySettings": "개인정보 설정",
   "replyPostedSuccess": "답글이 게시되었습니다",
+  "throttleTryAgainIn": "너무 빠르게 게시하고 있습니다. {{seconds}}초 후에 다시 시도해 주세요.",
   "replyPostedButReadBlocked": "답글은 저장되었지만 데이터베이스가 읽기를 차단하고 있습니다. 관리자에게 답글 RLS 마이그레이션 적용을 요청하세요.",
   "replyFailedToSubmit": "답글 전송에 실패했습니다. 다시 시도해주세요.",
   "replyCannotBeEmpty": "답글 내용을 입력해주세요",

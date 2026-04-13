@@ -197,6 +197,7 @@
   "privacySettings": "隐私设置",
   "accessCodeTesting": "访问码测试",
   "replyPostedSuccess": "回复已发布",
+  "throttleTryAgainIn": "发布太快啦，请 {{seconds}} 秒后重试。",
   "replyPostedButReadBlocked": "回复已保存，但数据库阻止了读取。请管理员运行回复 RLS 迁移以使回复正常显示。",
   "replyFailedToSubmit": "提交回复失败，请重试。",
   "replyCannotBeEmpty": "回复内容不能为空",
