@@ -200,71 +200,33 @@ export const DatabaseService = {
   /**
    * Create a new reply to a post.
    *
-   * Uses a two-step approach that tolerates RLS policies that allow INSERT but
-   * deny SELECT on the `replies` table (a common default). We first try the
-   * insert+select+single chain. If SELECT-after-INSERT fails, we retry with a
-   * bare insert (which still writes the row) and synthesize the Reply object
-   * locally so the caller gets a non-null result. Either way, if the write
-   * succeeded, createReply returns a usable Reply.
+   * As of U-X3: requires SELECT permission on the replies table to read the
+   * row back. The RLS migration `2026_04_12_replies_rls_policies.sql` grants
+   * this for anon and authenticated. If the migration has not been applied,
+   * this function returns null and the caller surfaces the error to the user.
    *
-   * If even the bare insert fails (auth / connection / constraint), we return
-   * null and the caller can show an error.
-   *
-   * Fires a fire-and-forget notification trigger on success.
+   * The previous implementation had a "synthesize a local Reply" fallback for
+   * the case where INSERT succeeded but SELECT was blocked. The U-X1 reviewer
+   * correctly flagged that as the same silent-fallback anti-pattern that
+   * caused the schema-drift bug: a synthetic id like `local-1744555000-x8a3`
+   * breaks every downstream lookup (markReplyAsSolution, getRepliesByPostId,
+   * etc.) and hides the underlying RLS misconfiguration. Forbidden by runbook
+   * hard rule 13. Removed.
    */
   async createReply(replyData: Omit<InsertTables<'replies'>, 'id' | 'created_at' | 'updated_at'>): Promise<Reply | null> {
     try {
-      // Attempt 1: insert + select + single. Works when SELECT is allowed.
-      const firstAttempt = await supabase
+      const { data, error } = await supabase
         .from('replies')
         .insert([replyData])
         .select()
         .single();
 
-      if (!firstAttempt.error && firstAttempt.data) {
-        const createdReply = firstAttempt.data as Reply;
-        triggerReplyNotification(createdReply).catch((err) => {
-          console.warn('[email] Notification trigger failed (non-fatal):', err);
-        });
-        return createdReply;
-      }
-
-      // Attempt 2: SELECT after insert failed. Could be RLS blocking the read-back,
-      // or the insert itself failed. Try a bare insert without the select chain —
-      // if that succeeds, the write landed and only the read is blocked.
-      console.warn(
-        'createReply: insert+select failed, retrying without select. Error was:',
-        firstAttempt.error
-      );
-      const bareInsert = await supabase.from('replies').insert([replyData]);
-
-      if (bareInsert.error) {
-        console.error('createReply: bare insert also failed:', bareInsert.error);
+      if (error || !data) {
+        console.error('createReply failed:', error?.message || 'no data returned');
         return null;
       }
 
-      // Bare insert succeeded. The row is in the DB but we couldn't read it back.
-      // Synthesize a Reply from the input so the caller has something to work with.
-      // The synthetic id is a client-side marker; on the next page load the real
-      // row will be fetched (once RLS is fixed).
-      const synthetic: Reply = {
-        id: `local-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-        post_id: replyData.post_id,
-        content: replyData.content,
-        is_anonymous: replyData.is_anonymous ?? false,
-        is_solution: replyData.is_solution ?? false,
-        user_id: replyData.user_id ?? undefined,
-        created_at: new Date().toISOString(),
-      };
-      console.warn(
-        'createReply: write succeeded but read-back is RLS-blocked. ' +
-          'Returning synthetic reply. Fix: run supabase/migrations/2026_04_12_replies_rls_policies.sql in Supabase SQL Editor.'
-      );
-
-      triggerReplyNotification(synthetic).catch((err) => {
-        console.warn('[email] Notification trigger failed (non-fatal):', err);
-      });
-      return synthetic;
+      return data as Reply;
     } catch (error) {
       console.error('Exception creating reply:', error);
       return null;

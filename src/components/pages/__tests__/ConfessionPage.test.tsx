@@ -104,8 +104,11 @@ describe('ConfessionPage', () => {
     });
   });
 
-  it('falls back to local storage when createPost returns null', async () => {
+  it('surfaces visible error when createPost returns null (no silent fallback)', async () => {
+    // U-X3: removed the silent local-storage fallback that was hiding
+    // schema-drift bugs. createPost null → visible alert + form re-enabled.
     mockCreatePost.mockResolvedValue(null);
+    const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
 
     render(<MemoryRouter><ConfessionPage /></MemoryRouter>);
 
@@ -115,11 +118,17 @@ describe('ConfessionPage', () => {
     const submitBtn = screen.getByText('send');
     fireEvent.click(submitBtn);
 
+    // The user must be told their submission failed
     await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith('/success', expect.objectContaining({
-        state: expect.objectContaining({ postId: 'local-fallback' }),
-      }));
+      expect(alertSpy).toHaveBeenCalled();
     });
+    // And we must NOT have navigated to /success with a fake postId
+    expect(mockNavigate).not.toHaveBeenCalledWith(
+      '/success',
+      expect.objectContaining({ state: expect.objectContaining({ postId: 'local-fallback' }) }),
+    );
+
+    alertSpy.mockRestore();
   });
 
   it('navigates home when return home button is clicked', () => {

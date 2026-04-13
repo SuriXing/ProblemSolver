@@ -107,6 +107,8 @@ const HomePage: React.FC = () => {
         }}>
           <button
             onClick={handleAdminClick}
+            type="button"
+            aria-label={t('adminLogin') || 'Admin login'}
             style={{
               background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
               border: 'none',
@@ -131,9 +133,9 @@ const HomePage: React.FC = () => {
               e.currentTarget.style.opacity = '0.7';
               e.currentTarget.style.transform = 'scale(1)';
             }}
-            title="管理员登录"
+            title={t('adminLogin') || 'Admin login'}
           >
-            <FontAwesomeIcon icon={faCrown} />
+            <FontAwesomeIcon icon={faCrown} aria-hidden="true" />
           </button>
         </div>
       </section>

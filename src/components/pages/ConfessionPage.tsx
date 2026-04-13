@@ -89,31 +89,17 @@ const ConfessionPage: React.FC = () => {
       });
 
       if (!post) {
-        // createPost returned null — network or DB issue
-        console.warn('DatabaseService.createPost returned null, attempting local fallback');
-
-        // Generate a local fallback code for offline use
-        const fallbackCode = crypto.getRandomValues(new Uint8Array(4))
-          .reduce((acc, v) => acc + 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'[v % 36], '');
-
-        const userData = {
-          userId: isAnonymous ? 'Anonymous' : 'user',
-          confessionText: confession,
-          selectedTags: selectedTags,
-          timestamp: new Date().toISOString(),
-          accessCode: fallbackCode,
-          privacyOption: isPrivate ? 'private' : 'public',
-          emailNotification: notifyViaEmail,
-          email: notifyViaEmail ? email : '',
-          replies: [],
-          views: 0
-        };
-
-        localStorage.setItem('accessCode', fallbackCode);
-        StorageSystem.storeData(fallbackCode, userData);
-        navigate('/success', {
-          state: { accessCode: fallbackCode, postId: 'local-fallback' }
-        });
+        // createPost returned null — the database write actually failed.
+        // No more silent in-memory fallback (runbook hard rule 13: silent
+        // fallbacks are forbidden — they make broken states look healthy).
+        // Surface the failure to the user so they can retry instead of
+        // walking away with a fake access code that dies on refresh.
+        console.error('DatabaseService.createPost returned null — submission failed');
+        alert(
+          (t('confessionFailedToSubmit') as string) ||
+            'Sorry, we could not save your confession right now. Please check your connection and try again.'
+        );
+        setIsSubmitting(false);
         return;
       }
 
@@ -175,15 +161,27 @@ const ConfessionPage: React.FC = () => {
             </div>
             
             <div className="form-group">
+              <label htmlFor="confession-textarea" className="sr-only">
+                {t('confessionTextareaLabel') || 'Write your confession'}
+              </label>
               <textarea
+                id="confession-textarea"
                 ref={textareaRef}
                 className={`confession-textarea ${errors.confession ? 'error' : ''}`}
                 value={confession}
                 onChange={(e) => setConfession(e.target.value)}
                 placeholder={t('confessionPlaceholder') || 'Type your confession here...'}
                 rows={8}
+                aria-label={t('confessionTextareaLabel') || 'Write your confession'}
+                aria-required="true"
+                aria-invalid={errors.confession ? 'true' : 'false'}
+                aria-describedby={errors.confession ? 'confession-error' : undefined}
               />
-              {errors.confession && <div className="error-message">{errors.confession}</div>}
+              {errors.confession && (
+                <div id="confession-error" className="error-message" role="alert">
+                  {errors.confession}
+                </div>
+              )}
             </div>
             
             <TagSelector 

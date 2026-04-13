@@ -213,7 +213,10 @@ const AccessCodeNotebook = forwardRef<AccessCodeNotebookRef>((props, ref) => {
       }}
     >
       <button
+        type="button"
         onClick={() => setOpen(o => !o)}
+        aria-label={open ? 'Close access code notebook' : 'Open access code notebook'}
+        aria-expanded={open}
         style={{
           width: 48,
           height: 48,
@@ -228,7 +231,7 @@ const AccessCodeNotebook = forwardRef<AccessCodeNotebookRef>((props, ref) => {
         }}
         title={open ? 'Close notebook' : 'Open notebook'}
       >
-        🗒️
+        <span aria-hidden="true">🗒️</span>
       </button>
       {open && (
         <div style={{ padding: '10px 12px 12px 12px', boxSizing: 'border-box', width: '100%' }}>
@@ -236,9 +239,12 @@ const AccessCodeNotebook = forwardRef<AccessCodeNotebookRef>((props, ref) => {
 
           {/* Code input */}
           <div style={{ display: 'flex', gap: 4, marginBottom: 6 }}>
+            <label htmlFor="notebook-code-input" className="sr-only">Access code field</label>
             <input
+              id="notebook-code-input"
               type="text"
               placeholder="Access code"
+              aria-label="Access code field"
               value={code}
               onChange={e => setCode(e.target.value.toUpperCase())}
               onKeyDown={e => e.key === 'Enter' && addEntry()}
@@ -249,9 +255,12 @@ const AccessCodeNotebook = forwardRef<AccessCodeNotebookRef>((props, ref) => {
 
           {/* Note input */}
           <div style={{ display: 'flex', gap: 4, marginBottom: 8 }}>
+            <label htmlFor="notebook-note-input" className="sr-only">Note about this access code</label>
             <input
+              id="notebook-note-input"
               type="text"
               placeholder="Note (e.g. School issue)"
+              aria-label="Note about this access code"
               value={note}
               onChange={e => setNote(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && addEntry()}
@@ -259,7 +268,9 @@ const AccessCodeNotebook = forwardRef<AccessCodeNotebookRef>((props, ref) => {
               maxLength={60}
             />
             <button
+              type="button"
               onClick={addEntry}
+              aria-label="Add to notebook"
               style={{ background: '#4f7cff', color: '#fff', border: 'none', borderRadius: 4, padding: '4px 10px', fontSize: 13, cursor: 'pointer', fontWeight: 500, flexShrink: 0 }}
               title="Add"
             >+
