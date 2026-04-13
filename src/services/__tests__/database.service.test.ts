@@ -513,32 +513,47 @@ describe('DatabaseService.getRepliesByPostId', () => {
 // ---------------------------------------------------------------------------
 
 describe('DatabaseService.markReplyAsSolution', () => {
-  it('unmarks existing, marks new, updates post status, returns true', async () => {
-    supabaseMock.from.mockReturnValue(createQueryBuilder({ data: null, error: null }));
+  it('calls mark_reply_solution RPC with normalized access code, returns true', async () => {
+    supabaseMock.rpc.mockResolvedValue({ data: true, error: null });
 
-    const result = await DatabaseService.markReplyAsSolution('reply-1', 'post-1');
+    const result = await DatabaseService.markReplyAsSolution('reply-1', ' abcd1234 ');
     expect(result).toBe(true);
-    // Called for: unmark replies, mark reply, update post
-    expect(supabaseMock.from).toHaveBeenCalledWith('replies');
-    expect(supabaseMock.from).toHaveBeenCalledWith('posts');
+    expect(supabaseMock.rpc).toHaveBeenCalledWith('mark_reply_solution', {
+      p_access_code: 'ABCD1234',
+      p_reply_id: 'reply-1',
+    });
   });
 
-  it('returns false when marking reply fails', async () => {
-    // First call (unmark) succeeds, second call (mark) fails
-    const okBuilder = createQueryBuilder({ data: null, error: null });
-    const errBuilder = createQueryBuilder({ data: null, error: { message: 'update fail' } });
+  it('returns false when RPC returns an error', async () => {
+    supabaseMock.rpc.mockResolvedValue({ data: null, error: { message: 'nope', code: '42501' } });
 
-    let n = 0;
-    supabaseMock.from.mockImplementation(() => (++n <= 1 ? okBuilder : errBuilder));
-
-    const result = await DatabaseService.markReplyAsSolution('reply-1', 'post-1');
+    const result = await DatabaseService.markReplyAsSolution('reply-1', 'CODE');
     expect(result).toBe(false);
   });
 
-  it('returns false on exception', async () => {
-    supabaseMock.from.mockImplementation(() => { throw new Error('crash'); });
+  it('returns false when RPC returns false (wrong access code)', async () => {
+    supabaseMock.rpc.mockResolvedValue({ data: false, error: null });
 
-    const result = await DatabaseService.markReplyAsSolution('reply-1', 'post-1');
+    const result = await DatabaseService.markReplyAsSolution('reply-1', 'WRONG');
+    expect(result).toBe(false);
+  });
+
+  it('returns false when replyId is empty', async () => {
+    const result = await DatabaseService.markReplyAsSolution('', 'CODE');
+    expect(result).toBe(false);
+    expect(supabaseMock.rpc).not.toHaveBeenCalled();
+  });
+
+  it('returns false when accessCode is empty', async () => {
+    const result = await DatabaseService.markReplyAsSolution('reply-1', '');
+    expect(result).toBe(false);
+    expect(supabaseMock.rpc).not.toHaveBeenCalled();
+  });
+
+  it('returns false on exception', async () => {
+    supabaseMock.rpc.mockImplementation(() => { throw new Error('crash'); });
+
+    const result = await DatabaseService.markReplyAsSolution('reply-1', 'CODE');
     expect(result).toBe(false);
   });
 });
@@ -548,26 +563,39 @@ describe('DatabaseService.markReplyAsSolution', () => {
 // ---------------------------------------------------------------------------
 
 describe('DatabaseService.updatePostStatusByAccessCode', () => {
-  it('updates status and normalizes access code to uppercase', async () => {
-    const builder = createQueryBuilder({ data: null, error: null });
-    supabaseMock.from.mockReturnValue(builder);
+  it('calls mark_post_solved RPC with normalized access code, returns true', async () => {
+    supabaseMock.rpc.mockResolvedValue({ data: true, error: null });
 
     const result = await DatabaseService.updatePostStatusByAccessCode(' abc123 ', 'solved');
     expect(result).toBe(true);
-    expect(builder.eq).toHaveBeenCalledWith('access_code', 'ABC123');
+    expect(supabaseMock.rpc).toHaveBeenCalledWith('mark_post_solved', {
+      p_access_code: 'ABC123',
+      p_status: 'solved',
+    });
   });
 
-  it('returns false on supabase error', async () => {
-    supabaseMock.from.mockReturnValue(
-      createQueryBuilder({ data: null, error: { message: 'fail' } }),
-    );
+  it('returns false on RPC error', async () => {
+    supabaseMock.rpc.mockResolvedValue({ data: null, error: { message: 'fail', code: '42501' } });
 
     const result = await DatabaseService.updatePostStatusByAccessCode('CODE', 'open');
     expect(result).toBe(false);
   });
 
+  it('returns false when RPC returns false (unknown access code)', async () => {
+    supabaseMock.rpc.mockResolvedValue({ data: false, error: null });
+
+    const result = await DatabaseService.updatePostStatusByAccessCode('WRONG', 'solved');
+    expect(result).toBe(false);
+  });
+
+  it('returns false when accessCode is empty', async () => {
+    const result = await DatabaseService.updatePostStatusByAccessCode('', 'solved');
+    expect(result).toBe(false);
+    expect(supabaseMock.rpc).not.toHaveBeenCalled();
+  });
+
   it('returns false on exception', async () => {
-    supabaseMock.from.mockImplementation(() => { throw new Error('boom'); });
+    supabaseMock.rpc.mockImplementation(() => { throw new Error('boom'); });
 
     const result = await DatabaseService.updatePostStatusByAccessCode('CODE', 'solved');
     expect(result).toBe(false);
