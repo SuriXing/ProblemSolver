@@ -4,6 +4,7 @@ import { DatabaseService } from '../services/database.service';
 import { InsertTables } from '../types/database.types';
 import { useTypeSafeTranslation } from '../utils/translationHelper';
 import { getCurrentUserId } from '../utils/authHelpers';
+import { checkThrottle, recordAction, THROTTLE_RULES } from '../utils/rateLimit';
 
 interface ReplyFormProps {
   postId: string;
@@ -25,6 +26,16 @@ const ReplyForm: React.FC<ReplyFormProps> = ({ postId, onReplyAdded }) => {
       return;
     }
 
+    const throttle = checkThrottle(THROTTLE_RULES.reply);
+    if (!throttle.allowed) {
+      const secs = Math.ceil(throttle.retryAfterMs / 1000);
+      message.warning(
+        (t('throttleTryAgainIn', { seconds: secs }) as string) ||
+          `You're replying too fast. Please try again in ${secs}s.`
+      );
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -41,7 +52,7 @@ const ReplyForm: React.FC<ReplyFormProps> = ({ postId, onReplyAdded }) => {
       const newReply = await DatabaseService.createReply(replyData);
 
       if (newReply) {
-        // Success — clear the form and trigger refresh
+        recordAction(THROTTLE_RULES.reply);
         setContent('');
         message.success(t('replyPostedSuccess') || 'Reply posted successfully');
         onReplyAdded();
@@ -64,10 +75,12 @@ const ReplyForm: React.FC<ReplyFormProps> = ({ postId, onReplyAdded }) => {
   return (
     <Form layout="vertical" onFinish={handleSubmit}>
       <Form.Item label={t('yourReply')}>
-        <Input.TextArea 
-          rows={4} 
-          value={content} 
-          onChange={(e) => setContent(e.target.value)}
+        <Input.TextArea
+          rows={4}
+          maxLength={4000}
+          showCount
+          value={content}
+          onChange={(e) => setContent(e.target.value.slice(0, 4000))}
           placeholder={t('replyPlaceholder')}
         />
       </Form.Item>

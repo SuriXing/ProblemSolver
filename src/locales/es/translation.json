@@ -181,6 +181,7 @@
   "privacyWarningText": "Sabemos que puedes estar sintiéndote muy emocional en este momento, pero por favor recuerda: NO incluyas nombres reales, ubicaciones específicas, o detalles identificativos sobre ti o sobre otros. Esto protege la privacidad de todos y podría evitarte problemas aún peores. Mantén tu compartir anónimo y seguro.",
   "privacySettings": "Configuración de privacidad",
   "replyPostedSuccess": "Respuesta publicada",
+  "throttleTryAgainIn": "Estás publicando demasiado rápido. Por favor, inténtalo de nuevo en {{seconds}}s.",
   "replyPostedButReadBlocked": "La respuesta se guardó, pero la base de datos está bloqueando la lectura. Pida a un administrador que aplique la migración RLS de respuestas.",
   "replyFailedToSubmit": "Error al enviar la respuesta. Por favor, inténtelo de nuevo.",
   "replyCannotBeEmpty": "La respuesta no puede estar vacía",
