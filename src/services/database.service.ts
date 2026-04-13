@@ -199,31 +199,72 @@ export const DatabaseService = {
   
   /**
    * Create a new reply to a post.
-   * If the post author opted into email notifications, fires a
-   * fire-and-forget request to /api/send-reply-notification.
+   *
+   * Uses a two-step approach that tolerates RLS policies that allow INSERT but
+   * deny SELECT on the `replies` table (a common default). We first try the
+   * insert+select+single chain. If SELECT-after-INSERT fails, we retry with a
+   * bare insert (which still writes the row) and synthesize the Reply object
+   * locally so the caller gets a non-null result. Either way, if the write
+   * succeeded, createReply returns a usable Reply.
+   *
+   * If even the bare insert fails (auth / connection / constraint), we return
+   * null and the caller can show an error.
+   *
+   * Fires a fire-and-forget notification trigger on success.
    */
   async createReply(replyData: Omit<InsertTables<'replies'>, 'id' | 'created_at' | 'updated_at'>): Promise<Reply | null> {
     try {
-      const { data, error } = await supabase
+      // Attempt 1: insert + select + single. Works when SELECT is allowed.
+      const firstAttempt = await supabase
         .from('replies')
         .insert([replyData])
         .select()
         .single();
 
-      if (error) {
-        console.error('Error creating reply:', error);
+      if (!firstAttempt.error && firstAttempt.data) {
+        const createdReply = firstAttempt.data as Reply;
+        triggerReplyNotification(createdReply).catch((err) => {
+          console.warn('[email] Notification trigger failed (non-fatal):', err);
+        });
+        return createdReply;
+      }
+
+      // Attempt 2: SELECT after insert failed. Could be RLS blocking the read-back,
+      // or the insert itself failed. Try a bare insert without the select chain —
+      // if that succeeds, the write landed and only the read is blocked.
+      console.warn(
+        'createReply: insert+select failed, retrying without select. Error was:',
+        firstAttempt.error
+      );
+      const bareInsert = await supabase.from('replies').insert([replyData]);
+
+      if (bareInsert.error) {
+        console.error('createReply: bare insert also failed:', bareInsert.error);
         return null;
       }
 
-      const createdReply = data as Reply;
+      // Bare insert succeeded. The row is in the DB but we couldn't read it back.
+      // Synthesize a Reply from the input so the caller has something to work with.
+      // The synthetic id is a client-side marker; on the next page load the real
+      // row will be fetched (once RLS is fixed).
+      const synthetic: Reply = {
+        id: `local-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        post_id: replyData.post_id,
+        content: replyData.content,
+        is_anonymous: replyData.is_anonymous ?? false,
+        is_solution: replyData.is_solution ?? false,
+        user_id: replyData.user_id ?? undefined,
+        created_at: new Date().toISOString(),
+      };
+      console.warn(
+        'createReply: write succeeded but read-back is RLS-blocked. ' +
+          'Returning synthetic reply. Fix: run supabase/migrations/2026_04_12_replies_rls_policies.sql in Supabase SQL Editor.'
+      );
 
-      // Fire-and-forget: notify the post author if they opted in.
-      // We do NOT await this — the reply creation should not be blocked by email.
-      triggerReplyNotification(createdReply).catch((err) => {
+      triggerReplyNotification(synthetic).catch((err) => {
         console.warn('[email] Notification trigger failed (non-fatal):', err);
       });
-
-      return createdReply;
+      return synthetic;
     } catch (error) {
       console.error('Exception creating reply:', error);
       return null;
@@ -352,72 +393,20 @@ export async function generateAccessCode(): Promise<string> {
 }
 
 /**
- * Send an email notification to the post author when a reply is created,
- * but only if they opted in (notify_via_email=true) and provided an email.
+ * Send an email notification to the post author when a reply is created.
  *
- * Flow:
- *   1. Look up the parent post to get notify_via_email + notify_email
- *   2. If opted in, POST to /api/send-reply-notification (Vercel function)
- *   3. Errors are logged but never thrown — email is non-critical
+ * DISABLED until the post_notifications table + server-side endpoint are built
+ * (runbook U-X5). The columns notify_email and notify_via_email used to live
+ * on the posts table, but they were never deployed — querying them returns
+ * HTTP 400 PGRST204 (column not in schema cache). For now this function is a
+ * no-op so reply creation is not slowed down by a doomed network round-trip.
  *
- * In dev mode (`npm run dev` = pure Vite), /api/ routes are not served,
- * so the fetch will 404. We log this clearly so it's obvious what happened.
- * To test locally with the real Vercel function, run `vercel dev`.
+ * When the proper implementation lands, restore the lookup against the
+ * post_notifications table (service-role-only) via the API endpoint, NOT
+ * directly from the client.
  */
 async function triggerReplyNotification(reply: Reply): Promise<void> {
-  if (!reply.post_id) return;
-
-  // Fetch the post to get notification preferences
-  const { data: post, error } = await supabase
-    .from('posts')
-    .select('id, content, access_code, notify_email, notify_via_email')
-    .eq('id', reply.post_id)
-    .maybeSingle();
-
-  if (error || !post) {
-    console.log('[email] Could not fetch post for notification:', error?.message || 'not found');
-    return;
-  }
-
-  if (!post.notify_via_email || !post.notify_email) {
-    // User did not opt in — nothing to do
-    return;
-  }
-
-  try {
-    const response = await fetch('/api/send-reply-notification', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        email: post.notify_email,
-        postId: post.id,
-        accessCode: post.access_code,
-        postContent: post.content,
-        replyContent: reply.content,
-      }),
-    });
-
-    if (!response.ok) {
-      // 404 in dev mode, 502 if Resend fails, etc. Not fatal.
-      console.log(
-        `[email] Notification endpoint returned ${response.status}. ` +
-          `In dev mode this is expected — run 'vercel dev' to test the real handler. ` +
-          `Would have emailed: ${post.notify_email}`
-      );
-      return;
-    }
-
-    const result = await response.json().catch(() => ({}));
-    if (result.sent) {
-      console.log('[email] Notification sent successfully to', post.notify_email);
-    } else {
-      console.log('[email] Notification skipped:', result.reason || 'unknown');
-    }
-  } catch (err) {
-    // Network error — typical in dev mode since the endpoint doesn't exist
-    console.log(
-      `[email] Notification fetch failed (expected in dev mode): ${String(err)}. ` +
-        `Would have emailed: ${post.notify_email}`
-    );
-  }
+  // No-op until U-X5 ships the post_notifications table.
+  // Keeping the function signature so createReply doesn't need to change.
+  void reply;
 }
