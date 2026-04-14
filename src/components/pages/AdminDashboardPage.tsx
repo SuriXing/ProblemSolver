@@ -10,7 +10,7 @@ import {
   MessageOutlined, FileTextOutlined, TrophyOutlined, CalendarOutlined,
   SettingOutlined, BarChartOutlined, ReloadOutlined
 } from '@ant-design/icons';
-import AdminService, { AdminUser, AdminStats } from '../../services/admin.service';
+import AdminService, { AdminUser, AdminStats, AppError } from '../../services/admin.service';
 import { Post } from '../../types/database.types';
 
 const { Header, Content } = Layout;
@@ -27,17 +27,28 @@ const AdminDashboardPage: React.FC = () => {
   const [searchText, setSearchText] = useState('');
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [postModalVisible, setPostModalVisible] = useState(false);
+  const [errors, setErrors] = useState<AppError[]>([]);
+  const [errorsLoading, setErrorsLoading] = useState(false);
 
   useEffect(() => {
-    // Check authentication
-    if (!AdminService.isAuthenticated()) {
-      navigate('/admin/login');
-      return;
-    }
-
-    const admin = AdminService.getCurrentAdmin();
-    setCurrentAdmin(admin);
-    loadDashboardData();
+    // Verify authentication against Supabase (not just the sync localStorage
+    // heuristic). isAuthenticatedVerified() hits supabase.auth.getUser() and
+    // validates the JWT signature — cannot be forged by tampering with
+    // localStorage. The U28 reviewer flagged the old sync check.
+    let cancelled = false;
+    (async () => {
+      const ok = await AdminService.isAuthenticatedVerified();
+      if (cancelled) return;
+      if (!ok) {
+        navigate('/admin/login');
+        return;
+      }
+      const admin = AdminService.getCurrentAdmin();
+      setCurrentAdmin(admin);
+      loadDashboardData();
+      loadErrors();
+    })();
+    return () => { cancelled = true; };
   }, [navigate]);
 
   const loadDashboardData = async () => {
@@ -57,6 +68,45 @@ const AdminDashboardPage: React.FC = () => {
       setLoading(false);
     }
   };
+
+  const loadErrors = async () => {
+    setErrorsLoading(true);
+    try {
+      const rows = await AdminService.getRecentErrors(100);
+      setErrors(rows);
+    } catch (error) {
+      console.error('Error loading app_errors:', error);
+      message.error('加载错误日志失败');
+    } finally {
+      setErrorsLoading(false);
+    }
+  };
+
+  // Group errors by fingerprint for the "collapse duplicates" view
+  const errorsByFingerprint = React.useMemo(() => {
+    const map = new Map<string, { latest: AppError; count: number }>();
+    for (const err of errors) {
+      const key = err.fingerprint || err.error_message.slice(0, 100);
+      const existing = map.get(key);
+      if (!existing) {
+        map.set(key, { latest: err, count: 1 });
+      } else {
+        existing.count += 1;
+        // Keep the most recent as `latest`
+        if (new Date(err.created_at) > new Date(existing.latest.created_at)) {
+          existing.latest = err;
+        }
+      }
+    }
+    return Array.from(map.values()).sort(
+      (a, b) => new Date(b.latest.created_at).getTime() - new Date(a.latest.created_at).getTime()
+    );
+  }, [errors]);
+
+  const oneHourAgo = Date.now() - 60 * 60 * 1000;
+  const errorsLastHour = errors.filter(
+    (e) => new Date(e.created_at).getTime() > oneHourAgo
+  ).length;
 
   const handleLogout = () => {
     confirm({
@@ -383,6 +433,107 @@ const AdminDashboardPage: React.FC = () => {
                 }}
                 scroll={{ x: 800 }}
               />
+            </Card>
+          </TabPane>
+
+          <TabPane
+            tab={
+              <span>
+                错误日志 {errorsLastHour > 0 && <Tag color="red">{errorsLastHour} 过去1小时</Tag>}
+              </span>
+            }
+            key="errors"
+          >
+            <Card
+              title="Recent errors"
+              extra={
+                <Button icon={<ReloadOutlined />} onClick={loadErrors} loading={errorsLoading}>
+                  刷新
+                </Button>
+              }
+            >
+              {errors.length === 0 && !errorsLoading ? (
+                <Alert
+                  type="info"
+                  message="暂无错误记录"
+                  description={
+                    <span>
+                      点击"刷新"加载最近 100 条。如果什么都没加载出来，代表 app_errors 表是空的 —
+                      这很正常。也可以在浏览器 devtools 里 <code>throw new Error('test')</code>
+                      ，几秒后刷新应该能看到这条记录。
+                    </span>
+                  }
+                />
+              ) : (
+                <Table
+                  loading={errorsLoading}
+                  dataSource={errorsByFingerprint}
+                  rowKey={(row) => row.latest.id}
+                  pagination={{ pageSize: 20 }}
+                  columns={[
+                    {
+                      title: '时间',
+                      key: 'time',
+                      width: 170,
+                      render: (_: unknown, row: { latest: AppError }) => (
+                        <Text style={{ fontSize: 12 }}>
+                          {new Date(row.latest.created_at).toLocaleString()}
+                        </Text>
+                      ),
+                    },
+                    {
+                      title: '来源',
+                      dataIndex: ['latest', 'source'],
+                      key: 'source',
+                      width: 80,
+                      render: (source: string) => <Tag>{source}</Tag>,
+                    },
+                    {
+                      title: '路由',
+                      dataIndex: ['latest', 'route'],
+                      key: 'route',
+                      width: 160,
+                      ellipsis: true,
+                      render: (route: string | null) => <Text code>{route ?? '-'}</Text>,
+                    },
+                    {
+                      title: '消息',
+                      dataIndex: ['latest', 'error_message'],
+                      key: 'message',
+                      ellipsis: true,
+                    },
+                    {
+                      title: '次数',
+                      dataIndex: 'count',
+                      key: 'count',
+                      width: 80,
+                      render: (count: number) =>
+                        count > 1 ? <Tag color="orange">×{count}</Tag> : count,
+                    },
+                  ]}
+                  expandable={{
+                    expandedRowRender: (row: { latest: AppError }) => (
+                      <div style={{ fontSize: 12, fontFamily: 'monospace' }}>
+                        {row.latest.error_stack && (
+                          <pre style={{ whiteSpace: 'pre-wrap', background: '#f5f5f5', padding: 8, borderRadius: 4 }}>
+                            {row.latest.error_stack}
+                          </pre>
+                        )}
+                        {row.latest.user_agent && (
+                          <div style={{ marginTop: 8, color: '#888' }}>
+                            UA: {row.latest.user_agent}
+                          </div>
+                        )}
+                        {row.latest.extra && (
+                          <pre style={{ marginTop: 8, background: '#fafafa', padding: 8, borderRadius: 4 }}>
+                            {JSON.stringify(row.latest.extra, null, 2)}
+                          </pre>
+                        )}
+                      </div>
+                    ),
+                  }}
+                />
+              )}
             </Card>
           </TabPane>
         </Tabs>

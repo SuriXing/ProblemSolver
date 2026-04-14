@@ -1,17 +1,10 @@
-import { createClient } from '@supabase/supabase-js';
-import { getSupabaseUrl, getSupabaseAnonKey } from './supabaseUtils';
-
-// Access environment properties safely
-const ENV = import.meta.env || {};
-
-// Get Supabase credentials - either from environment or fallbacks
-const supabaseUrl = getSupabaseUrl();
-const supabaseAnonKey = getSupabaseAnonKey();
-
-// Create the Supabase client
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
-
-// Log environment info without directly accessing import.meta
-console.log('Supabase client initialized with:');
-console.log('- URL:', supabaseUrl);
-console.log('- Environment variables available:', Object.keys(ENV).length > 0 ? 'yes' : 'no'); 
+// Re-export from the canonical client in src/lib/supabase.ts.
+//
+// Historical note: two separate createClient() calls used to live here and
+// in src/lib/supabase.ts. Both were configured identically, so they worked
+// by accident — but having two instances is a latent footgun: auth state
+// (the signed-in session JWT) is per-client, so if one client signed in
+// and the other one served a request, the request would be anon even
+// though the user thought they were authenticated. The U28 confidence
+// reviewer (finding I1) called it out. Consolidating to one instance.
+export { supabase, checkSupabaseConnection } from '../lib/supabase';

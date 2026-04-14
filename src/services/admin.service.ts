@@ -369,6 +369,52 @@ class AdminService {
       },
     ];
   }
+
+  /**
+   * Recent client / server errors from the app_errors table (U-X26).
+   *
+   * Grouped by fingerprint with a count, so repeated errors of the same shape
+   * collapse to one row. Requires the SELECT policy from migration
+   * 2026_04_18_app_errors_admin_read.sql (authenticated-role only).
+   *
+   * This is the admin-side half of the observability pipeline. The
+   * write-side is src/utils/errorLog.ts + the ErrorBoundary component.
+   */
+  static async getRecentErrors(limit: number = 100): Promise<AppError[]> {
+    try {
+      if (!(await this.isAuthenticatedVerified())) {
+        return [];
+      }
+
+      const { data, error } = await supabase
+        .from('app_errors')
+        .select('id, created_at, source, route, user_agent, error_message, error_stack, extra, fingerprint')
+        .order('created_at', { ascending: false })
+        .limit(limit);
+
+      if (error) {
+        console.error('getRecentErrors failed:', error.message, error.code);
+        return [];
+      }
+
+      return (data ?? []) as AppError[];
+    } catch (error) {
+      console.error('Exception fetching recent errors:', error);
+      return [];
+    }
+  }
+}
+
+export interface AppError {
+  id: string;
+  created_at: string;
+  source: string;
+  route: string | null;
+  user_agent: string | null;
+  error_message: string;
+  error_stack: string | null;
+  extra: Record<string, unknown> | null;
+  fingerprint: string | null;
 }
 
 export default AdminService;
