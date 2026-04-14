@@ -12,6 +12,7 @@ declare module 'react-i18next' {
 
   // Override the TFunction to ensure it always returns a string
   export interface TFunction {
+    // eslint-disable-next-line @typescript-eslint/ban-types -- `string & {}` is the documented trick to keep literal-type autocomplete on a union with `string`.
     (key: TranslationKey | (string & {}), options?: TOptions): string;
   }
 

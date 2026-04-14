@@ -26,4 +26,13 @@ module.exports = {
       version: 'detect',
     },
   },
+  overrides: [
+    {
+      // Test files are full of intentional no-op stubs like `() => {}`.
+      files: ['**/*.test.{ts,tsx}', '**/__tests__/**/*.{ts,tsx}'],
+      rules: {
+        '@typescript-eslint/no-empty-function': 'off',
+      },
+    },
+  ],
 } 

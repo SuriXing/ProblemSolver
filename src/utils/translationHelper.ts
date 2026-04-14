@@ -104,7 +104,7 @@ export function translate(key: string, options?: TOptions): string {
 /**
  * Get a translation with fallback
  */
-export const getTranslation = (key: string, fallback: string = ''): string => {
+export const getTranslation = (key: string, fallback = ''): string => {
   try {
     const translation = translate(key);
     return translation === key ? fallback : translation;
