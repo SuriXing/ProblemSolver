@@ -37,26 +37,3 @@ if (IS_DEV) {
     console.log('Anon Key (first 10 chars):', anonKey.substring(0, 10) + '...');
   }
 }
-
-// Function to check connection status
-export async function checkSupabaseConnection(): Promise<boolean> {
-  try {
-    // Add eslint-disable for unused variable
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { data, error } = await supabase.from('posts').select('count', { count: 'exact', head: true });
-    
-    if (error && error.code === '42P01') {
-      console.log('Posts table does not exist yet. This is expected if you need to run the setup scripts.');
-      return true; // Connection is fine, table just doesn't exist
-    } else if (error) {
-      console.error('Error connecting to Supabase:', error);
-      return false;
-    }
-    
-    console.log('Connected to Supabase!');
-    return true;
-  } catch (error) {
-    console.error('Exception when connecting to Supabase:', error);
-    return false;
-  }
-} 

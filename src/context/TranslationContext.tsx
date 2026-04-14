@@ -74,5 +74,3 @@ export const useTranslationContext = () => {
 function isSupportedLanguage(lang: string): lang is SupportedLanguages {
   return ['zh-CN', 'en', 'ja', 'ko', 'es'].includes(lang);
 }
-
-export default TranslationContext;

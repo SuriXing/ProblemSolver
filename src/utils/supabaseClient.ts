@@ -7,4 +7,4 @@
 // and the other one served a request, the request would be anon even
 // though the user thought they were authenticated. The U28 confidence
 // reviewer (finding I1) called it out. Consolidating to one instance.
-export { supabase, checkSupabaseConnection } from '../lib/supabase';
+export { supabase } from '../lib/supabase';
