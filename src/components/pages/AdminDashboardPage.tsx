@@ -482,92 +482,67 @@ const AdminDashboardPage: React.FC = () => {
                 </Space>
               </div>
 
-              <List
-                loading={loading}
-                dataSource={posts}
-                rowKey="id"
-                locale={{ emptyText: <Empty description="暂无帖子" /> }}
-                pagination={{ pageSize: 10, showSizeChanger: false }}
-                renderItem={(post) => {
-                  const replyCount = replyCountByPostId.get(post.id) ?? 0;
-                  const unread = isUnread(post.created_at, lastSeenPostsAt);
-                  const fixed = post.status === 'solved';
-                  return (
-                    <List.Item
-                      className={unread ? 'admin-unread-row' : ''}
-                      style={{
-                        padding: '14px 16px',
-                        borderRadius: 8,
-                        marginBottom: 8,
-                        background: unread ? 'rgba(91, 123, 250, 0.08)' : '#fafafa',
-                      }}
-                      actions={[
-                        <Button
-                          key="view"
-                          size="small"
-                          icon={<EyeOutlined />}
-                          onClick={() => viewPostDetails(post)}
-                        >
-                          查看
-                        </Button>,
-                        <Dropdown
-                          key="status"
-                          overlay={
-                            <Menu>
-                              <Menu.Item
-                                key="open"
-                                onClick={() => handleUpdatePostStatus(post.id, 'open')}
-                              >
-                                标记为未解决
-                              </Menu.Item>
-                              <Menu.Item
-                                key="solved"
-                                onClick={() => handleUpdatePostStatus(post.id, 'solved')}
-                              >
-                                标记为已解决
-                              </Menu.Item>
-                            </Menu>
-                          }
-                        >
-                          <Button size="small">状态</Button>
-                        </Dropdown>,
-                        <Button
-                          key="delete"
-                          size="small"
-                          danger
-                          icon={<DeleteOutlined />}
-                          onClick={() => handleDeletePost(post)}
-                        >
-                          删除
-                        </Button>,
-                      ]}
-                    >
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-                          <Text strong style={{ fontSize: 15 }}>
-                            post: "{post.content?.slice(0, 80)}{(post.content?.length ?? 0) > 80 ? '…' : ''}"
-                          </Text>
-                          {unread && <Tag color="blue">NEW</Tag>}
-                        </div>
-                        <Space size="middle" style={{ fontSize: 13, color: '#666' }}>
-                          <Tag color={fixed ? 'green' : 'orange'}>
-                            {fixed ? 'fixed' : 'unfixed'}
+              {posts.length === 0 && !loading ? (
+                <Empty description="暂无帖子" />
+              ) : (
+                <div className="admin-posts-grid">
+                  {posts.map((post) => {
+                    const replyCount = replyCountByPostId.get(post.id) ?? 0;
+                    const unread = isUnread(post.created_at, lastSeenPostsAt);
+                    const fixed = post.status === 'solved';
+                    return (
+                      <div
+                        key={post.id}
+                        className={`admin-post-card${unread ? ' admin-post-card--unread' : ''}`}
+                      >
+                        {/* Status pill in top-right corner */}
+                        <div className="admin-post-card__status">
+                          <Tag color={fixed ? 'success' : 'warning'} style={{ margin: 0, fontSize: 13, padding: '2px 12px' }}>
+                            {fixed ? '✓ Fixed' : '○ Unfixed'}
                           </Tag>
-                          <span>
-                            <CalendarOutlined /> {new Date(post.created_at).toLocaleString()}
-                          </span>
-                          <span>
-                            <MessageOutlined /> Replies: {replyCount}
-                          </span>
-                          {post.access_code && (
-                            <Text code style={{ fontSize: 12 }}>{post.access_code}</Text>
+                          {unread && (
+                            <Tag color="blue" style={{ margin: '0 0 0 6px', fontSize: 11 }}>NEW</Tag>
                           )}
-                        </Space>
+                        </div>
+
+                        {/* Post content */}
+                        <div className="admin-post-card__content">
+                          {post.content || <Text type="secondary">(empty)</Text>}
+                        </div>
+
+                        {/* Meta row: replies + date */}
+                        <div className="admin-post-card__meta">
+                          <span className="admin-post-card__meta-item">
+                            <MessageOutlined /> {replyCount} {replyCount === 1 ? 'reply' : 'replies'}
+                          </span>
+                          <span className="admin-post-card__meta-item">
+                            <CalendarOutlined /> {new Date(post.created_at).toLocaleDateString(undefined, {
+                              month: 'short', day: 'numeric', year: 'numeric',
+                            })}
+                          </span>
+                        </div>
+
+                        {/* Actions */}
+                        <div className="admin-post-card__actions">
+                          <Button size="small" icon={<EyeOutlined />} onClick={() => viewPostDetails(post)}>
+                            View
+                          </Button>
+                          <Button
+                            size="small"
+                            type={fixed ? 'default' : 'primary'}
+                            onClick={() => handleUpdatePostStatus(post.id, fixed ? 'open' : 'solved')}
+                          >
+                            {fixed ? 'Mark unfixed' : 'Mark fixed'}
+                          </Button>
+                          <Button size="small" danger icon={<DeleteOutlined />} onClick={() => handleDeletePost(post)}>
+                            Delete
+                          </Button>
+                        </div>
                       </div>
-                    </List.Item>
-                  );
-                }}
-              />
+                    );
+                  })}
+                </div>
+              )}
             </Card>
           </TabPane>
 
