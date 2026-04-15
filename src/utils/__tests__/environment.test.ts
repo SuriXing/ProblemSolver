@@ -67,10 +67,9 @@ describe('environment', () => {
     expect(Boolean(mod.IS_PROD) && Boolean(mod.IS_DEV)).toBe(false);
   });
 
-  it('SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY are strings', async () => {
+  it('SUPABASE_URL and SUPABASE_ANON_KEY are strings', async () => {
     const mod = await import('../environment');
     expect(typeof mod.SUPABASE_URL).toBe('string');
     expect(typeof mod.SUPABASE_ANON_KEY).toBe('string');
-    expect(typeof mod.SUPABASE_SERVICE_ROLE_KEY).toBe('string');
   });
 });

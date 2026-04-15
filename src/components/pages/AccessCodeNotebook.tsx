@@ -48,6 +48,8 @@ const AccessCodeNotebook = forwardRef<AccessCodeNotebookRef>(function AccessCode
   const [savedFlash, setSavedFlash] = useState(false);
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
   const notebookRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
 
   const loadEntries = () => {
     try {
@@ -99,6 +101,22 @@ const AccessCodeNotebook = forwardRef<AccessCodeNotebookRef>(function AccessCode
     };
     document.addEventListener('mousedown', handleClick);
     return () => document.removeEventListener('mousedown', handleClick);
+  }, [open]);
+
+  // Dialog a11y: ESC closes + return focus to trigger; move focus into panel on open.
+  useEffect(() => {
+    if (!open) return;
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setOpen(false);
+        triggerRef.current?.focus();
+      }
+    };
+    document.addEventListener('keydown', handleKey);
+    // Move focus into the dialog (first focusable input if present)
+    const firstInput = panelRef.current?.querySelector<HTMLElement>('input, button');
+    firstInput?.focus();
+    return () => document.removeEventListener('keydown', handleKey);
   }, [open]);
 
   const showSavedFlash = () => {
@@ -172,25 +190,30 @@ const AccessCodeNotebook = forwardRef<AccessCodeNotebookRef>(function AccessCode
     navigate(`/past-questions?code=${entry.code}`);
   };
 
-  // Toggle solved state locally AND update the DB post status
+  // Toggle solved state locally AND update the DB post status.
+  // Optimistic update for snappy UI; revert on DB failure so local state
+  // doesn't lie about server truth.
   const toggleSolved = async (idx: number) => {
     const entry = entries[idx];
     const newSolved = !entry.solved;
+    const prevEntries = entries;
 
-    // Optimistic local update first — UI feels instant
+    // Optimistic local update
     const updated = entries.map((e, i) => (i === idx ? { ...e, solved: newSolved } : e));
     saveEntries(updated);
 
-    // Then update the DB. If it fails, the user still sees their local state;
-    // we log the error but don't revert because the local notebook is the user's
-    // personal view and the DB status is secondary.
     try {
-      await DatabaseService.updatePostStatusByAccessCode(
+      const ok = await DatabaseService.updatePostStatusByAccessCode(
         entry.code,
         newSolved ? 'solved' : 'open'
       );
+      if (!ok) {
+        // DB call returned falsy — treat as failure and revert.
+        saveEntries(prevEntries);
+      }
     } catch (err) {
-      console.error('Failed to update post status in DB:', err);
+      console.error('Failed to update post status in DB, reverting:', err);
+      saveEntries(prevEntries);
     }
   };
 
@@ -216,9 +239,11 @@ const AccessCodeNotebook = forwardRef<AccessCodeNotebookRef>(function AccessCode
     >
       <button
         type="button"
+        ref={triggerRef}
         onClick={() => setOpen(o => !o)}
         aria-label={open ? 'Close access code notebook' : 'Open access code notebook'}
         aria-expanded={open}
+        aria-haspopup="dialog"
         style={{
           width: 48,
           height: 48,
@@ -236,8 +261,14 @@ const AccessCodeNotebook = forwardRef<AccessCodeNotebookRef>(function AccessCode
         <span aria-hidden="true">🗒️</span>
       </button>
       {open && (
-        <div style={{ padding: '10px 12px 12px 12px', boxSizing: 'border-box', width: '100%' }}>
-          <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 8 }}>Notebook</div>
+        <div
+          ref={panelRef}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="notebook-title"
+          style={{ padding: '10px 12px 12px 12px', boxSizing: 'border-box', width: '100%' }}
+        >
+          <div id="notebook-title" style={{ fontWeight: 600, fontSize: 15, marginBottom: 8 }}>Notebook</div>
 
           {/* Code input */}
           <div style={{ display: 'flex', gap: 4, marginBottom: 6 }}>

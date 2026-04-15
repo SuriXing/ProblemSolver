@@ -7,7 +7,6 @@ import { supabaseMock, createQueryBuilder } from '../../test/mocks/supabase';
 vi.mock('../../utils/supabaseUtils', () => ({
   getSupabaseUrl: () => 'https://test.supabase.co',
   getSupabaseAnonKey: () => 'test-key',
-  getSupabaseServiceRoleKey: () => '',
 }));
 
 import SupabaseTest from '../SupabaseTest';
