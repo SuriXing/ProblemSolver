@@ -26,6 +26,8 @@ const mockUpdatePostStatus = vi.fn();
 const mockSearchPosts = vi.fn();
 const mockLogout = vi.fn();
 const mockGetRecentErrors = vi.fn();
+const mockGetAllReplies = vi.fn();
+const mockGetReplyCountsByPostId = vi.fn();
 
 vi.mock('../../../services/admin.service', () => ({
   default: {
@@ -39,6 +41,8 @@ vi.mock('../../../services/admin.service', () => ({
     searchPosts: (...args: any[]) => mockSearchPosts(...args),
     logout: () => mockLogout(),
     getRecentErrors: (...args: any[]) => mockGetRecentErrors(...args),
+    getAllReplies: (...args: any[]) => mockGetAllReplies(...args),
+    getReplyCountsByPostId: () => mockGetReplyCountsByPostId(),
   },
 }));
 
@@ -75,6 +79,8 @@ describe('AdminDashboardPage', () => {
     mockGetDashboardStats.mockResolvedValue(mockStats);
     mockGetAllPosts.mockResolvedValue(mockPosts);
     mockGetRecentErrors.mockResolvedValue([]);
+    mockGetAllReplies.mockResolvedValue([]);
+    mockGetReplyCountsByPostId.mockResolvedValue(new Map());
   });
 
   it('redirects to login when not authenticated', async () => {

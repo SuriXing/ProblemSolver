@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Layout, Card, Statistic, Row, Col, Table, Button, Space, Tag, Input,
-  Modal, message, Typography, Dropdown, Menu, Avatar, Tabs, Alert, Tooltip
+  Modal, message, Typography, Dropdown, Menu, Avatar, Tabs, Alert, Tooltip, List, Empty
 } from 'antd';
 import {
   UserOutlined, LogoutOutlined, DeleteOutlined, EyeOutlined, SearchOutlined,
@@ -39,6 +39,7 @@ const AdminDashboardPage: React.FC = () => {
   const [errorsLoading, setErrorsLoading] = useState(false);
   const [allReplies, setAllReplies] = useState<ReplyWithPost[]>([]);
   const [repliesLoading, setRepliesLoading] = useState(false);
+  const [replyCounts, setReplyCounts] = useState<Map<string, number>>(new Map());
   const [lastSeenPostsAt, setLastSeenPostsAt] = useState<string | null>(getLastSeenPostsAt());
   const [lastSeenRepliesAt, setLastSeenRepliesAt] = useState<string | null>(getLastSeenRepliesAt());
 
@@ -67,13 +68,15 @@ const AdminDashboardPage: React.FC = () => {
   const loadDashboardData = async () => {
     setLoading(true);
     try {
-      const [statsData, postsData] = await Promise.all([
+      const [statsData, postsData, counts] = await Promise.all([
         AdminService.getDashboardStats(),
-        AdminService.getAllPosts(1, 50)
+        AdminService.getAllPosts(1, 50),
+        AdminService.getReplyCountsByPostId(),
       ]);
 
       setStats(statsData);
       setPosts(postsData.posts);
+      setReplyCounts(counts);
     } catch (error) {
       console.error('Error loading dashboard data:', error);
       message.error('加载数据失败');
@@ -123,6 +126,11 @@ const AdminDashboardPage: React.FC = () => {
   // Unread counts — recomputed on every render but cheap
   const unreadPostCount = countUnread(posts, lastSeenPostsAt);
   const unreadReplyCount = countUnread(allReplies, lastSeenRepliesAt);
+
+  // Reply count per post — comes from a dedicated count query (replyCounts state)
+  // populated by loadDashboardData so it stays accurate even for posts whose
+  // replies aren't in the most-recent-200 sample loaded by getAllReplies.
+  const replyCountByPostId = replyCounts;
 
   // Group errors by fingerprint for the "collapse duplicates" view
   const errorsByFingerprint = React.useMemo(() => {
@@ -474,20 +482,91 @@ const AdminDashboardPage: React.FC = () => {
                 </Space>
               </div>
 
-              <Table
-                columns={postsColumns}
+              <List
+                loading={loading}
                 dataSource={posts}
                 rowKey="id"
-                loading={loading}
-                rowClassName={(row) => (isUnread(row.created_at, lastSeenPostsAt) ? 'admin-unread-row' : '')}
-                pagination={{
-                  pageSize: 20,
-                  showSizeChanger: true,
-                  showQuickJumper: true,
-                  showTotal: (total, range) =>
-                    `第 ${range[0]}-${range[1]} 条，共 ${total} 条`
+                locale={{ emptyText: <Empty description="暂无帖子" /> }}
+                pagination={{ pageSize: 10, showSizeChanger: false }}
+                renderItem={(post) => {
+                  const replyCount = replyCountByPostId.get(post.id) ?? 0;
+                  const unread = isUnread(post.created_at, lastSeenPostsAt);
+                  const fixed = post.status === 'solved';
+                  return (
+                    <List.Item
+                      className={unread ? 'admin-unread-row' : ''}
+                      style={{
+                        padding: '14px 16px',
+                        borderRadius: 8,
+                        marginBottom: 8,
+                        background: unread ? 'rgba(91, 123, 250, 0.08)' : '#fafafa',
+                      }}
+                      actions={[
+                        <Button
+                          key="view"
+                          size="small"
+                          icon={<EyeOutlined />}
+                          onClick={() => viewPostDetails(post)}
+                        >
+                          查看
+                        </Button>,
+                        <Dropdown
+                          key="status"
+                          overlay={
+                            <Menu>
+                              <Menu.Item
+                                key="open"
+                                onClick={() => handleUpdatePostStatus(post.id, 'open')}
+                              >
+                                标记为未解决
+                              </Menu.Item>
+                              <Menu.Item
+                                key="solved"
+                                onClick={() => handleUpdatePostStatus(post.id, 'solved')}
+                              >
+                                标记为已解决
+                              </Menu.Item>
+                            </Menu>
+                          }
+                        >
+                          <Button size="small">状态</Button>
+                        </Dropdown>,
+                        <Button
+                          key="delete"
+                          size="small"
+                          danger
+                          icon={<DeleteOutlined />}
+                          onClick={() => handleDeletePost(post)}
+                        >
+                          删除
+                        </Button>,
+                      ]}
+                    >
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                          <Text strong style={{ fontSize: 15 }}>
+                            post: "{post.content?.slice(0, 80)}{(post.content?.length ?? 0) > 80 ? '…' : ''}"
+                          </Text>
+                          {unread && <Tag color="blue">NEW</Tag>}
+                        </div>
+                        <Space size="middle" style={{ fontSize: 13, color: '#666' }}>
+                          <Tag color={fixed ? 'green' : 'orange'}>
+                            {fixed ? 'fixed' : 'unfixed'}
+                          </Tag>
+                          <span>
+                            <CalendarOutlined /> {new Date(post.created_at).toLocaleString()}
+                          </span>
+                          <span>
+                            <MessageOutlined /> Replies: {replyCount}
+                          </span>
+                          {post.access_code && (
+                            <Text code style={{ fontSize: 12 }}>{post.access_code}</Text>
+                          )}
+                        </Space>
+                      </div>
+                    </List.Item>
+                  );
                 }}
-                scroll={{ x: 800 }}
               />
             </Card>
           </TabPane>
