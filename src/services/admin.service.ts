@@ -303,6 +303,45 @@ class AdminService {
   }
 
   /**
+   * Reply counts per post — for showing "N replies" badges next to each
+   * post in the admin posts list. One round-trip, no joins needed at the
+   * dashboard level.
+   *
+   * Returns a Map<post_id, count>. Posts with zero replies are omitted
+   * from the map (caller should default to 0 on lookup miss).
+   */
+  static async getReplyCountsByPostId(): Promise<Map<string, number>> {
+    try {
+      if (!(await this.isAuthenticatedVerified())) {
+        return new Map();
+      }
+
+      // Fetch all (post_id) tuples — cheap because the row is one column.
+      // For 1K posts × ~5 replies = 5K rows max, well under PostgREST's default limit.
+      const { data, error } = await supabase
+        .from('replies')
+        .select('post_id')
+        .limit(10000);
+
+      if (error) {
+        console.error('getReplyCountsByPostId failed:', error.message, error.code);
+        return new Map();
+      }
+
+      const counts = new Map<string, number>();
+      for (const row of data ?? []) {
+        const pid = (row as any).post_id;
+        if (!pid) continue;
+        counts.set(pid, (counts.get(pid) ?? 0) + 1);
+      }
+      return counts;
+    } catch (error) {
+      console.error('Exception fetching reply counts:', error);
+      return new Map();
+    }
+  }
+
+  /**
    * All replies across all posts, joined with the parent post's title for
    * context. Used by the admin "评论管理" (Comments) tab.
    *
