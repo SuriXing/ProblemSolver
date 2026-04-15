@@ -64,6 +64,15 @@ html[data-theme-mode="light"] .footer,
   border: 0;
 }
 
+/* U-X11: highlight unread rows in the admin tables (posts + comments tabs). */
+.admin-unread-row > td {
+  background-color: rgba(91, 123, 250, 0.08) !important;
+  font-weight: 500;
+}
+.admin-unread-row:hover > td {
+  background-color: rgba(91, 123, 250, 0.14) !important;
+}
+
 /* Theme-aware styling is handled via CSS custom properties in src/index.css.
  * prefers-color-scheme overrides were removed so the in-app theme toggle
  * actually works regardless of the OS setting. */

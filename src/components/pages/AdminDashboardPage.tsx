@@ -10,8 +10,16 @@ import {
   MessageOutlined, FileTextOutlined, TrophyOutlined, CalendarOutlined,
   SettingOutlined, BarChartOutlined, ReloadOutlined
 } from '@ant-design/icons';
-import AdminService, { AdminUser, AdminStats, AppError } from '../../services/admin.service';
+import AdminService, { AdminUser, AdminStats, AppError, ReplyWithPost } from '../../services/admin.service';
 import { Post } from '../../types/database.types';
+import {
+  getLastSeenPostsAt,
+  getLastSeenRepliesAt,
+  markAllPostsRead,
+  markAllRepliesRead,
+  isUnread,
+  countUnread,
+} from '../../utils/adminUnread';
 
 const { Header, Content } = Layout;
 const { Title, Text } = Typography;
@@ -29,6 +37,10 @@ const AdminDashboardPage: React.FC = () => {
   const [postModalVisible, setPostModalVisible] = useState(false);
   const [errors, setErrors] = useState<AppError[]>([]);
   const [errorsLoading, setErrorsLoading] = useState(false);
+  const [allReplies, setAllReplies] = useState<ReplyWithPost[]>([]);
+  const [repliesLoading, setRepliesLoading] = useState(false);
+  const [lastSeenPostsAt, setLastSeenPostsAt] = useState<string | null>(getLastSeenPostsAt());
+  const [lastSeenRepliesAt, setLastSeenRepliesAt] = useState<string | null>(getLastSeenRepliesAt());
 
   useEffect(() => {
     // Verify authentication against Supabase (not just the sync localStorage
@@ -47,6 +59,7 @@ const AdminDashboardPage: React.FC = () => {
       setCurrentAdmin(admin);
       loadDashboardData();
       loadErrors();
+      loadAllReplies();
     })();
     return () => { cancelled = true; };
   }, [navigate]);
@@ -81,6 +94,35 @@ const AdminDashboardPage: React.FC = () => {
       setErrorsLoading(false);
     }
   };
+
+  const loadAllReplies = async () => {
+    setRepliesLoading(true);
+    try {
+      const rows = await AdminService.getAllReplies(200);
+      setAllReplies(rows);
+    } catch (error) {
+      console.error('Error loading all replies:', error);
+      message.error('加载评论失败');
+    } finally {
+      setRepliesLoading(false);
+    }
+  };
+
+  const handleMarkAllPostsRead = () => {
+    markAllPostsRead();
+    setLastSeenPostsAt(new Date().toISOString());
+    message.success('已标记所有帖子为已读');
+  };
+
+  const handleMarkAllRepliesRead = () => {
+    markAllRepliesRead();
+    setLastSeenRepliesAt(new Date().toISOString());
+    message.success('已标记所有评论为已读');
+  };
+
+  // Unread counts — recomputed on every render but cheap
+  const unreadPostCount = countUnread(posts, lastSeenPostsAt);
+  const unreadReplyCount = countUnread(allReplies, lastSeenRepliesAt);
 
   // Group errors by fingerprint for the "collapse duplicates" view
   const errorsByFingerprint = React.useMemo(() => {
@@ -398,7 +440,14 @@ const AdminDashboardPage: React.FC = () => {
             />
           </TabPane>
 
-          <TabPane tab="帖子管理" key="posts">
+          <TabPane
+            tab={
+              <span>
+                帖子管理 {unreadPostCount > 0 && <Tag color="blue">{unreadPostCount} 未读</Tag>}
+              </span>
+            }
+            key="posts"
+          >
             <Card>
               <div style={{ marginBottom: 16 }}>
                 <Space>
@@ -416,6 +465,12 @@ const AdminDashboardPage: React.FC = () => {
                   >
                     刷新
                   </Button>
+                  <Button
+                    onClick={handleMarkAllPostsRead}
+                    disabled={unreadPostCount === 0}
+                  >
+                    全部标为已读 {unreadPostCount > 0 && `(${unreadPostCount})`}
+                  </Button>
                 </Space>
               </div>
 
@@ -424,6 +479,7 @@ const AdminDashboardPage: React.FC = () => {
                 dataSource={posts}
                 rowKey="id"
                 loading={loading}
+                rowClassName={(row) => (isUnread(row.created_at, lastSeenPostsAt) ? 'admin-unread-row' : '')}
                 pagination={{
                   pageSize: 20,
                   showSizeChanger: true,
@@ -433,6 +489,126 @@ const AdminDashboardPage: React.FC = () => {
                 }}
                 scroll={{ x: 800 }}
               />
+            </Card>
+          </TabPane>
+
+          <TabPane
+            tab={
+              <span>
+                评论管理 {unreadReplyCount > 0 && <Tag color="blue">{unreadReplyCount} 未读</Tag>}
+              </span>
+            }
+            key="comments"
+          >
+            <Card
+              title="所有评论"
+              extra={
+                <Space>
+                  <Button icon={<ReloadOutlined />} onClick={loadAllReplies} loading={repliesLoading}>
+                    刷新
+                  </Button>
+                  <Button
+                    onClick={handleMarkAllRepliesRead}
+                    disabled={unreadReplyCount === 0}
+                  >
+                    全部标为已读 {unreadReplyCount > 0 && `(${unreadReplyCount})`}
+                  </Button>
+                </Space>
+              }
+            >
+              {allReplies.length === 0 && !repliesLoading ? (
+                <Alert
+                  type="info"
+                  message="暂无评论"
+                  description="点击刷新加载最近 200 条评论。"
+                />
+              ) : (
+                <Table
+                  loading={repliesLoading}
+                  dataSource={allReplies}
+                  rowKey="id"
+                  pagination={{ pageSize: 20, showSizeChanger: true }}
+                  rowClassName={(row) => (isUnread(row.created_at, lastSeenRepliesAt) ? 'admin-unread-row' : '')}
+                  columns={[
+                    {
+                      title: '时间',
+                      dataIndex: 'created_at',
+                      key: 'created_at',
+                      width: 170,
+                      render: (created_at: string) => (
+                        <Text style={{ fontSize: 12 }}>
+                          {new Date(created_at).toLocaleString()}
+                          {isUnread(created_at, lastSeenRepliesAt) && (
+                            <Tag color="blue" style={{ marginLeft: 4 }}>NEW</Tag>
+                          )}
+                        </Text>
+                      ),
+                    },
+                    {
+                      title: '所属帖子',
+                      key: 'post',
+                      width: 220,
+                      ellipsis: true,
+                      render: (_: unknown, row: ReplyWithPost) =>
+                        row.posts ? (
+                          <Tooltip title={row.posts.content?.slice(0, 200)}>
+                            <Text>
+                              {row.posts.title || (row.posts.content?.slice(0, 40) + '...')}
+                            </Text>
+                            {row.posts.status === 'solved' && (
+                              <Tag color="green" style={{ marginLeft: 4 }}>已解决</Tag>
+                            )}
+                          </Tooltip>
+                        ) : (
+                          <Text type="secondary">(已删除)</Text>
+                        ),
+                    },
+                    {
+                      title: '内容',
+                      dataIndex: 'content',
+                      key: 'content',
+                      ellipsis: true,
+                    },
+                    {
+                      title: '解决方案',
+                      dataIndex: 'is_solution',
+                      key: 'is_solution',
+                      width: 100,
+                      render: (is_solution: boolean) =>
+                        is_solution ? <Tag color="gold">★ 解决方案</Tag> : null,
+                    },
+                    {
+                      title: '操作',
+                      key: 'actions',
+                      width: 120,
+                      render: (_: unknown, row: ReplyWithPost) => (
+                        <Button
+                          size="small"
+                          danger
+                          icon={<DeleteOutlined />}
+                          onClick={() => {
+                            confirm({
+                              title: '确认删除评论',
+                              content: row.content?.slice(0, 200),
+                              onOk: async () => {
+                                const res = await AdminService.deleteReply(row.id);
+                                if (res.success) {
+                                  message.success('已删除');
+                                  loadAllReplies();
+                                } else {
+                                  message.error(res.error || '删除失败');
+                                }
+                              },
+                            });
+                          }}
+                        >
+                          删除
+                        </Button>
+                      ),
+                    },
+                  ]}
+                />
+              )}
             </Card>
           </TabPane>
 
