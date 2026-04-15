@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import i18next, { TFunction, TOptions } from 'i18next';
+import i18next, { TOptions } from 'i18next';
 
 const FALLBACK_LANGUAGES = ['zh-CN', 'en'] as const;
 type SupportedLanguages = 'zh-CN' | 'en' | 'ja' | 'ko' | 'es';

@@ -386,7 +386,7 @@ export async function generateAccessCode(): Promise<string> {
  * post_notifications table (service-role-only) via the API endpoint, NOT
  * directly from the client.
  */
-async function triggerReplyNotification(reply: Reply): Promise<void> {
+async function _triggerReplyNotification(reply: Reply): Promise<void> {
   // No-op until U-X5 ships the post_notifications table.
   // Keeping the function signature so createReply doesn't need to change.
   void reply;

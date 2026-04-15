@@ -127,7 +127,7 @@ const DetailPage: React.FC = () => {
     setSelectedReaction(selectedReaction === reaction ? null : reaction);
   };
   
-  function renderTag(tag: string) {
+  function _renderTag(tag: string) {
     return i18nT(`tag${tag.charAt(0).toUpperCase() + tag.slice(1)}`, tag);
   }
   
