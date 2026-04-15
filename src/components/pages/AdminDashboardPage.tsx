@@ -482,66 +482,197 @@ const AdminDashboardPage: React.FC = () => {
                 </Space>
               </div>
 
+              {/* Split posts into three sections.
+                  Sort order: newest first, oldest at bottom (Suri's spec).
+                  All three lists use the same card markup, but the action
+                  buttons differ per section. */}
               {posts.length === 0 && !loading ? (
                 <Empty description="暂无帖子" />
               ) : (
-                <div className="admin-posts-grid">
-                  {posts.map((post) => {
-                    const replyCount = replyCountByPostId.get(post.id) ?? 0;
-                    const unread = isUnread(post.created_at, lastSeenPostsAt);
-                    const fixed = post.status === 'solved';
-                    return (
-                      <div
-                        key={post.id}
-                        className={`admin-post-card${unread ? ' admin-post-card--unread' : ''}`}
-                      >
-                        {/* Status pill in top-right corner */}
-                        <div className="admin-post-card__status">
-                          <Tag color={fixed ? 'success' : 'warning'} style={{ margin: 0, fontSize: 13, padding: '2px 12px' }}>
-                            {fixed ? '✓ Fixed' : '○ Unfixed'}
-                          </Tag>
-                          {unread && (
-                            <Tag color="blue" style={{ margin: '0 0 0 6px', fontSize: 11 }}>NEW</Tag>
-                          )}
-                        </div>
+                <>
+                  {(() => {
+                    const sorted = [...posts].sort(
+                      (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+                    );
+                    const unsolved = sorted.filter((p) => !p.deleted_at && p.status !== 'solved');
+                    const solved = sorted.filter((p) => !p.deleted_at && p.status === 'solved');
+                    const deleted = sorted.filter((p) => !!p.deleted_at);
 
-                        {/* Post content */}
-                        <div className="admin-post-card__content">
-                          {post.content || <Text type="secondary">(empty)</Text>}
-                        </div>
+                    const renderCard = (post: Post, section: 'unsolved' | 'solved' | 'deleted') => {
+                      const replyCount = replyCountByPostId.get(post.id) ?? 0;
+                      const unread = isUnread(post.created_at, lastSeenPostsAt);
+                      const fixed = post.status === 'solved';
+                      return (
+                        <div
+                          key={post.id}
+                          className={`admin-post-card${unread && section !== 'deleted' ? ' admin-post-card--unread' : ''}${section === 'deleted' ? ' admin-post-card--deleted' : ''}`}
+                        >
+                          <div className="admin-post-card__status">
+                            {section === 'deleted' ? (
+                              <Tag color="default" style={{ margin: 0, fontSize: 13, padding: '2px 12px' }}>
+                                🗑 Deleted
+                              </Tag>
+                            ) : (
+                              <Tag color={fixed ? 'success' : 'warning'} style={{ margin: 0, fontSize: 13, padding: '2px 12px' }}>
+                                {fixed ? '✓ Fixed' : '○ Unfixed'}
+                              </Tag>
+                            )}
+                            {unread && section !== 'deleted' && (
+                              <Tag color="blue" style={{ margin: '0 0 0 6px', fontSize: 11 }}>NEW</Tag>
+                            )}
+                          </div>
 
-                        {/* Meta row: replies + date */}
-                        <div className="admin-post-card__meta">
-                          <span className="admin-post-card__meta-item">
-                            <MessageOutlined /> {replyCount} {replyCount === 1 ? 'reply' : 'replies'}
-                          </span>
-                          <span className="admin-post-card__meta-item">
-                            <CalendarOutlined /> {new Date(post.created_at).toLocaleDateString(undefined, {
-                              month: 'short', day: 'numeric', year: 'numeric',
-                            })}
-                          </span>
-                        </div>
+                          <div className="admin-post-card__content">
+                            {post.content || <Text type="secondary">(empty)</Text>}
+                          </div>
 
-                        {/* Actions */}
-                        <div className="admin-post-card__actions">
-                          <Button size="small" icon={<EyeOutlined />} onClick={() => viewPostDetails(post)}>
-                            View
-                          </Button>
-                          <Button
-                            size="small"
-                            type={fixed ? 'default' : 'primary'}
-                            onClick={() => handleUpdatePostStatus(post.id, fixed ? 'open' : 'solved')}
-                          >
-                            {fixed ? 'Mark unfixed' : 'Mark fixed'}
-                          </Button>
-                          <Button size="small" danger icon={<DeleteOutlined />} onClick={() => handleDeletePost(post)}>
-                            Delete
-                          </Button>
+                          <div className="admin-post-card__meta">
+                            <span className="admin-post-card__meta-item">
+                              <MessageOutlined /> {replyCount} {replyCount === 1 ? 'reply' : 'replies'}
+                            </span>
+                            <span className="admin-post-card__meta-item">
+                              <CalendarOutlined /> {new Date(post.created_at).toLocaleDateString(undefined, {
+                                month: 'short', day: 'numeric', year: 'numeric',
+                              })}
+                            </span>
+                            {section === 'deleted' && post.deleted_at && (
+                              <span className="admin-post-card__meta-item" style={{ color: '#999' }}>
+                                🗑 {new Date(post.deleted_at).toLocaleDateString(undefined, {
+                                  month: 'short', day: 'numeric',
+                                })}
+                              </span>
+                            )}
+                          </div>
+
+                          <div className="admin-post-card__actions">
+                            <Button size="small" icon={<EyeOutlined />} onClick={() => viewPostDetails(post)}>
+                              View
+                            </Button>
+                            {section === 'unsolved' && (
+                              <>
+                                <Button
+                                  size="small"
+                                  type="primary"
+                                  onClick={() => handleUpdatePostStatus(post.id, 'solved')}
+                                >
+                                  Mark fixed
+                                </Button>
+                                <Button size="small" danger icon={<DeleteOutlined />} onClick={() => handleDeletePost(post)}>
+                                  Delete
+                                </Button>
+                              </>
+                            )}
+                            {section === 'solved' && (
+                              <>
+                                <Button
+                                  size="small"
+                                  onClick={() => handleUpdatePostStatus(post.id, 'open')}
+                                >
+                                  Mark unfixed
+                                </Button>
+                                <Button size="small" danger icon={<DeleteOutlined />} onClick={() => handleDeletePost(post)}>
+                                  Delete
+                                </Button>
+                              </>
+                            )}
+                            {section === 'deleted' && (
+                              <>
+                                <Button
+                                  size="small"
+                                  type="primary"
+                                  onClick={async () => {
+                                    const res = await AdminService.restorePost(post.id);
+                                    if (res.success) {
+                                      message.success('已恢复');
+                                      loadDashboardData();
+                                    } else {
+                                      message.error(res.error || '恢复失败');
+                                    }
+                                  }}
+                                >
+                                  Restore
+                                </Button>
+                                <Button
+                                  size="small"
+                                  danger
+                                  icon={<DeleteOutlined />}
+                                  onClick={() => {
+                                    confirm({
+                                      title: 'Permanently delete this post?',
+                                      content: 'This cannot be undone. The post and all its replies will be removed from the database forever.',
+                                      okText: 'Permanently delete',
+                                      okType: 'danger',
+                                      onOk: async () => {
+                                        const res = await AdminService.hardDeletePost(post.id);
+                                        if (res.success) {
+                                          message.success('已永久删除');
+                                          loadDashboardData();
+                                        } else {
+                                          message.error(res.error || '永久删除失败');
+                                        }
+                                      },
+                                    });
+                                  }}
+                                >
+                                  Permanently delete
+                                </Button>
+                              </>
+                            )}
+                          </div>
                         </div>
+                      );
+                    };
+
+                    const Section: React.FC<{
+                      label: string;
+                      icon: string;
+                      items: Post[];
+                      section: 'unsolved' | 'solved' | 'deleted';
+                      empty: string;
+                    }> = ({ label, icon, items, section, empty }) => (
+                      <div style={{ marginBottom: 32 }}>
+                        <h3 style={{ fontSize: 17, fontWeight: 600, marginBottom: 12, color: '#374151' }}>
+                          {icon} {label} <Text type="secondary" style={{ fontSize: 14, fontWeight: 400 }}>({items.length})</Text>
+                        </h3>
+                        {items.length === 0 ? (
+                          <div style={{ padding: 16, background: '#fafafa', borderRadius: 8, color: '#999', textAlign: 'center', fontSize: 13 }}>
+                            {empty}
+                          </div>
+                        ) : (
+                          <div className="admin-posts-grid">
+                            {items.map((p) => renderCard(p, section))}
+                          </div>
+                        )}
                       </div>
                     );
-                  })}
-                </div>
+
+                    return (
+                      <>
+                        <Section
+                          label="Unsolved"
+                          icon="○"
+                          items={unsolved}
+                          section="unsolved"
+                          empty="暂无未解决的帖子"
+                        />
+                        <Section
+                          label="Solved"
+                          icon="✓"
+                          items={solved}
+                          section="solved"
+                          empty="暂无已解决的帖子"
+                        />
+                        <Section
+                          label="Trash"
+                          icon="🗑"
+                          items={deleted}
+                          section="deleted"
+                          empty="垃圾箱为空"
+                        />
+                      </>
+                    );
+                  })()}
+                </>
               )}
             </Card>
           </TabPane>

@@ -12,6 +12,9 @@ export type Post = {
   views: number;
   status: 'open' | 'solved' | 'closed';
   access_code?: string; // For direct access to posts
+  // U-X12: soft-delete column. Non-null = trashed (visible only to admins).
+  // Public lookups filter `WHERE deleted_at IS NULL`.
+  deleted_at?: string | null;
   replies?: Reply[]; // Add replies property
   // Email notification opt-in (added 2026-04-12)
   notify_email?: string | null;
