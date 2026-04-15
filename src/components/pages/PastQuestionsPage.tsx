@@ -11,35 +11,6 @@ import ConfessionPlaceholderSVG from '../../assets/placeholder_confession.svg';
 import ErrorPlaceholderSVG from '../../assets/placeholder_error.svg';
 import AccessCodeNotebook from './AccessCodeNotebook';
 
-// Helper function to get time ago
-// eslint-disable-next-line @typescript-eslint/no-unused-vars -- kept for upcoming "Posted X ago" UI; will be wired in A1.
-const getTimeAgo = (timestamp: string): string => {
-  const now = new Date();
-  const past = new Date(timestamp);
-  const diffMs = now.getTime() - past.getTime();
-  
-  const diffSecs = Math.floor(diffMs / 1000);
-  const diffMins = Math.floor(diffSecs / 60);
-  const diffHours = Math.floor(diffMins / 60);
-  const diffDays = Math.floor(diffHours / 24);
-  const diffWeeks = Math.floor(diffDays / 7);
-  const diffMonths = Math.floor(diffDays / 30);
-  
-  if (diffMonths > 0) {
-    return diffMonths === 1 ? '1 month ago' : `${diffMonths} months ago`;
-  } else if (diffWeeks > 0) {
-    return diffWeeks === 1 ? '1 week ago' : `${diffWeeks} weeks ago`;
-  } else if (diffDays > 0) {
-    return diffDays === 1 ? '1 day ago' : `${diffDays} days ago`;
-  } else if (diffHours > 0) {
-    return diffHours === 1 ? '1 hour ago' : `${diffHours} hours ago`;
-  } else if (diffMins > 0) {
-    return diffMins === 1 ? '1 minute ago' : `${diffMins} minutes ago`;
-  } else {
-    return 'Just now';
-  }
-};
-
 // Add type for PastQuestionsPageProps
 interface PastQuestionsPageProps {
   showDebug?: boolean;
@@ -57,33 +28,11 @@ const PastQuestionsPage: React.FC<PastQuestionsPageProps> = ({ showDebug, debugP
   const { t } = useTypeSafeTranslation();
   const navigate = useNavigate();
   const location = useLocation();
-  const [questions, setQuestions] = useState<Post[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  // The list/loading/error state is fetched but not yet rendered — the page
-  // currently shows only the access-code lookup UI. Read the values to satisfy
-  // the linter; the full list view ships with A1.
-  void questions; void loading; void error;
   const [accessCode, setAccessCode] = useState('');
   const [fetchedPost, setFetchedPost] = useState<Post | null>(null);
   const [replies, setReplies] = useState<any[]>([]);
   const [fetchingPost, setFetchingPost] = useState(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
-
-  // Fetch all questions
-  const fetchAllQuestions = useCallback(async () => {
-    try {
-      setLoading(true);
-      const posts = await DatabaseService.getPostsByPurpose('need_help');
-      setQuestions(posts);
-      setError(null);
-    } catch (err) {
-      console.error('Error fetching questions:', err);
-      setError('Failed to load questions');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
 
   // Shared fetch logic — used by both manual form submit and auto-populate from URL/sessionStorage
   const fetchPostByCode = useCallback(async (code: string) => {
@@ -175,10 +124,6 @@ const PastQuestionsPage: React.FC<PastQuestionsPageProps> = ({ showDebug, debugP
       navigate('/');
     }, 1000);
   };
-
-  useEffect(() => {
-    fetchAllQuestions();
-  }, [fetchAllQuestions]);
 
   return (
     <Layout>
