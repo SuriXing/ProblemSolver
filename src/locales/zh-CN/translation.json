@@ -254,5 +254,11 @@
   "mightThankYou": "被你帮助的人可能很快会来感谢你。",
   "checkPastResponses": "你可以随时查看自己之前的回复。",
   "everyReplyMatters": "每一次回复都有意义。感谢你在这里。",
-  "continueHelping": "继续帮助他人"
+  "continueHelping": "继续帮助他人",
+  "success": {
+    "saveToNotebook": {
+      "title": "把访问码存进小本本",
+      "body": "点击左下角的小本本，把这个访问码连同备注（比如\"学校问题\"）一起保存，下次就不会搞混是哪一条了。"
+    }
+  }
 }

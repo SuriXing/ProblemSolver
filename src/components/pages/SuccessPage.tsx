@@ -8,6 +8,17 @@ import styles from './SuccessPage.module.css';
 import { useTranslation } from 'react-i18next';
 import Layout from '../layout/Layout';
 
+// Validate VITE_MENTOR_URL: only render the cross-promo when the env var is
+// a http(s) URL. Blocks javascript:/data: XSS sinks (bug-bash R2 finding 6).
+const rawMentorUrl = import.meta.env.VITE_MENTOR_URL;
+const isSafeMentorUrl =
+  typeof rawMentorUrl === 'string' && /^https?:\/\//i.test(rawMentorUrl);
+if (rawMentorUrl && !isSafeMentorUrl) {
+  console.warn(
+    '[SuccessPage] VITE_MENTOR_URL is set but not a http(s) URL; ignoring.'
+  );
+}
+
 const SuccessPage: React.FC = () => {
   const { t } = useTypeSafeTranslation();
   const location = useLocation();
@@ -120,17 +131,13 @@ const SuccessPage: React.FC = () => {
             <FontAwesomeIcon icon={faBookmark} />
           </div>
           <div className={styles.noticeBody}>
-            <h4>Save your code to the Notebook</h4>
-            <p>
-              Open the small notebook in the bottom-left corner to save this code
-              with a note (e.g. &quot;School issue&quot;) so you never lose track of which
-              problem is which.
-            </p>
+            <h4>{t('success.saveToNotebook.title')}</h4>
+            <p>{t('success.saveToNotebook.body')}</p>
           </div>
         </div>
 
         {/* Mentor Table cross-promo */}
-        {import.meta.env.VITE_MENTOR_URL && (
+        {isSafeMentorUrl && (
           <div className={styles.mentorNotice}>
             <div className={styles.noticeIcon}>
               <FontAwesomeIcon icon={faComments} />
@@ -143,7 +150,7 @@ const SuccessPage: React.FC = () => {
                 to get their perspective on your situation.
               </p>
               <a
-                href={import.meta.env.VITE_MENTOR_URL as string}
+                href={rawMentorUrl as string}
                 target="_blank"
                 rel="noopener noreferrer"
                 className={styles.mentorLink}

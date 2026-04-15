@@ -90,7 +90,7 @@ const ConfessionPage: React.FC = () => {
       // built (see runbook U-X5). The local UI state is preserved so users can
       // still check the box; it just doesn't persist server-side yet.
       const post = await DatabaseService.createPost({
-        title: 'Confession',
+        title: t('confessionTitle'),
         content: confession,
         is_anonymous: isAnonymous,
         tags: selectedTags,
