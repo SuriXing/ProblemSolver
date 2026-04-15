@@ -1,5 +1,7 @@
 # Worry Solver React App
 
+> **Local setup:** copy `.env.example` to `.env.local` and fill in real values. Never commit secrets — `.gitignore` blocks `.env.local` and `*.local`.
+
 A React conversion of the original "解忧杂货铺" (Worry-Solving Shop) web application. This application allows users to anonymously share their concerns and receive helpful responses from others, with access code-based authentication for checking replies.
 
 ## Features

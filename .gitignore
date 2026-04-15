@@ -28,6 +28,8 @@ node_modules/
 .env
 .env.*
 !.env.example
+.env.*.local
+*.local
 
 # Supabase CLI temp state (leaks project ref + pooler URL)
 supabase/.temp/
