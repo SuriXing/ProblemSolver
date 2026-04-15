@@ -199,6 +199,14 @@ class AdminService {
     }
   }
 
+  /**
+   * Get all posts INCLUDING soft-deleted ones (for the admin dashboard).
+   * The dashboard splits these client-side into Unsolved / Solved / Deleted.
+   *
+   * Public-facing queries (getPostByAccessCode, getPostsByPurpose) filter
+   * out soft-deleted rows server-side, so the leak surface is only the admin
+   * authenticated path.
+   */
   static async getAllPosts(
     page: number = 1,
     limit: number = 20,
@@ -210,6 +218,8 @@ class AdminService {
 
       const offset = (page - 1) * limit;
 
+      // Sort by created_at DESC so newest is on top, oldest at bottom — Suri
+      // explicitly asked for "earliest posted problems at the bottom".
       const { data: posts, error } = await supabase
         .from('posts')
         .select('*')
@@ -241,8 +251,60 @@ class AdminService {
    * `authenticated` role and creates policies scoped to authenticated users
    * only. With public signups disabled in the Supabase dashboard, this means
    * ONLY the manually-created admin account(s) can perform these operations.
+   *
+   * U-X12 changed deletePost from a hard DELETE to a soft-delete (sets the
+   * deleted_at column). The hard-delete path is now hardDeletePost(), only
+   * called from the dashboard's "Permanently delete" button in the Trash
+   * section.
    */
   static async deletePost(postId: string): Promise<{ success: boolean; error?: string }> {
+    try {
+      if (!(await this.isAuthenticatedVerified())) {
+        return { success: false, error: 'Unauthorized' };
+      }
+
+      const { error } = await supabase
+        .from('posts')
+        .update({ deleted_at: new Date().toISOString() })
+        .eq('id', postId);
+
+      if (error) throw error;
+      return { success: true };
+    } catch (error) {
+      console.error('Error soft-deleting post:', error);
+      return { success: false, error: 'Delete failed' };
+    }
+  }
+
+  /**
+   * Restore a soft-deleted post — clears deleted_at. The post becomes visible
+   * to public lookups again on the next request.
+   */
+  static async restorePost(postId: string): Promise<{ success: boolean; error?: string }> {
+    try {
+      if (!(await this.isAuthenticatedVerified())) {
+        return { success: false, error: 'Unauthorized' };
+      }
+
+      const { error } = await supabase
+        .from('posts')
+        .update({ deleted_at: null })
+        .eq('id', postId);
+
+      if (error) throw error;
+      return { success: true };
+    } catch (error) {
+      console.error('Error restoring post:', error);
+      return { success: false, error: 'Restore failed' };
+    }
+  }
+
+  /**
+   * Permanently delete a post and all its replies. Irreversible. Only
+   * exposed from the dashboard's Trash section "Permanently delete" button,
+   * which double-confirms before calling this.
+   */
+  static async hardDeletePost(postId: string): Promise<{ success: boolean; error?: string }> {
     try {
       if (!(await this.isAuthenticatedVerified())) {
         return { success: false, error: 'Unauthorized' };
@@ -259,8 +321,8 @@ class AdminService {
 
       return { success: true };
     } catch (error) {
-      console.error('Error deleting post:', error);
-      return { success: false, error: 'Delete failed' };
+      console.error('Error permanently deleting post:', error);
+      return { success: false, error: 'Permanent delete failed' };
     }
   }
 

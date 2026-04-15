@@ -146,11 +146,13 @@ export const DatabaseService = {
    */
   async getPostsByPurpose(purpose: 'need_help' | 'offer_help'): Promise<Post[]> {
     try {
-      // Try fetching posts with replies
+      // U-X12: filter out soft-deleted posts. Public users never see trashed
+      // confessions even if a moderator hasn't yet permanently deleted them.
       const { data, error } = await supabase
         .from('posts')
         .select('*, replies(*)')
         .eq('purpose', purpose)
+        .is('deleted_at', null)
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -162,6 +164,7 @@ export const DatabaseService = {
           .from('posts')
           .select('*')
           .eq('purpose', purpose)
+          .is('deleted_at', null)
           .order('created_at', { ascending: false });
 
         if (fallbackError) {

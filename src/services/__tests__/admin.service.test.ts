@@ -332,7 +332,7 @@ describe('AdminService.getAllPosts', () => {
 // deletePost
 // ---------------------------------------------------------------------------
 
-describe('AdminService.deletePost', () => {
+describe('AdminService.deletePost (soft-delete)', () => {
   it('returns unauthorized when supabase.auth.getUser returns no user', async () => {
     mockAuthUnverified();
     const result = await AdminService.deletePost('post-1');
@@ -340,23 +340,28 @@ describe('AdminService.deletePost', () => {
     expect(result.error).toBe('Unauthorized');
   });
 
-  it('deletes replies first, then post', async () => {
+  it('soft-deletes by setting deleted_at on the post (no replies touched)', async () => {
     mockAuthVerified();
-    supabaseMock.from.mockReturnValue(createQueryBuilder({ data: null, error: null }));
+    const builder = createQueryBuilder({ data: null, error: null });
+    supabaseMock.from.mockReturnValue(builder);
 
     const result = await AdminService.deletePost('post-1');
     expect(result.success).toBe(true);
-    expect(supabaseMock.from).toHaveBeenCalledWith('replies');
     expect(supabaseMock.from).toHaveBeenCalledWith('posts');
+    // The U-X12 contract: replies are NOT touched on soft-delete.
+    expect(supabaseMock.from).not.toHaveBeenCalledWith('replies');
+    // The update payload should set deleted_at to a non-null ISO string.
+    expect(builder.update).toHaveBeenCalledWith(
+      expect.objectContaining({ deleted_at: expect.any(String) }),
+    );
+    expect(builder.eq).toHaveBeenCalledWith('id', 'post-1');
   });
 
-  it('returns failure when post delete errors', async () => {
+  it('returns failure when the soft-delete update errors', async () => {
     mockAuthVerified();
-    const okBuilder = createQueryBuilder({ data: null, error: null });
-    const errBuilder = createQueryBuilder({ data: null, error: { message: 'delete fail' } });
-
-    let n = 0;
-    supabaseMock.from.mockImplementation(() => (++n === 1 ? okBuilder : errBuilder));
+    supabaseMock.from.mockReturnValue(
+      createQueryBuilder({ data: null, error: { message: 'update fail' } }),
+    );
 
     const result = await AdminService.deletePost('post-1');
     expect(result.success).toBe(false);
@@ -368,6 +373,75 @@ describe('AdminService.deletePost', () => {
     supabaseMock.from.mockImplementation(() => { throw new Error('boom'); });
 
     const result = await AdminService.deletePost('post-1');
+    expect(result.success).toBe(false);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// restorePost
+// ---------------------------------------------------------------------------
+
+describe('AdminService.restorePost', () => {
+  it('returns unauthorized when not authenticated', async () => {
+    mockAuthUnverified();
+    const result = await AdminService.restorePost('post-1');
+    expect(result.success).toBe(false);
+    expect(result.error).toBe('Unauthorized');
+  });
+
+  it('clears deleted_at on the post', async () => {
+    mockAuthVerified();
+    const builder = createQueryBuilder({ data: null, error: null });
+    supabaseMock.from.mockReturnValue(builder);
+
+    const result = await AdminService.restorePost('post-1');
+    expect(result.success).toBe(true);
+    expect(builder.update).toHaveBeenCalledWith({ deleted_at: null });
+    expect(builder.eq).toHaveBeenCalledWith('id', 'post-1');
+  });
+
+  it('returns failure on supabase error', async () => {
+    mockAuthVerified();
+    supabaseMock.from.mockReturnValue(
+      createQueryBuilder({ data: null, error: { message: 'err' } }),
+    );
+
+    const result = await AdminService.restorePost('post-1');
+    expect(result.success).toBe(false);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// hardDeletePost
+// ---------------------------------------------------------------------------
+
+describe('AdminService.hardDeletePost', () => {
+  it('returns unauthorized when not authenticated', async () => {
+    mockAuthUnverified();
+    const result = await AdminService.hardDeletePost('post-1');
+    expect(result.success).toBe(false);
+    expect(result.error).toBe('Unauthorized');
+  });
+
+  it('deletes replies first, then the post', async () => {
+    mockAuthVerified();
+    supabaseMock.from.mockReturnValue(createQueryBuilder({ data: null, error: null }));
+
+    const result = await AdminService.hardDeletePost('post-1');
+    expect(result.success).toBe(true);
+    expect(supabaseMock.from).toHaveBeenCalledWith('replies');
+    expect(supabaseMock.from).toHaveBeenCalledWith('posts');
+  });
+
+  it('returns failure when the post delete errors', async () => {
+    mockAuthVerified();
+    const okBuilder = createQueryBuilder({ data: null, error: null });
+    const errBuilder = createQueryBuilder({ data: null, error: { message: 'delete fail' } });
+
+    let n = 0;
+    supabaseMock.from.mockImplementation(() => (++n === 1 ? okBuilder : errBuilder));
+
+    const result = await AdminService.hardDeletePost('post-1');
     expect(result.success).toBe(false);
   });
 });

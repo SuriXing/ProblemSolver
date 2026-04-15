@@ -20,6 +20,7 @@ export function createQueryBuilder(overrides: Record<string, any> = {}) {
     like: vi.fn().mockReturnThis(),
     ilike: vi.fn().mockReturnThis(),
     or: vi.fn().mockReturnThis(),
+    is: vi.fn().mockReturnThis(),
     order: vi.fn().mockReturnThis(),
     limit: vi.fn().mockReturnThis(),
     range: vi.fn().mockReturnThis(),
