@@ -283,12 +283,109 @@ describe('real send path', () => {
     expect(res.body.reason).toBe('resend_error');
   });
 
-  it('returns 500 on fetch exception', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('network')));
+  it('returns 500 on fetch exception WITHOUT leaking error message to client', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('SECRET-INTERNAL-PATH-/var/x')));
     const req = makeReq();
     const res = makeRes();
     await handler(req, res);
     expect(res.statusCode).toBe(500);
     expect(res.body.reason).toBe('exception');
+    // S3.2 round 1 fix: do not echo err.message back to caller — info leak.
+    expect(JSON.stringify(res.body)).not.toContain('SECRET-INTERNAL-PATH');
+    expect(res.body.message).toBeUndefined();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// IP extraction — S3.2 round 1: leftmost XFF is attacker-controlled on Vercel
+// (Vercel APPENDS rather than replaces). Use rightmost XFF / x-vercel-XFF.
+// ---------------------------------------------------------------------------
+
+describe('client IP extraction (XFF spoofing defense)', () => {
+  beforeEach(() => {
+    process.env.RESEND_API_KEY = 're_fake_test_key';
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => ({ id: 'm' }),
+        text: async () => '',
+      }),
+    );
+  });
+
+  it('uses x-vercel-forwarded-for when present (most trustworthy)', async () => {
+    // 30 requests from real IP "10.0.0.1" should hit the IP cap regardless
+    // of the spoofed leftmost x-forwarded-for value.
+    for (let i = 0; i < 30; i++) {
+      const res = makeRes();
+      await handler(
+        {
+          method: 'POST',
+          headers: {
+            origin: 'https://problem-solver.app',
+            // Attacker rotates leftmost XFF — should NOT change bucket.
+            'x-forwarded-for': `198.51.100.${i}, 10.0.0.1`,
+            'x-vercel-forwarded-for': '10.0.0.1',
+          },
+          body: { email: `u${i}@x.co`, replyContent: 'hi' },
+          socket: { remoteAddress: '10.0.0.1' },
+        },
+        res,
+      );
+      expect(res.statusCode).toBe(200);
+    }
+    const blocked = makeRes();
+    await handler(
+      {
+        method: 'POST',
+        headers: {
+          origin: 'https://problem-solver.app',
+          'x-forwarded-for': '198.51.100.250, 10.0.0.1',
+          'x-vercel-forwarded-for': '10.0.0.1',
+        },
+        body: { email: 'last@x.co', replyContent: 'hi' },
+        socket: { remoteAddress: '10.0.0.1' },
+      },
+      blocked,
+    );
+    expect(blocked.statusCode).toBe(429);
+    expect(blocked.body.reason).toBe('rate_limit_ip');
+  });
+
+  it('falls back to RIGHTMOST x-forwarded-for when x-vercel-forwarded-for is absent', async () => {
+    // Same attack: rotate leftmost XFF, real client always rightmost.
+    for (let i = 0; i < 30; i++) {
+      const res = makeRes();
+      await handler(
+        {
+          method: 'POST',
+          headers: {
+            origin: 'https://problem-solver.app',
+            'x-forwarded-for': `198.51.100.${i}, 10.0.0.7`,
+          },
+          body: { email: `q${i}@x.co`, replyContent: 'hi' },
+          socket: { remoteAddress: '10.0.0.7' },
+        },
+        res,
+      );
+      expect(res.statusCode).toBe(200);
+    }
+    const blocked = makeRes();
+    await handler(
+      {
+        method: 'POST',
+        headers: {
+          origin: 'https://problem-solver.app',
+          'x-forwarded-for': '198.51.100.99, 10.0.0.7',
+        },
+        body: { email: 'q-final@x.co', replyContent: 'hi' },
+        socket: { remoteAddress: '10.0.0.7' },
+      },
+      blocked,
+    );
+    expect(blocked.statusCode).toBe(429);
+    expect(blocked.body.reason).toBe('rate_limit_ip');
   });
 });
