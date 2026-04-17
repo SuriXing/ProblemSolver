@@ -52,7 +52,7 @@ export default class ErrorBoundary extends React.Component<Props, State> {
             style={{
               padding: '10px 24px',
               background: '#5B7BFA',
-              color: 'white',
+              color: 'var(--text-on-primary, #f5f7ff)',
               border: 'none',
               borderRadius: 6,
               cursor: 'pointer',

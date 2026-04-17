@@ -226,7 +226,7 @@ const AccessCodeNotebook = forwardRef<AccessCodeNotebookRef>((props, ref) => {
           border: 'none',
           cursor: 'pointer',
           fontSize: 22,
-          color: '#4f7cff',
+          color: 'var(--primary-color, #5B7BFA)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -273,7 +273,7 @@ const AccessCodeNotebook = forwardRef<AccessCodeNotebookRef>((props, ref) => {
               type="button"
               onClick={addEntry}
               aria-label="Add to notebook"
-              style={{ background: '#4f7cff', color: '#fff', border: 'none', borderRadius: 4, padding: '4px 10px', fontSize: 13, cursor: 'pointer', fontWeight: 500, flexShrink: 0 }}
+              style={{ background: 'var(--primary-color, #5B7BFA)', color: 'var(--text-on-primary, #f5f7ff)', border: 'none', borderRadius: 4, padding: '4px 10px', fontSize: 13, cursor: 'pointer', fontWeight: 500, flexShrink: 0 }}
               title="Add"
             >+
             </button>
@@ -337,17 +337,17 @@ const AccessCodeNotebook = forwardRef<AccessCodeNotebookRef>((props, ref) => {
                           }}
                           autoFocus
                           placeholder="Add a note..."
-                          style={{ flex: 1, padding: '2px 5px', borderRadius: 3, border: '1px solid #4f7cff', fontSize: 11 }}
+                          style={{ flex: 1, padding: '2px 5px', borderRadius: 3, border: '1px solid var(--primary-color, #5B7BFA)', fontSize: 11 }}
                           maxLength={60}
                         />
                         <button
                           onClick={saveEditingNote}
-                          style={{ background: '#52c41a', color: '#fff', border: 'none', borderRadius: 3, padding: '2px 6px', fontSize: 10, cursor: 'pointer' }}
+                          style={{ background: '#52c41a', color: 'var(--text-on-primary, #f5f7ff)', border: 'none', borderRadius: 3, padding: '2px 6px', fontSize: 10, cursor: 'pointer' }}
                           title="Save"
                         >✓</button>
                         <button
                           onClick={cancelEditingNote}
-                          style={{ background: '#999', color: '#fff', border: 'none', borderRadius: 3, padding: '2px 6px', fontSize: 10, cursor: 'pointer' }}
+                          style={{ background: '#999', color: 'var(--text-on-primary, #f5f7ff)', border: 'none', borderRadius: 3, padding: '2px 6px', fontSize: 10, cursor: 'pointer' }}
                           title="Cancel"
                         >×</button>
                       </div>
@@ -374,7 +374,7 @@ const AccessCodeNotebook = forwardRef<AccessCodeNotebookRef>((props, ref) => {
                         style={{
                           flex: 1,
                           background: copiedIdx === idx ? '#52c41a' : '#eef2ff',
-                          color: copiedIdx === idx ? '#fff' : '#4f7cff',
+                          color: copiedIdx === idx ? '#fff' : 'var(--primary-color, #5B7BFA)',
                           border: 'none',
                           borderRadius: 3,
                           padding: '3px 6px',
@@ -392,7 +392,7 @@ const AccessCodeNotebook = forwardRef<AccessCodeNotebookRef>((props, ref) => {
                         style={{
                           flex: 1,
                           background: '#eef2ff',
-                          color: '#4f7cff',
+                          color: 'var(--primary-color, #5B7BFA)',
                           border: 'none',
                           borderRadius: 3,
                           padding: '3px 6px',
