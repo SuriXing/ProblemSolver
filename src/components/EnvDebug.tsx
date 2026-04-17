@@ -4,7 +4,7 @@ interface EnvVars {
   [key: string]: string;
 }
 
-export const EnvDebug: React.FC = () => {
+const EnvDebug: React.FC = () => {
   const [viteVars, setViteVars] = useState<EnvVars>({});
   const [processVars, setProcessVars] = useState<EnvVars>({});
 

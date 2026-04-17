@@ -1,12 +1,12 @@
 export type SupportedLanguages = 'zh-CN' | 'en' | 'ja' | 'ko' | 'es';
 
-export interface I18nResources {
+interface I18nResources {
   translation: {
     [key: string]: string | I18nResources;
   };
 }
 
-export interface TranslationOptions {
+interface TranslationOptions {
   lng?: SupportedLanguages;
   ns?: string;
   fallbackLng?: SupportedLanguages[];
@@ -19,7 +19,7 @@ export interface TranslationOptions {
   };
 }
 
-export interface TranslationContext {
+interface TranslationContext {
   changeLanguage: (lang: SupportedLanguages) => Promise<void>;
   getCurrentLanguage: () => SupportedLanguages;
   currentLanguage: string;

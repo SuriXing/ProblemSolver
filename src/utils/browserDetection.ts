@@ -106,8 +106,3 @@ export function initBrowserCompatibility(): void {
     window.addEventListener('resize', setVhVariable);
   }
 }
-
-export default {
-  detectBrowser,
-  initBrowserCompatibility
-}; 

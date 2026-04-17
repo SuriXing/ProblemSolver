@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 export type ThemeId = 'blue' | 'purple' | 'teal' | 'sunset' | 'forest';
 export type ThemeMode = 'dark' | 'light';
 
-export interface Theme {
+interface Theme {
   id: ThemeId;
   name: string;
   swatch: string;
