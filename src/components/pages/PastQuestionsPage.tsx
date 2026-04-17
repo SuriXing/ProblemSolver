@@ -124,7 +124,8 @@ const PastQuestionsPage: React.FC<PastQuestionsPageProps> = ({ showDebug, debugP
   };
 
   // Auto-populate access code from URL query (?code=XYZ) or sessionStorage
-  // (set by SharePage redirect or notebook "go to problem" action)
+  // (set by SharePage redirect or notebook "go to problem" action).
+  // Re-runs when the URL query changes so SPA nav into ?code=... also triggers.
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const codeFromUrl = params.get('code');
@@ -139,9 +140,10 @@ const PastQuestionsPage: React.FC<PastQuestionsPageProps> = ({ showDebug, debugP
       // Auto-fetch the post
       fetchPostByCode(upper);
     }
-    // Run once on mount — intentionally omit fetchPostByCode to avoid loops
+    // fetchPostByCode is stable via useCallback; depend on location.search so
+    // SPA navigation to `?code=...` re-runs the effect.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [location.search]);
 
   const handleProblemSolved = async () => {
     if (!fetchedPost?.access_code) return;

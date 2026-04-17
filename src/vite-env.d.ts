@@ -4,7 +4,8 @@ interface ImportMetaEnv {
   // Custom environment variables
   readonly VITE_SUPABASE_URL: string;
   readonly VITE_SUPABASE_ANON_KEY: string;
-  readonly VITE_SUPABASE_SERVICE_ROLE_KEY: string;
+  // Note: service role key is server-only. Never declare it here as VITE_*.
+  readonly VITE_MENTOR_URL?: string;
   
   // Built-in Vite environment variables
   readonly MODE: string;

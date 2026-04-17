@@ -23,11 +23,16 @@ try {
   console.log('App mounted successfully');
 } catch (error) {
   console.error('Error mounting app:', error);
-  // Display error in DOM as fallback
-  document.body.innerHTML = `
-    <div style="color: red; padding: 20px;">
-      <h1>Error mounting the application</h1>
-      <pre>${error instanceof Error ? error.message : String(error)}</pre>
-    </div>
-  `;
+  // Display error in DOM as fallback — use textContent to avoid DOM XSS if the
+  // error message ever contains attacker-controlled HTML.
+  const container = document.createElement('div');
+  container.style.color = 'red';
+  container.style.padding = '20px';
+  const heading = document.createElement('h1');
+  heading.textContent = 'Error mounting the application';
+  const pre = document.createElement('pre');
+  pre.textContent = error instanceof Error ? error.message : String(error);
+  container.appendChild(heading);
+  container.appendChild(pre);
+  document.body.replaceChildren(container);
 } 

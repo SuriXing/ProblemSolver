@@ -43,7 +43,10 @@ const DetailPage: React.FC = () => {
       setError(t('noAccessCodeProvided'));
       setIsLoading(false);
     }
-  }, [accessCode, t]);
+    // `t` is a new reference every render (i18next wrapper); including it here
+    // causes an infinite fetch loop. accessCode is the only real dependency.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [accessCode]);
   
   const fetchPost = (code: string) => {
     setIsLoading(true);

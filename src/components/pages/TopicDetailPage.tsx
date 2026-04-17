@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import DOMPurify from 'dompurify';
 import { useTypeSafeTranslation } from '../../utils/translationHelper';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
@@ -186,9 +187,9 @@ const TopicDetailPage: React.FC = () => {
         
         <h2 className={styles.topicTitle}>{topic.title}</h2>
         
-        <div 
+        <div
           className={styles.topicContent}
-          dangerouslySetInnerHTML={{ __html: topic.content }}
+          dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(topic.content) }}
         />
         
         <div className={styles.topicFooter}>

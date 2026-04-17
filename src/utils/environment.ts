@@ -6,7 +6,6 @@
 interface ImportMetaEnv {
   VITE_SUPABASE_URL: string;
   VITE_SUPABASE_ANON_KEY: string;
-  VITE_SUPABASE_SERVICE_ROLE_KEY?: string;
   MODE: string;
   DEV: boolean;
   PROD: boolean;
@@ -17,10 +16,10 @@ interface ImportMetaEnv {
 // Simplified access to environment variables
 const env: ImportMetaEnv = import.meta.env;
 
-// Supabase configuration
+// Supabase configuration (anon key is public-safe; service role key MUST NOT be
+// in a VITE_ variable — it bypasses RLS and would be bundled into client JS).
 export const SUPABASE_URL = env.VITE_SUPABASE_URL || '';
 export const SUPABASE_ANON_KEY = env.VITE_SUPABASE_ANON_KEY || '';
-export const SUPABASE_SERVICE_ROLE_KEY = env.VITE_SUPABASE_SERVICE_ROLE_KEY || '';
 
 // Environment information
 export const NODE_ENV = env.MODE || 'development';

@@ -1,43 +1,22 @@
-import { SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY } from './environment';
+import { SUPABASE_URL, SUPABASE_ANON_KEY } from './environment';
 
 /**
- * Get the Supabase URL from environment variables or fallback
+ * Get the Supabase URL from env. Throws if missing — fail loud, don't ship
+ * a hardcoded production URL as a silent fallback.
  */
 export function getSupabaseUrl(): string {
-  // Primary source: centralized environment variable
-  const primaryUrl = SUPABASE_URL;
-  
-  // Always provide a fallback value for development
-  const fallbackUrl = 'https://bihltxhebindflclsutw.supabase.co';
-
-  return primaryUrl || fallbackUrl;
+  if (!SUPABASE_URL) {
+    throw new Error('VITE_SUPABASE_URL is not set');
+  }
+  return SUPABASE_URL;
 }
 
 /**
- * Get the Supabase Anon Key from environment variables or fallback
+ * Get the Supabase anon (publishable) key from env. Throws if missing.
  */
 export function getSupabaseAnonKey(): string {
-  // Primary source: centralized environment variable
-  const primaryKey = SUPABASE_ANON_KEY;
-  
-  // Fallback for local development if needed
-  const fallbackKey = 'sb_publishable_ochy1eHzpFRMSCOndm3FQg_mLvGhDrL';
-  
-  return primaryKey || fallbackKey;
-}
-
-/**
- * Get the Supabase Service Role Key from environment variables or fallback
- */
-export function getSupabaseServiceRoleKey(): string {
-  // Primary source: centralized environment variable
-  const primaryKey = SUPABASE_SERVICE_ROLE_KEY;
-  
-  // If no environment variable is found, log error and return empty string
-  if (!primaryKey) {
-    console.error('Supabase Service Role Key not found in environment variables');
-    return '';
+  if (!SUPABASE_ANON_KEY) {
+    throw new Error('VITE_SUPABASE_ANON_KEY is not set');
   }
-  
-  return primaryKey;
-} 
+  return SUPABASE_ANON_KEY;
+}

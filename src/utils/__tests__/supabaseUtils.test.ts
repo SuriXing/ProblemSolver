@@ -4,33 +4,20 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 vi.mock('../environment', () => ({
   SUPABASE_URL: '',
   SUPABASE_ANON_KEY: '',
-  SUPABASE_SERVICE_ROLE_KEY: '',
 }));
 
-import { getSupabaseUrl, getSupabaseAnonKey, getSupabaseServiceRoleKey } from '../supabaseUtils';
+import { getSupabaseUrl, getSupabaseAnonKey } from '../supabaseUtils';
 
 describe('supabaseUtils', () => {
   describe('getSupabaseUrl', () => {
-    it('returns fallback URL when env var is empty', () => {
-      const url = getSupabaseUrl();
-      expect(url).toBe('https://bihltxhebindflclsutw.supabase.co');
+    it('throws when env var is empty (fail loud, no hardcoded fallback)', () => {
+      expect(() => getSupabaseUrl()).toThrow(/VITE_SUPABASE_URL/);
     });
   });
 
   describe('getSupabaseAnonKey', () => {
-    it('returns fallback key when env var is empty', () => {
-      const key = getSupabaseAnonKey();
-      expect(key).toBe('sb_publishable_ochy1eHzpFRMSCOndm3FQg_mLvGhDrL');
-    });
-  });
-
-  describe('getSupabaseServiceRoleKey', () => {
-    it('returns empty string and logs error when env var is empty', () => {
-      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-      const key = getSupabaseServiceRoleKey();
-      expect(key).toBe('');
-      expect(consoleSpy).toHaveBeenCalledWith('Supabase Service Role Key not found in environment variables');
-      consoleSpy.mockRestore();
+    it('throws when env var is empty (fail loud, no hardcoded fallback)', () => {
+      expect(() => getSupabaseAnonKey()).toThrow(/VITE_SUPABASE_ANON_KEY/);
     });
   });
 });
@@ -40,15 +27,13 @@ describe('supabaseUtils with env vars set', () => {
     vi.resetModules();
   });
 
-  it('returns primary URL when env var is set', async () => {
+  it('returns primary URL and key when env vars are set', async () => {
     vi.doMock('../environment', () => ({
       SUPABASE_URL: 'https://my-project.supabase.co',
       SUPABASE_ANON_KEY: 'my-anon-key',
-      SUPABASE_SERVICE_ROLE_KEY: 'my-service-key',
     }));
     const mod = await import('../supabaseUtils');
     expect(mod.getSupabaseUrl()).toBe('https://my-project.supabase.co');
     expect(mod.getSupabaseAnonKey()).toBe('my-anon-key');
-    expect(mod.getSupabaseServiceRoleKey()).toBe('my-service-key');
   });
 });
