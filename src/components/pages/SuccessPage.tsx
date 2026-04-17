@@ -123,7 +123,7 @@ const SuccessPage: React.FC = () => {
             <h4>Save your code to the Notebook</h4>
             <p>
               Open the small notebook in the bottom-left corner to save this code
-              with a note (e.g. "School issue") so you never lose track of which
+              with a note (e.g. &quot;School issue&quot;) so you never lose track of which
               problem is which.
             </p>
           </div>

@@ -208,8 +208,8 @@ class AdminService {
    * authenticated path.
    */
   static async getAllPosts(
-    page: number = 1,
-    limit: number = 20,
+    page = 1,
+    limit = 20,
   ): Promise<{ posts: Post[]; total: number }> {
     try {
       if (!(await this.isAuthenticatedVerified())) {
@@ -410,7 +410,7 @@ class AdminService {
    * Sorted newest first so unread tracking works naturally — the most recent
    * activity is at the top.
    */
-  static async getAllReplies(limit: number = 200): Promise<ReplyWithPost[]> {
+  static async getAllReplies(limit = 200): Promise<ReplyWithPost[]> {
     try {
       if (!(await this.isAuthenticatedVerified())) {
         return [];
@@ -512,7 +512,7 @@ class AdminService {
    * This is the admin-side half of the observability pipeline. The
    * write-side is src/utils/errorLog.ts + the ErrorBoundary component.
    */
-  static async getRecentErrors(limit: number = 100): Promise<AppError[]> {
+  static async getRecentErrors(limit = 100): Promise<AppError[]> {
     try {
       if (!(await this.isAuthenticatedVerified())) {
         return [];
