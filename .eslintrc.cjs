@@ -32,6 +32,9 @@ module.exports = {
       files: ['**/*.test.{ts,tsx}', '**/__tests__/**/*.{ts,tsx}'],
       rules: {
         '@typescript-eslint/no-empty-function': 'off',
+        // Test files use `!` freely after `expect(x).toBeDefined()` — the
+        // assertion is the null-check. Enforcing this adds noise, not safety.
+        '@typescript-eslint/no-non-null-assertion': 'off',
       },
     },
   ],
