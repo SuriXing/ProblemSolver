@@ -43,7 +43,7 @@ export default class ErrorBoundary extends React.Component<Props, State> {
         >
           <h1 style={{ fontSize: '1.5rem', marginBottom: 12 }}>Something went wrong</h1>
           <p style={{ color: '#666', marginBottom: 16 }}>
-            The app hit an unexpected error. We've logged the details and will look into
+            The app hit an unexpected error. We&apos;ve logged the details and will look into
             it. Please refresh the page — if it keeps happening, try clearing your
             browser cache.
           </p>

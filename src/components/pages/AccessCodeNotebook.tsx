@@ -15,7 +15,7 @@ export interface AccessCodeNotebookRef {
 const NOTEBOOK_KEY = 'accessCodeNotebook';
 
 // Global utility function to save access codes
-export const saveAccessCodeToNotebook = (accessCode: string, note: string = '') => {
+export const saveAccessCodeToNotebook = (accessCode: string, note = '') => {
   try {
     const saved = localStorage.getItem(NOTEBOOK_KEY);
     const entries: NotebookEntry[] = saved ? JSON.parse(saved) : [];
@@ -37,7 +37,7 @@ export const saveAccessCodeToNotebook = (accessCode: string, note: string = '') 
   }
 };
 
-const AccessCodeNotebook = forwardRef<AccessCodeNotebookRef>((props, ref) => {
+const AccessCodeNotebook = forwardRef<AccessCodeNotebookRef>(function AccessCodeNotebook(props, ref) {
   const navigate = useNavigate();
   const [entries, setEntries] = useState<NotebookEntry[]>([]);
   const [code, setCode] = useState('');
@@ -135,7 +135,7 @@ const AccessCodeNotebook = forwardRef<AccessCodeNotebookRef>((props, ref) => {
     setEditingNote('');
   };
 
-  const addAccessCode = (accessCode: string, accessNote: string = '') => {
+  const addAccessCode = (accessCode: string, accessNote = '') => {
     const exists = entries.some(entry => entry.code === accessCode);
     if (!exists && accessCode.trim()) {
       const newEntry = { code: accessCode.trim(), note: accessNote.trim() };

@@ -127,7 +127,7 @@ const TopicDetailPage: React.FC = () => {
     setSortOrder(order);
     
     // Sort replies
-    let sortedReplies = [...topicReplies];
+    const sortedReplies = [...topicReplies];
     if (order === 'oldest') {
       sortedReplies.reverse();
     } else if (order === 'helpful') {

@@ -819,8 +819,8 @@ const AdminDashboardPage: React.FC = () => {
                   message="暂无错误记录"
                   description={
                     <span>
-                      点击"刷新"加载最近 100 条。如果什么都没加载出来，代表 app_errors 表是空的 —
-                      这很正常。也可以在浏览器 devtools 里 <code>throw new Error('test')</code>
+                      点击&quot;刷新&quot;加载最近 100 条。如果什么都没加载出来，代表 app_errors 表是空的 —
+                      这很正常。也可以在浏览器 devtools 里 <code>throw new Error(&apos;test&apos;)</code>
                       ，几秒后刷新应该能看到这条记录。
                     </span>
                   }

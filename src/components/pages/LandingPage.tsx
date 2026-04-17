@@ -66,7 +66,7 @@ const LandingPage: React.FC = () => {
 
       <div className="landing-content">
         <div className={`landing-brand-pill ${step >= 1 ? 'visible' : ''}`}>
-          ✨ Suri's Lab
+          ✨ Suri&apos;s Lab
         </div>
 
         <h1 className={`landing-title ${step >= 2 ? 'visible' : ''}`}>
