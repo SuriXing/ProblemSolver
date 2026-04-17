@@ -57,7 +57,6 @@ const HelpPage: React.FC = () => {
   const [activeFilter, setActiveFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const postsPerPage = 10;
-  const [renderError, setRenderError] = useState<Error | null>(null);
   const [helpItems, setHelpItems] = useState<Post[]>([]);
 
   // Get all available tags
@@ -97,166 +96,152 @@ const HelpPage: React.FC = () => {
     i18n.reloadResources();
   }, [i18n]);
 
-  try {
-    // Handle tag click
-    const handleTagClick = (tag: string) => {
-      if (selectedTag === tag) {
-        setSelectedTag(null); // Deselect if already selected
-      } else {
-        setSelectedTag(tag);
-      }
-      setCurrentPage(1); // Reset to first page
-    };
-    
-    // Handle filter change
-    const handleFilterChange = (e: RadioChangeEvent) => {
-      setActiveFilter(e.target.value);
-    };
-    
-    // Filter posts by search term and tag
-    const filteredPosts = helpItems.filter(post => {
-      const matchesSearch = !searchTerm || 
-        (post.content && post.content.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (post.user_id && post.user_id.includes(searchTerm));
-      const matchesTag = !selectedTag || (post.tags && post.tags.includes(selectedTag));
-      let matchesFilter = true;
-      if (activeFilter === 'solved') {
-        matchesFilter = post.status === 'solved';
-      }
-      // You can add more filter logic for 'newest' or others if needed
-      return matchesSearch && matchesTag && matchesFilter;
-    });
-    
-    // Pagination
-    const indexOfLastPost = currentPage * postsPerPage;
-    const indexOfFirstPost = indexOfLastPost - postsPerPage;
-    const currentPosts = filteredPosts.slice(indexOfFirstPost, indexOfLastPost);
-    
-    // Change page
-    const handlePageChange = (page: number) => {
-      setCurrentPage(page);
-    };
-    
-    // Handle search
-    const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-      setSearchTerm(e.target.value);
-      setCurrentPage(1); // Reset to first page when searching
-    };
-    
-    return (
-      <Layout>
-        <div className="help-page-container">
-          <div className="help-header">
-            <h1>{t('helpPageTitle')}</h1>
-            <p>{t('helpPageDescription')}</p>
-            
-            <div className="action-buttons">
-              <Link to="/" className="back-button">
-                <Button type="default" icon={<ArrowLeftOutlined />}>
-                  {t('backToHome')}
-                </Button>
-              </Link>
-            </div>
+  // Handle tag click
+  const handleTagClick = (tag: string) => {
+    if (selectedTag === tag) {
+      setSelectedTag(null); // Deselect if already selected
+    } else {
+      setSelectedTag(tag);
+    }
+    setCurrentPage(1); // Reset to first page
+  };
+
+  // Handle filter change
+  const handleFilterChange = (e: RadioChangeEvent) => {
+    setActiveFilter(e.target.value);
+  };
+
+  // Filter posts by search term and tag
+  const filteredPosts = helpItems.filter(post => {
+    const matchesSearch = !searchTerm ||
+      (post.content && post.content.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (post.user_id && post.user_id.includes(searchTerm));
+    const matchesTag = !selectedTag || (post.tags && post.tags.includes(selectedTag));
+    let matchesFilter = true;
+    if (activeFilter === 'solved') {
+      matchesFilter = post.status === 'solved';
+    }
+    // You can add more filter logic for 'newest' or others if needed
+    return matchesSearch && matchesTag && matchesFilter;
+  });
+
+  // Pagination
+  const indexOfLastPost = currentPage * postsPerPage;
+  const indexOfFirstPost = indexOfLastPost - postsPerPage;
+  const currentPosts = filteredPosts.slice(indexOfFirstPost, indexOfLastPost);
+
+  // Change page
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  // Handle search
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
+    setCurrentPage(1); // Reset to first page when searching
+  };
+
+  return (
+    <Layout>
+      <div className="help-page-container">
+        <div className="help-header">
+          <h1>{t('helpPageTitle')}</h1>
+          <p>{t('helpPageDescription')}</p>
+
+          <div className="action-buttons">
+            <Link to="/" className="back-button">
+              <Button type="default" icon={<ArrowLeftOutlined />}>
+                {t('backToHome')}
+              </Button>
+            </Link>
           </div>
-          
-          <div className="search-filter-container">
-            <div className="search-box">
-              <Input 
-                placeholder={t('searchPlaceholder')}
-                prefix={<SearchOutlined />}
-                value={searchTerm}
-                onChange={handleSearch}
-              />
-            </div>
-            
-            <div className="filter-options">
-              <Radio.Group value={activeFilter} onChange={handleFilterChange}>
-                <Radio.Button value="all">{t('allPosts')}</Radio.Button>
-                <Radio.Button value="newest">{t('newest')}</Radio.Button>
-                <Radio.Button value="solved">{t('solved')}</Radio.Button>
-              </Radio.Group>
-            </div>
+        </div>
+
+        <div className="search-filter-container">
+          <div className="search-box">
+            <Input
+              placeholder={t('searchPlaceholder')}
+              prefix={<SearchOutlined />}
+              value={searchTerm}
+              onChange={handleSearch}
+            />
           </div>
-          
-          <div className="tags-container">
-            {getTags().map(tag => (
-              <span 
-                key={tag}
-                className={`tag ${selectedTag === tag ? 'active' : ''}`}
-                onClick={() => handleTagClick(tag)}
-              >
-                {i18nextT(`tag.${tag}`, { defaultValue: tag })}
-              </span>
-            ))}
+
+          <div className="filter-options">
+            <Radio.Group value={activeFilter} onChange={handleFilterChange}>
+              <Radio.Button value="all">{t('allPosts')}</Radio.Button>
+              <Radio.Button value="newest">{t('newest')}</Radio.Button>
+              <Radio.Button value="solved">{t('solved')}</Radio.Button>
+            </Radio.Group>
           </div>
-          
-          {loading ? (
-            <div className="loading-container">
-              <div className="loading-spinner"></div>
-              <p>{t('loadingPosts')}</p>
-            </div>
-          ) : error ? (
-            <div className="error-container">
-              <p>{error}</p>
-            </div>
-          ) : currentPosts.length === 0 ? (
-            <div className="no-posts-container">
-              <p>{t('noPostsFound')}</p>
-            </div>
-          ) : (
-            <div className="posts-container">
-              {currentPosts.map(post => (
-                <Card key={post.id} className="post-card">
-                  <Link to={`/help/${post.access_code}`} className="post-link">
-                    <div className="post-content">
-                      <div className="post-text">{post.content}</div>
-                      <div className="post-meta">
-                        <span className="post-time">{getTimeAgo(post.created_at, t)}</span>
-                      </div>
-                      <div className="post-tags">
-                        {post.tags && post.tags.map(tag => (
-                          <span key={tag} className="post-tag">{i18nextT(`tag.${tag}`, { defaultValue: tag })}</span>
-                        ))}
-                      </div>
-                      <div className="post-stats">
-                        <span className="post-views">
-                          <EyeOutlined /> {post.views || 0}
-                        </span>
-                        <span className="post-replies">
-                          <MessageOutlined /> {post.replies?.length || 0}
-                        </span>
-                      </div>
+        </div>
+
+        <div className="tags-container">
+          {getTags().map(tag => (
+            <span
+              key={tag}
+              className={`tag ${selectedTag === tag ? 'active' : ''}`}
+              onClick={() => handleTagClick(tag)}
+            >
+              {i18nextT(`tag.${tag}`, { defaultValue: tag })}
+            </span>
+          ))}
+        </div>
+
+        {loading ? (
+          <div className="loading-container">
+            <div className="loading-spinner"></div>
+            <p>{t('loadingPosts')}</p>
+          </div>
+        ) : error ? (
+          <div className="error-container">
+            <p>{error}</p>
+          </div>
+        ) : currentPosts.length === 0 ? (
+          <div className="no-posts-container">
+            <p>{t('noPostsFound')}</p>
+          </div>
+        ) : (
+          <div className="posts-container">
+            {currentPosts.map(post => (
+              <Card key={post.id} className="post-card">
+                <Link to={`/help/${post.access_code}`} className="post-link">
+                  <div className="post-content">
+                    <div className="post-text">{post.content}</div>
+                    <div className="post-meta">
+                      <span className="post-time">{getTimeAgo(post.created_at, t)}</span>
                     </div>
-                  </Link>
-                </Card>
-              ))}
-              
-              <Pagination
-                current={currentPage}
-                pageSize={postsPerPage}
-                total={filteredPosts.length}
-                onChange={handlePageChange}
-                showSizeChanger={false}
-                className="pagination"
-              />
-            </div>
-          )}
-        </div>
-      </Layout>
-    );
-  } catch (error) {
-    console.error('Render error:', error);
-    setRenderError(error as Error);
-    
-    return (
-      <Layout>
-        <div className="error-container">
-          <h2>{t('errorOccurred')}</h2>
-          <p>{renderError?.message || t('unknownError')}</p>
-        </div>
-      </Layout>
-    );
-  }
+                    <div className="post-tags">
+                      {post.tags && post.tags.map(tag => (
+                        <span key={tag} className="post-tag">{i18nextT(`tag.${tag}`, { defaultValue: tag })}</span>
+                      ))}
+                    </div>
+                    <div className="post-stats">
+                      <span className="post-views">
+                        <EyeOutlined /> {post.views || 0}
+                      </span>
+                      <span className="post-replies">
+                        <MessageOutlined /> {post.replies?.length || 0}
+                      </span>
+                    </div>
+                  </div>
+                </Link>
+              </Card>
+            ))}
+
+            <Pagination
+              current={currentPage}
+              pageSize={postsPerPage}
+              total={filteredPosts.length}
+              onChange={handlePageChange}
+              showSizeChanger={false}
+              className="pagination"
+            />
+          </div>
+        )}
+      </div>
+    </Layout>
+  );
 };
 
 export default HelpPage;

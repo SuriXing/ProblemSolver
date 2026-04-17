@@ -30,10 +30,13 @@ vi.mock('../utils/environment', () => ({
   IS_DEV: false,
   SUPABASE_URL: '',
   SUPABASE_ANON_KEY: '',
-  SUPABASE_SERVICE_ROLE_KEY: '',
   NODE_ENV: 'test',
   getEnv: () => '',
   getEnvironment: () => ({ SUPABASE_URL: '', SUPABASE_ANON_KEY: '' }),
+}));
+vi.mock('../utils/supabaseUtils', () => ({
+  getSupabaseUrl: () => 'https://test.supabase.co',
+  getSupabaseAnonKey: () => 'test-anon-key',
 }));
 
 import AppWrapper from '../App';

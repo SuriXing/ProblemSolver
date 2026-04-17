@@ -130,27 +130,29 @@ const SuccessPage: React.FC = () => {
         </div>
 
         {/* Mentor Table cross-promo */}
-        <div className={styles.mentorNotice}>
-          <div className={styles.noticeIcon}>
-            <FontAwesomeIcon icon={faComments} />
+        {import.meta.env.VITE_MENTOR_URL && (
+          <div className={styles.mentorNotice}>
+            <div className={styles.noticeIcon}>
+              <FontAwesomeIcon icon={faComments} />
+            </div>
+            <div className={styles.noticeBody}>
+              <h4>Want advice from famous minds?</h4>
+              <p>
+                While you wait for replies, try the <strong>Mentor Table</strong> —
+                sit down with AI versions of Bill Gates, Oprah, Miyazaki, and more
+                to get their perspective on your situation.
+              </p>
+              <a
+                href={import.meta.env.VITE_MENTOR_URL as string}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={styles.mentorLink}
+              >
+                Try Mentor Table →
+              </a>
+            </div>
           </div>
-          <div className={styles.noticeBody}>
-            <h4>Want advice from famous minds?</h4>
-            <p>
-              While you wait for replies, try the <strong>Mentor Table</strong> —
-              sit down with AI versions of Bill Gates, Oprah, Miyazaki, and more
-              to get their perspective on your situation.
-            </p>
-            <a
-              href="http://localhost:9999/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className={styles.mentorLink}
-            >
-              Try Mentor Table →
-            </a>
-          </div>
-        </div>
+        )}
 
         <div className={styles.successActions}>
           <div className={styles.actionButtons}>
