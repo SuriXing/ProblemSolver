@@ -5,6 +5,7 @@ import Footer from './Footer';
 import AccessCodeNotebook from '../pages/AccessCodeNotebook';
 import Aurora from '../shared/Aurora';
 import ThemePicker from '../shared/ThemePicker';
+import ThemeModeToggle from '../shared/ThemeModeToggle';
 import { useTheme } from '../../hooks/useTheme';
 import '../../styles/Layout.css';
 
@@ -26,6 +27,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       <Footer />
       <AccessCodeNotebook />
       <ThemePicker />
+      <ThemeModeToggle />
     </div>
   );
 };
