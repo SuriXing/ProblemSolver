@@ -207,6 +207,8 @@ export default function Aurora(props: AuroraProps) {
   return (
     <div
       ref={ctnDom}
+      aria-hidden="true"
+      role="presentation"
       style={{
         position: 'fixed',
         inset: 0,

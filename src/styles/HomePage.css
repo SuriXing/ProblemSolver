@@ -194,7 +194,7 @@
 /* Button styles */
 .btn-primary {
   display: inline-block;
-  background-color: var(--primary);
+  background-color: var(--primary-dark);
   color: var(--white);
   padding: 0.5rem 1rem;
   border-radius: 50px;
@@ -203,7 +203,7 @@
 }
 
 .btn-primary:hover {
-  background-color: var(--primary-dark);
+  background-color: #34499F;
 }
 
 /* Home View */
