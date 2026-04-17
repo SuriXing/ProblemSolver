@@ -115,7 +115,7 @@ const HomePage: React.FC = () => {
               borderRadius: '50%',
               width: 48,
               height: 48,
-              color: 'white',
+              color: 'var(--text-on-primary, #f5f7ff)',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',

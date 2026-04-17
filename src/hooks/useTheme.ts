@@ -17,10 +17,10 @@ export const THEMES: Record<ThemeId, Theme> = {
   blue: {
     id: 'blue',
     name: '深蓝 · Dark Blue',
-    swatch: '#5B7BFA',
+    swatch: '#4360D3',
     aurora: ['#1a2a6c', '#5B7BFA', '#4A90FA'],
-    primary: '#5B7BFA',
-    primaryDark: '#4360D3',
+    primary: '#4360D3',
+    primaryDark: '#3149a8',
     primaryLight: '#8A9FFC',
   },
   purple: {

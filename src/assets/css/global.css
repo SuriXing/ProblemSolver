@@ -51,7 +51,7 @@ a:hover {
 .btn-primary {
     display: inline-block;
     background-color: var(--primary-color);
-    color: white;
+    color: var(--text-on-primary, #f5f7ff);
     padding: 10px 25px;
     border-radius: 50px;
     font-weight: 500;
@@ -63,7 +63,7 @@ a:hover {
 .btn-primary:hover {
     transform: translateY(-2px);
     box-shadow: 0 5px 15px color-mix(in srgb, var(--primary-color) 30%, transparent);
-    color: white;
+    color: var(--text-on-primary, #f5f7ff);
 }
 
 /* Animations */

@@ -193,7 +193,7 @@ a:hover {
 .btn-primary {
   display: inline-block;
   background-color: var(--color-primary);
-  color: white;
+  color: var(--text-on-primary, #f5f7ff);
   padding: 0.75rem 1.5rem;
   border-radius: 0.375rem;
   font-weight: 500;
@@ -387,7 +387,7 @@ footer {
 
 .App-header {
   background-color: var(--color-primary);
-  color: white;
+  color: var(--text-on-primary, #f5f7ff);
   padding: 2rem;
   display: flex;
   flex-direction: column;

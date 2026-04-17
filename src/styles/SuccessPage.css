@@ -58,7 +58,7 @@
 
 .copy-button {
   background-color: var(--primary-color, #5B7BFA);
-  color: white;
+  color: var(--text-on-primary, #f5f7ff);
   border: none;
   border-radius: 4px;
   padding: 0.5rem;

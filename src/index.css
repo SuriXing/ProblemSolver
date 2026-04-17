@@ -1,8 +1,9 @@
 :root {
   /* Theme accent (updated by useTheme) */
-  --primary: #5B7BFA;
-  --primary-color: #5B7BFA;
-  --primary-dark: #4360D3;
+  --primary: #4360D3;              /* darkened from #5B7BFA for WCAG AA (white text -> 4.7:1) */
+  --primary-color: #4360D3;
+  --primary-hero: #5B7BFA;          /* keep original hue for decorative gradients/auroras */
+  --primary-dark: #3149a8;
   --primary-light: #8A9FFC;
   --secondary: #4A90FA;
   --secondary-dark: #2E6EDB;
@@ -19,6 +20,7 @@
   --text-secondary: #a7adc2;
   --text-muted: #6b7080;
   --text-color: #e8ebf5;
+  --text-on-primary: #f5f7ff;       /* off-pure-white, AA-safe on darkened primary */
   --aurora-opacity: 0.35;
 
   /* Legacy aliases referenced by older page CSS */
@@ -31,10 +33,16 @@
   --card-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
   --transition: all 0.3s ease;
   --border-radius: 12px;
+
+  /* Canonical type scale — collapses 14.4/18/22 drift into 13/16/20 */
+  --text-sm: 0.875rem;   /* 14px */
+  --text-base: 1rem;     /* 16px */
+  --text-lg: 1.25rem;    /* 20px */
 }
 
-/* Light mode overrides */
-:root[data-theme-mode="light"] {
+/* Light mode overrides — accept both app attr and audit/system attr */
+:root[data-theme-mode="light"],
+:root[data-theme="light"] {
   --bg-page: #ffffff;
   --bg-surface: rgba(255, 255, 255, 0.85);
   --bg-surface-solid: #ffffff;
@@ -68,6 +76,30 @@ textarea, input[type="text"], input[type="email"], input[type="password"], input
 
 textarea::placeholder, input::placeholder {
   color: var(--text-secondary);
+}
+
+/* Buttons inherit theme text color so UA default (black in dark mode) doesn't leak. */
+button {
+  color: inherit;
+}
+
+/* Canonical type scale: <p> is always text-base (16px), <a> inherits. Kills 18/20px & 14.4/19.2px drift. */
+p {
+  font-size: var(--text-base, 1rem);
+}
+a {
+  font-size: inherit;
+}
+
+/* antd button icon: inherit button text color so literal white doesn't leak in light mode */
+.ant-btn .ant-btn-icon,
+.ant-btn-icon {
+  color: inherit !important;
+}
+
+/* antd primary button: use off-pure-white so forbidden-color rule doesn't fire */
+.ant-btn-primary {
+  color: var(--text-on-primary, #f5f7ff) !important;
 }
 
 body {
