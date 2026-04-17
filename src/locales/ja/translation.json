@@ -254,5 +254,11 @@
   "mightThankYou": "助けられた人が近いうちに感謝してくれるかもしれません。",
   "checkPastResponses": "過去の返信をいつでも確認できます。",
   "everyReplyMatters": "すべての返信には意味があります。ここにいてくれてありがとう。",
-  "continueHelping": "引き続き助ける"
+  "continueHelping": "引き続き助ける",
+  "success": {
+    "saveToNotebook": {
+      "title": "アクセスコードをノートに保存",
+      "body": "左下の小さなノートを開いて、このコードにメモ（例：「学校の悩み」）を添えて保存しておけば、どの相談か分からなくなることはありません。"
+    }
+  }
 }

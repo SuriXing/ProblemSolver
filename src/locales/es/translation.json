@@ -254,5 +254,11 @@
   "mightThankYou": "La persona a la que ayudaste podría agradecerte pronto.",
   "checkPastResponses": "Puedes revisar tus respuestas anteriores en cualquier momento.",
   "everyReplyMatters": "Cada respuesta importa. Gracias por estar aquí.",
-  "continueHelping": "Seguir ayudando"
+  "continueHelping": "Seguir ayudando",
+  "success": {
+    "saveToNotebook": {
+      "title": "Guarda tu código en la Libreta",
+      "body": "Abre la pequeña libreta en la esquina inferior izquierda para guardar este código con una nota (p. ej., \"Tema del colegio\") y así nunca perder de vista qué problema es cuál."
+    }
+  }
 }
