@@ -133,7 +133,7 @@ export const DatabaseService = {
         .order('created_at', { ascending: true });
 
       const result = { ...(post as any), replies: replies ?? [] } as Post;
-      console.log(i18next.t('postRetrieveStatus', { found: true }));
+      console.log(i18next.t('postRetrieveStatus', { status: 'found' }));
       return result;
     } catch (error) {
       console.error('Exception fetching post by access code:', error);
