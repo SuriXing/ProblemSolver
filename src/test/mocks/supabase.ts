@@ -41,7 +41,7 @@ export function createQueryBuilder(overrides: Record<string, any> = {}) {
   return builder;
 }
 
-export function createSupabaseMock() {
+function createSupabaseMock() {
   const mock = {
     from: vi.fn().mockReturnValue(createQueryBuilder()),
     rpc: vi.fn().mockResolvedValue({ data: null, error: null }),

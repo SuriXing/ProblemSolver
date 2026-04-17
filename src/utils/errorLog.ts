@@ -1,6 +1,6 @@
 import { supabase } from '../lib/supabase';
 
-export interface LogErrorOpts {
+interface LogErrorOpts {
   source: 'client' | 'api' | 'cron';
   message: string;
   stack?: string;
@@ -86,5 +86,3 @@ export function installGlobalErrorHandlers(): void {
     });
   });
 }
-
-export { simpleFingerprint as _simpleFingerprint };

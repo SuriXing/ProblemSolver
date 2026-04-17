@@ -8,7 +8,7 @@ interface NotebookEntry {
   solved?: boolean;
 }
 
-export interface AccessCodeNotebookRef {
+interface AccessCodeNotebookRef {
   addAccessCode: (code: string, note?: string) => void;
 }
 
