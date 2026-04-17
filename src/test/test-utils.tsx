@@ -27,4 +27,3 @@ function renderWithRouter(
 
 export { renderWithRouter, AllProviders };
 export { render, screen, waitFor, fireEvent, act, within } from '@testing-library/react';
-export { default as userEvent } from '@testing-library/user-event';
