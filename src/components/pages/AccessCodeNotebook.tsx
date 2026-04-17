@@ -108,6 +108,8 @@ const AccessCodeNotebook = forwardRef<AccessCodeNotebookRef>(function AccessCode
     if (!open) return;
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
+        // Stop bubbling so parent Ant Modal doesn't also close on the same ESC.
+        e.stopPropagation();
         setOpen(false);
         triggerRef.current?.focus();
       }

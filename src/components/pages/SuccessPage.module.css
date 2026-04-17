@@ -20,18 +20,19 @@
   font-size: 2rem;
   font-weight: 600;
   margin-bottom: 0.5rem;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .successSubtitle {
   font-size: 1.1rem;
-  color: #666;
+  color: var(--text-secondary);
   max-width: 600px;
   margin: 0 auto;
 }
 
 .accessCodeContainer {
-  background-color: #f5f7fa;
+  background-color: var(--bg-surface);
+  border: 1px solid color-mix(in srgb, var(--primary-color) 18%, transparent);
   border-radius: 10px;
   padding: 1.5rem;
   margin-bottom: 2rem;
@@ -41,7 +42,7 @@
 .accessCodeTitle {
   font-size: 1.3rem;
   margin-bottom: 1rem;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .accessCodeDisplay {
@@ -86,7 +87,7 @@
 
 .accessCodeDesc {
   font-size: 0.9rem;
-  color: #666;
+  color: var(--text-secondary);
   margin-bottom: 1.5rem;
 }
 
@@ -233,7 +234,8 @@
 }
 
 .successInfoBox {
-  background-color: #f0f4f9;
+  background-color: var(--bg-surface);
+  border: 1px solid color-mix(in srgb, var(--primary-color) 14%, transparent);
   border-radius: 8px;
   padding: 1.5rem;
   margin: 0 auto 2rem;
@@ -262,7 +264,7 @@
 .successInfoBox ul {
   list-style-type: disc;
   padding-left: 1.5rem;
-  color: #555;
+  color: var(--text-secondary);
   line-height: 1.6;
   margin: 0;
 }

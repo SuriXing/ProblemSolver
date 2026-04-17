@@ -29,6 +29,9 @@ node_modules/
 .env.*
 !.env.example
 
+# Supabase CLI temp state (leaks project ref + pooler URL)
+supabase/.temp/
+
 # 缓存文件
 *.cache
 

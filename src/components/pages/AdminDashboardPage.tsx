@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Layout, Card, Statistic, Row, Col, Table, Button, Space, Tag, Input,
@@ -28,6 +28,7 @@ const { confirm } = Modal;
 
 const AdminDashboardPage: React.FC = () => {
   const navigate = useNavigate();
+
   const [currentAdmin, setCurrentAdmin] = useState<AdminUser | null>(null);
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
@@ -42,6 +43,20 @@ const AdminDashboardPage: React.FC = () => {
   const [replyCounts, setReplyCounts] = useState<Map<string, number>>(new Map());
   const [lastSeenPostsAt, setLastSeenPostsAt] = useState<string | null>(getLastSeenPostsAt());
   const [lastSeenRepliesAt, setLastSeenRepliesAt] = useState<string | null>(getLastSeenRepliesAt());
+
+  // Memoized post buckets — sort/filter once per posts change instead of
+  // on every render (bug-bash R2 perf #2).
+  const { unsolved: unsolvedPosts, solved: solvedPosts, deleted: deletedPosts } = useMemo(() => {
+    const sorted = [...posts].sort(
+      (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    );
+    return {
+      unsolved: sorted.filter((p) => !p.deleted_at && p.status !== 'solved'),
+      solved: sorted.filter((p) => !p.deleted_at && p.status === 'solved'),
+      deleted: sorted.filter((p) => !!p.deleted_at),
+    };
+  }, [posts]);
+
 
   useEffect(() => {
     // Verify authentication against Supabase (not just the sync localStorage
@@ -491,12 +506,9 @@ const AdminDashboardPage: React.FC = () => {
               ) : (
                 <>
                   {(() => {
-                    const sorted = [...posts].sort(
-                      (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-                    );
-                    const unsolved = sorted.filter((p) => !p.deleted_at && p.status !== 'solved');
-                    const solved = sorted.filter((p) => !p.deleted_at && p.status === 'solved');
-                    const deleted = sorted.filter((p) => !!p.deleted_at);
+                    const unsolved = unsolvedPosts;
+                    const solved = solvedPosts;
+                    const deleted = deletedPosts;
 
                     const renderCard = (post: Post, section: 'unsolved' | 'solved' | 'deleted') => {
                       const replyCount = replyCountByPostId.get(post.id) ?? 0;

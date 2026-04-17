@@ -37,7 +37,7 @@ export default defineConfig(({ mode }) => {
     },
     build: {
       outDir: 'dist',
-      sourcemap: true, // Enable for debugging
+      sourcemap: false, // Disabled: leaks source + string literals in prod
       target: 'es2015',
       rollupOptions: {
         input: {

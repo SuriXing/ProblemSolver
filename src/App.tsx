@@ -1,4 +1,4 @@
-import { useState, Suspense, useEffect } from 'react';
+import { useState, Suspense, useEffect, lazy } from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import './i18n'; // Import i18n setup
 import { IS_PROD } from './utils/environment';
@@ -17,9 +17,10 @@ import SharePage from './components/pages/SharePage';
 import HelpDetailPage from './components/pages/HelpDetailPage';
 import NotFoundPage from './components/pages/NotFoundPage';
 import LoadingPage from './components/pages/LoadingPage';
-// Import admin components
-import AdminLoginPage from './components/pages/AdminLoginPage';
-import AdminDashboardPage from './components/pages/AdminDashboardPage';
+// Admin routes are lazy-loaded: anonymous users never download admin code
+// (bug-bash R2 perf #1).
+const AdminLoginPage = lazy(() => import('./components/pages/AdminLoginPage'));
+const AdminDashboardPage = lazy(() => import('./components/pages/AdminDashboardPage'));
 import ProtectedRoute from './components/ProtectedRoute';
 
 // Import additional components

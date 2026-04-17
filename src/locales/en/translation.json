@@ -254,5 +254,11 @@
   "mightThankYou": "The person you helped might thank you soon.",
   "checkPastResponses": "You can check your past responses any time.",
   "everyReplyMatters": "Every reply matters. Thank you for being here.",
-  "continueHelping": "Continue Helping"
+  "continueHelping": "Continue Helping",
+  "success": {
+    "saveToNotebook": {
+      "title": "Save your code to the Notebook",
+      "body": "Open the small notebook in the bottom-left corner to save this code with a note (e.g. \"School issue\") so you never lose track of which problem is which."
+    }
+  }
 }
