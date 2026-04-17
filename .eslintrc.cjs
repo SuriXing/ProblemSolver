@@ -17,6 +17,9 @@ module.exports = {
     ],
     'react/react-in-jsx-scope': 'off',
     'react/prop-types': 'off',
+    // Local rule loaded via --rulesdir eslint-rules. Warn initially so repo
+    // passes lint; ratchet to 'error' after fixing existing drift.
+    'no-missing-i18n-key': 'warn',
   },
   settings: {
     react: {
