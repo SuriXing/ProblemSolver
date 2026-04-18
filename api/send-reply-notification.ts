@@ -144,17 +144,24 @@ function header(req: any, name: string): string | undefined {
 }
 
 function clientIp(req: any): string {
-  // ON VERCEL: prefer `x-vercel-forwarded-for` (set by the edge proxy, not
-  // settable from the client). Falling back to the RIGHTMOST entry in
-  // x-forwarded-for, because Vercel APPENDS the real client IP rather than
-  // replacing — the leftmost is whatever the attacker put there.
-  // (S3.2 round 1 finding: trusting leftmost XFF made the IP rate limit a
-  // free bypass — attacker rotates the header per request → fresh bucket.)
+  // ON VERCEL there are TWO XFF-shaped headers with OPPOSITE trust semantics:
+  //
+  //   - `x-vercel-forwarded-for` is set by Vercel's edge proxy. Single trusted
+  //     client IP (occasionally a chain if a customer proxy sits in front).
+  //     LEFTMOST = original client. NOT client-controllable.
+  //
+  //   - `x-forwarded-for` is the standard header. Vercel APPENDS the real
+  //     client to the right rather than replacing, so RIGHTMOST = trusted on
+  //     Vercel, LEFTMOST = whatever the attacker put in the request.
+  //
+  // (S3.2 round 1: the old code took leftmost of x-forwarded-for and the per-IP
+  // rate limit was a free bypass — rotate the header per request → fresh
+  // bucket. Round 2: the round-1 fix mistakenly applied "rightmost" to BOTH
+  // headers, which is wrong for x-vercel-forwarded-for if it's ever a chain.)
   const vercel = header(req, 'x-vercel-forwarded-for');
   if (vercel) {
-    const parts = vercel.split(',');
-    const last = parts[parts.length - 1];
-    if (last) return last.trim();
+    const first = vercel.split(',')[0];
+    if (first) return first.trim();
   }
   const xff = header(req, 'x-forwarded-for');
   if (xff) {
