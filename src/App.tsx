@@ -5,29 +5,30 @@ import { IS_PROD } from './utils/environment';
 import { TranslationProvider } from './context/TranslationContext';
 import { useTranslation } from 'react-i18next';
 
-// Import all your page components
-import HomePage from './components/pages/HomePage';
-import HelpPage from './components/pages/HelpPage';
-import ConfessionPage from './components/pages/ConfessionPage';
-import SuccessPage from './components/pages/SuccessPage';
-import HelpSuccessPage from './components/pages/HelpSuccessPage';
-import PastQuestionsPage from './components/pages/PastQuestionsPage';
-import TopicDetailPage from './components/pages/TopicDetailPage';
-import SharePage from './components/pages/SharePage';
-import HelpDetailPage from './components/pages/HelpDetailPage';
-import NotFoundPage from './components/pages/NotFoundPage';
+// P1.1: every route is code-split. Only the chunks a user actually navigates
+// to get downloaded — first-paint cost is just App + router + i18n shell.
+// LoadingPage is eager because it's the Suspense fallback itself.
 import LoadingPage from './components/pages/LoadingPage';
-// Admin routes are lazy-loaded: anonymous users never download admin code
-// (bug-bash R2 perf #1).
+import ProtectedRoute from './components/ProtectedRoute';
+import ErrorBoundary from './components/ErrorBoundary';
+
+const HomePage = lazy(() => import('./components/pages/HomePage'));
+const HelpPage = lazy(() => import('./components/pages/HelpPage'));
+const ConfessionPage = lazy(() => import('./components/pages/ConfessionPage'));
+const SuccessPage = lazy(() => import('./components/pages/SuccessPage'));
+const HelpSuccessPage = lazy(() => import('./components/pages/HelpSuccessPage'));
+const PastQuestionsPage = lazy(() => import('./components/pages/PastQuestionsPage'));
+const TopicDetailPage = lazy(() => import('./components/pages/TopicDetailPage'));
+const SharePage = lazy(() => import('./components/pages/SharePage'));
+const HelpDetailPage = lazy(() => import('./components/pages/HelpDetailPage'));
+const NotFoundPage = lazy(() => import('./components/pages/NotFoundPage'));
 const AdminLoginPage = lazy(() => import('./components/pages/AdminLoginPage'));
 const AdminDashboardPage = lazy(() => import('./components/pages/AdminDashboardPage'));
-import ProtectedRoute from './components/ProtectedRoute';
 
-// Import additional components
-import SupabaseTest from './components/SupabaseTest';
-import EnvDebug from './components/EnvDebug';
-import DebugMenu from './components/DebugMenu';
-import ErrorBoundary from './components/ErrorBoundary';
+// Dev-only components — lazy so they never ship in the prod critical path.
+const SupabaseTest = lazy(() => import('./components/SupabaseTest'));
+const EnvDebug = lazy(() => import('./components/EnvDebug'));
+const DebugMenu = lazy(() => import('./components/DebugMenu'));
 
 const AppWrapper = () => {
   const { i18n } = useTranslation();
@@ -49,7 +50,7 @@ function App() {
   return (
     <ErrorBoundary>
     <TranslationProvider>
-      <Suspense fallback={<div>Loading...</div>}>
+      <Suspense fallback={<LoadingPage />}>
         <HashRouter>
           {isLoading ? (
             <LoadingPage />

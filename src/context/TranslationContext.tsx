@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useCallback, useEffect } from 'react';
+import React, { createContext, useContext, useCallback, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { SupportedLanguages } from '../types/i18n.types';
 import { withLocalSuffix } from '../utils/environmentLabel';
@@ -51,11 +51,11 @@ export const TranslationProvider: React.FC<{ children: React.ReactNode }> = ({ c
   }, []);
 
   return (
-    <TranslationContext.Provider value={{ 
-      changeLanguage, 
+    <TranslationContext.Provider value={useMemo(() => ({
+      changeLanguage,
       getCurrentLanguage,
-      currentLanguage: i18n.language 
-    }}>
+      currentLanguage: i18n.language,
+    }), [changeLanguage, getCurrentLanguage, i18n.language])}>
       {children}
     </TranslationContext.Provider>
   );
