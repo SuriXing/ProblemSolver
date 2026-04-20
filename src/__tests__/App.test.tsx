@@ -40,16 +40,17 @@ vi.mock('../utils/supabaseUtils', () => ({
 import AppWrapper from '../App';
 
 describe('App', () => {
-  it('renders without crashing', () => {
+  it('renders without crashing', async () => {
     render(<AppWrapper />);
-    // HashRouter starts at "/" which renders HomePage
-    expect(screen.getByText('HomePage')).toBeInTheDocument();
+    // HashRouter starts at "/" which renders HomePage. Routes are now lazy
+    // (P1.1), so Suspense shows LoadingPage first — await the resolved chunk.
+    expect(await screen.findByText('HomePage')).toBeInTheDocument();
   });
 
-  it('wraps the routed content in TranslationProvider', () => {
+  it('wraps the routed content in TranslationProvider', async () => {
     render(<AppWrapper />);
     const provider = screen.getByTestId('translation-provider');
     // The provider must wrap the rendered route content — HomePage must be a descendant
-    expect(provider).toContainElement(screen.getByText('HomePage'));
+    expect(provider).toContainElement(await screen.findByText('HomePage'));
   });
 });
