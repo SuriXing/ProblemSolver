@@ -171,3 +171,30 @@ html[data-theme-mode="light"] .footer,
 /* Theme-aware styling is handled via CSS custom properties in src/index.css.
  * prefers-color-scheme overrides were removed so the in-app theme toggle
  * actually works regardless of the OS setting. */
+/* A1.1 skip link — visually hidden until focused, then jumps visible in the
+   top-left so keyboard users can bypass the header/nav on every page. */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 8px;
+  background: var(--primary-color, #5B7BFA);
+  color: var(--text-on-primary, #fff);
+  padding: 8px 16px;
+  border-radius: 4px;
+  text-decoration: none;
+  font-weight: 600;
+  z-index: 10000;
+  transition: top 0.2s;
+}
+.skip-link:focus {
+  top: 8px;
+  outline: 2px solid var(--text-on-primary, #fff);
+  outline-offset: 2px;
+}
+
+/* Visible focus ring on all interactive elements — Ant Design removes
+   default outlines; restore for keyboard users via :focus-visible. */
+*:focus-visible {
+  outline: 2px solid var(--primary-color, #5B7BFA);
+  outline-offset: 2px;
+}

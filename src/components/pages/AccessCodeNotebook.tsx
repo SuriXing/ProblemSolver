@@ -402,7 +402,8 @@ const AccessCodeNotebook = forwardRef<AccessCodeNotebookRef>(function AccessCode
                         >×</button>
                       </div>
                     ) : (
-                      <div
+                      <button
+                        type="button"
                         onClick={() => startEditingNote(idx)}
                         style={{
                           fontSize: 11,
@@ -410,11 +411,17 @@ const AccessCodeNotebook = forwardRef<AccessCodeNotebookRef>(function AccessCode
                           fontStyle: entry.note ? 'normal' : 'italic',
                           cursor: 'pointer',
                           padding: '1px 2px',
+                          background: 'none',
+                          border: 'none',
+                          textAlign: 'left',
+                          width: '100%',
+                          font: 'inherit',
                         }}
                         title="Click to edit note"
+                        aria-label={entry.note ? `Edit note: ${entry.note}` : 'Add a note'}
                       >
                         {entry.note || '+ Add a note'}
-                      </div>
+                      </button>
                     )}
 
                     {/* Per-entry action row: copy code, open problem, toggle solved */}
