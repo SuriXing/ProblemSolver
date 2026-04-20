@@ -8,7 +8,7 @@ export const migrateDataToSupabase = async () => {
     
     // Insert each post into Supabase
     for (const post of allPosts) {
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('problems')
         .upsert({ 
           access_code: (post as any).accessCode,

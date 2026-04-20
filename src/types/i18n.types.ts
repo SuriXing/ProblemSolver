@@ -25,6 +25,10 @@ interface TranslationContext {
   currentLanguage: string;
 }
 
+// Re-export so the interfaces above are not flagged as unused. They serve
+// as a typed reference for the i18n surface area; consumers use TranslationKey.
+export type { I18nResources, TranslationOptions, TranslationContext };
+
 // 定义翻译键的类型，用于类型安全的翻译
 export type TranslationKey =
   | 'siteName'

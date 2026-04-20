@@ -41,7 +41,7 @@ const AppWrapper = () => {
 };
 
 function App() {
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, _setIsLoading] = useState(false);
   const [showTest, setShowTest] = useState(false);
   const [useDirectClient, setUseDirectClient] = useState(false);
   const [showEnvDebug, setShowEnvDebug] = useState(false);

@@ -2,12 +2,12 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Layout, Card, Statistic, Row, Col, Table, Button, Space, Tag, Input,
-  Modal, message, Typography, Dropdown, Menu, Avatar, Tabs, Alert, Tooltip, List, Empty
+  Modal, message, Typography, Dropdown, Menu, Avatar, Tabs, Alert, Tooltip, Empty
 } from 'antd';
 import {
   UserOutlined, LogoutOutlined, DeleteOutlined, EyeOutlined, SearchOutlined,
-  ExclamationCircleOutlined, CheckCircleOutlined, CloseCircleOutlined,
-  MessageOutlined, FileTextOutlined, TrophyOutlined, CalendarOutlined,
+  ExclamationCircleOutlined,
+  MessageOutlined, FileTextOutlined, CalendarOutlined,
   SettingOutlined, BarChartOutlined, ReloadOutlined
 } from '@ant-design/icons';
 import AdminService, { AdminUser, AdminStats, AppError, ReplyWithPost } from '../../services/admin.service';
@@ -275,7 +275,7 @@ const AdminDashboardPage: React.FC = () => {
     </Menu>
   );
 
-  const postsColumns = [
+  const _postsColumns = [
     {
       title: 'ID',
       dataIndex: 'id',

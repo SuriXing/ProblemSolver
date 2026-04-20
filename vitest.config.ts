@@ -25,6 +25,12 @@ export default defineConfig({
         'src/styles/**',
         'src/**/*.css',
       ],
+      thresholds: {
+        lines: 85,
+        branches: 75,
+        functions: 75,
+        statements: 85,
+      },
     },
   },
   resolve: {

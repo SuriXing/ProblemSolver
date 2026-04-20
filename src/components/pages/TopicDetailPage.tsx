@@ -11,7 +11,6 @@ import {
   faComments
 } from '@fortawesome/free-solid-svg-icons';
 import styles from './TopicDetailPage.module.css';
-import { useTranslation } from 'react-i18next';
 
 // Mock data for topic details
 const topicDetails = {
