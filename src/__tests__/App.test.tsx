@@ -31,8 +31,6 @@ vi.mock('../utils/environment', () => ({
   SUPABASE_URL: '',
   SUPABASE_ANON_KEY: '',
   NODE_ENV: 'test',
-  getEnv: () => '',
-  getEnvironment: () => ({ SUPABASE_URL: '', SUPABASE_ANON_KEY: '' }),
 }));
 vi.mock('../utils/supabaseUtils', () => ({
   getSupabaseUrl: () => 'https://test.supabase.co',
