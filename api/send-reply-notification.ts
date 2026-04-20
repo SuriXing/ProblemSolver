@@ -144,11 +144,23 @@ function header(req: any, name: string): string | undefined {
 }
 
 function clientIp(req: any): string {
-  // x-forwarded-for is a comma-separated list, leftmost = original client.
+  // ON VERCEL: prefer `x-vercel-forwarded-for` (set by the edge proxy, not
+  // settable from the client). Falling back to the RIGHTMOST entry in
+  // x-forwarded-for, because Vercel APPENDS the real client IP rather than
+  // replacing — the leftmost is whatever the attacker put there.
+  // (S3.2 round 1 finding: trusting leftmost XFF made the IP rate limit a
+  // free bypass — attacker rotates the header per request → fresh bucket.)
+  const vercel = header(req, 'x-vercel-forwarded-for');
+  if (vercel) {
+    const parts = vercel.split(',');
+    const last = parts[parts.length - 1];
+    if (last) return last.trim();
+  }
   const xff = header(req, 'x-forwarded-for');
   if (xff) {
-    const first = xff.split(',')[0];
-    if (first) return first.trim();
+    const parts = xff.split(',');
+    const last = parts[parts.length - 1];
+    if (last) return last.trim();
   }
   return header(req, 'x-real-ip') || (req.socket?.remoteAddress as string) || 'unknown';
 }
@@ -299,7 +311,9 @@ export default async function handler(req: any, res: any) {
     res.status(200).json({ sent: true, id: data.id });
   } catch (err) {
     console.error('[email] Unexpected error sending email:', err);
-    res.status(500).json({ sent: false, reason: 'exception', message: String(err) });
+    // Do NOT echo err back to caller — could leak internal hostnames,
+    // package paths, or stack frames. Reason code is enough.
+    res.status(500).json({ sent: false, reason: 'exception' });
   }
 }
 
