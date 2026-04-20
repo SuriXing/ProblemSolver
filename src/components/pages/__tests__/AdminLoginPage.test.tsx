@@ -35,7 +35,7 @@ describe('AdminLoginPage', () => {
   beforeEach(() => {
     mockNavigate.mockClear();
     mockLogin.mockReset();
-    mockIsAuthenticated.mockReturnValue(false);
+    mockIsAuthenticated.mockResolvedValue(false);
   });
 
   it('renders login form with email and password fields', () => {
@@ -56,10 +56,12 @@ describe('AdminLoginPage', () => {
     expect(screen.getByText('管理员登录')).toBeInTheDocument();
   });
 
-  it('redirects to dashboard when already authenticated', () => {
-    mockIsAuthenticated.mockReturnValue(true);
+  it('redirects to dashboard when already authenticated', async () => {
+    mockIsAuthenticated.mockResolvedValue(true);
     render(<MemoryRouter><AdminLoginPage /></MemoryRouter>);
-    expect(mockNavigate).toHaveBeenCalledWith('/admin/dashboard');
+    await waitFor(() =>
+      expect(mockNavigate).toHaveBeenCalledWith('/admin/dashboard'),
+    );
   });
 
   it('navigates to dashboard on successful login', async () => {
