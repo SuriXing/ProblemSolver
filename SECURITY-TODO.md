@@ -1,5 +1,21 @@
 # Security TODO
 
+> **Priority: rotate within 24h** — leaked keys are still live in production bundles.
+
+- [ ] **HUMAN ACTION REQUIRED — DO BEFORE APPLYING S2.1 MIGRATION:** Seed `admin_users` for every existing admin BEFORE running `2026_04_20_admin_users.sql` in production, or every admin gets locked out (Save/Delete silently fails, dashboard appears to work). Steps:
+  1. List existing admin emails from Supabase dashboard → Authentication → Users.
+  2. In SQL Editor, paste the seed BEFORE the migration:
+     ```sql
+     -- Replace with your actual admin emails
+     INSERT INTO admin_users (user_id, role)
+     SELECT id, 'super_admin'
+       FROM auth.users
+      WHERE email IN ('admin@your-domain.com');
+     ```
+     (this will error until the migration creates the table — that's fine, run it AFTER applying the migration in the SAME session).
+  3. Apply `supabase/migrations/2026_04_20_admin_users.sql`.
+  4. Run the seed INSERT above immediately.
+  5. Verify with: `SELECT * FROM admin_users;` (must show ≥1 row).
 - [ ] **HUMAN ACTION REQUIRED:** Rotate Supabase anon key. Exposed in git history before commit 554672d via hardcoded fallback in `src/lib/supabase.ts` (also in `scripts/load-test.mjs` until S1.1). Steps:
   1. Open Supabase dashboard → Project Settings → API.
   2. Click "Reset anon key" (or, if using new keyring, revoke `sb_publishable_ochy1eHzpFRMSCOndm3FQg_mLvGhDrL` and issue a new publishable key).

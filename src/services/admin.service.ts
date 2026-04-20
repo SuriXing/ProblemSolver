@@ -19,43 +19,27 @@ export interface AdminStats {
   weeklyPosts: number;
 }
 
-// Cache key for the verified admin status. Holds { ok: boolean, ts: number }.
-// 60s TTL means we re-hit Supabase at most once per minute per tab — short
-// enough that a revoked admin can't moderate for long, long enough to avoid
-// hammering auth on every component mount.
-const ADMIN_VERIFY_CACHE_KEY = 'admin_verify_cache';
+// In-memory cache for the verified admin status. Holds { userId, ok, ts } or null.
+//
+// IMPORTANT: this is module-scope, NOT sessionStorage. Earlier S2.1 used
+// sessionStorage which an attacker could overwrite from devtools to spoof
+// `ok: true` for 60s — defeating the whole verification. Module-scope memory
+// is not reachable from the page context, so the only way to populate it is
+// to call isAuthenticated() and have getUser() + admin_users actually return
+// a real row.
+//
+// Trade-off: cache doesn't survive a hard refresh, so each new tab/page-load
+// makes one round-trip. With 60s TTL within a session that's still ~1 req/min
+// per tab — well under what Supabase rate limits.
 const ADMIN_VERIFY_TTL_MS = 60_000;
+let adminVerifyCache: { userId: string; ok: boolean; ts: number } | null = null;
 
 class AdminService {
   private static readonly SESSION_KEY = 'admin_session';
 
-  private static readCache(): { ok: boolean; ts: number } | null {
-    try {
-      const raw = sessionStorage.getItem(ADMIN_VERIFY_CACHE_KEY);
-      if (!raw) return null;
-      const parsed = JSON.parse(raw);
-      if (typeof parsed?.ok !== 'boolean' || typeof parsed?.ts !== 'number') return null;
-      if (Date.now() - parsed.ts > ADMIN_VERIFY_TTL_MS) return null;
-      return parsed;
-    } catch {
-      return null;
-    }
-  }
-
-  private static writeCache(ok: boolean): void {
-    try {
-      sessionStorage.setItem(ADMIN_VERIFY_CACHE_KEY, JSON.stringify({ ok, ts: Date.now() }));
-    } catch {
-      // sessionStorage unavailable — proceed without cache.
-    }
-  }
-
-  private static clearCache(): void {
-    try {
-      sessionStorage.removeItem(ADMIN_VERIFY_CACHE_KEY);
-    } catch {
-      // ignore
-    }
+  /** Test-only — reset module cache between specs. */
+  static __resetCache(): void {
+    adminVerifyCache = null;
   }
 
   /**
@@ -131,13 +115,28 @@ class AdminService {
    * UI. ProtectedRoute now renders a loading state while this resolves.
    */
   static async isAuthenticated(): Promise<boolean> {
-    const cached = this.readCache();
-    if (cached) return cached.ok;
+    // Cache hit only if fresh AND we know which user it was for.
+    // (User-binding matters because logging out and back in as a different
+    // user must NOT inherit the previous user's verdict.)
+    if (
+      adminVerifyCache &&
+      Date.now() - adminVerifyCache.ts <= ADMIN_VERIFY_TTL_MS
+    ) {
+      try {
+        const { data } = await supabase.auth.getUser();
+        if (data?.user?.id === adminVerifyCache.userId) {
+          return adminVerifyCache.ok;
+        }
+        // User changed — fall through to re-verify.
+      } catch {
+        // Treat auth lookup failure as cache invalidation.
+      }
+    }
 
     try {
       const { data, error } = await supabase.auth.getUser();
       if (error || !data.user) {
-        this.writeCache(false);
+        adminVerifyCache = null;
         return false;
       }
       const { data: row, error: adminErr } = await supabase
@@ -146,10 +145,10 @@ class AdminService {
         .eq('user_id', data.user.id)
         .maybeSingle();
       const ok = !adminErr && !!row;
-      this.writeCache(ok);
+      adminVerifyCache = { userId: data.user.id, ok, ts: Date.now() };
       return ok;
     } catch {
-      this.writeCache(false);
+      adminVerifyCache = null;
       return false;
     }
   }
@@ -185,6 +184,11 @@ class AdminService {
       // ignore
     }
     this.clearCache();
+  }
+
+  /** @deprecated use __resetCache() in tests; left here so old callers compile. */
+  private static clearCache(): void {
+    adminVerifyCache = null;
   }
 
   static async getDashboardStats(): Promise<AdminStats> {
