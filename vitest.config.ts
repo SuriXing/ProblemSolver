@@ -8,9 +8,9 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
-    exclude: ['**/node_modules/**', '**/dist/**', '**/.claude/**', '**/cypress/**', '**/e2e/**'],
+    exclude: ['**/node_modules/**', '**/dist/**', '**/.claude/**', 'e2e/**'],
     coverage: {
-      provider: 'c8',
+      provider: 'v8',
       reporter: ['text', 'json', 'html', 'text-summary'],
       include: ['src/**/*.{ts,tsx}'],
       exclude: [
@@ -25,15 +25,15 @@ export default defineConfig({
         'src/styles/**',
         'src/**/*.css',
       ],
-      // vitest 0.30 + @vitest/coverage-c8 reads thresholds as FLAT keys —
-      // the nested `thresholds: { ... }` form arrived in vitest ≥1.0 and is
-      // silently ignored on 0.30. Keep flat until D2 upgrades vitest.
-      // These are RATCHET FLOORS, not aspirational targets — set to current
-      // measured coverage so any regression fails CI. C2/A1 will raise them.
-      lines: 85,
-      branches: 75,
-      functions: 69,
-      statements: 85,
+      // vitest 2 requires thresholds NESTED under `thresholds`. The flat
+      // form was the pre-1.0 shape — silently ignored after D2.1 upgrade.
+      // These are RATCHET FLOORS — any regression fails CI.
+      thresholds: {
+        lines: 85,
+        branches: 75,
+        functions: 69,
+        statements: 85,
+      },
     },
   },
   resolve: {
