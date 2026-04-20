@@ -37,9 +37,6 @@ supabase/.temp/
 # 缓存文件
 *.cache
 
-# Cypress artifacts
-cypress/videos/
-cypress/screenshots/
 
 # Test coverage output
 coverage/
