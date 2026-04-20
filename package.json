@@ -23,7 +23,7 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "tsc --noEmit && vite build",
     "type-check": "tsc --noEmit",
     "preview": "vite preview --host --strictPort --port 5001",
     "lint": "eslint src --ext ts,tsx --rulesdir eslint-rules --report-unused-disable-directives",
@@ -35,7 +35,8 @@
     "test:e2e:open": "cypress open",
     "test:playwright": "playwright test",
     "test:playwright:ui": "playwright test --ui",
-    "serve": "serve -s dist -l 5000"
+    "serve": "serve -s dist -l 5000",
+    "prepare": "husky"
   },
   "devDependencies": {
     "@playwright/test": "^1.59.1",
@@ -54,7 +55,9 @@
     "eslint-plugin-react": "^7.32.2",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.26",
+    "husky": "^9.1.7",
     "jsdom": "^21.1.1",
+    "lint-staged": "^16.4.0",
     "serve": "^14.2.4",
     "typescript": "^5.0.2",
     "vite": "^4.3.2",
@@ -70,6 +73,14 @@
       "last 1 chrome version",
       "last 1 firefox version",
       "last 1 safari version"
+    ]
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "eslint --max-warnings 0 --rulesdir eslint-rules"
     ]
   }
 }

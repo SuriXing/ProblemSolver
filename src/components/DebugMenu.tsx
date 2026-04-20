@@ -2,14 +2,13 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useTranslationContext } from '../context/TranslationContext';
-import { Card, Switch, Space, Button, Divider, Typography, Drawer, message, Collapse, Input } from 'antd';
+import { Card, Switch, Space, Button, Divider, Typography, Drawer, message, Input } from 'antd';
 import { BugOutlined, CrownOutlined } from '@ant-design/icons';
 import { DatabaseService, generateAccessCode } from '../services/database.service';
 import { Post } from '../types/database.types';
 import type { TranslationKey } from '../types/i18n.types';
 import './DebugMenu.css';
 
-const { Panel } = Collapse;
 const { Title, Text } = Typography;
 
 interface DebugMenuProps {

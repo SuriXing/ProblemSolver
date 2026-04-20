@@ -13,8 +13,8 @@ const ConfessionPage: React.FC = () => {
   const navigate = useNavigate();
   const [confession, setConfession] = useState('');
   const [email, setEmail] = useState('');
-  const [isAnonymous, setIsAnonymous] = useState(true);
-  const [isPrivate, setIsPrivate] = useState(false);
+  const [isAnonymous, _setIsAnonymous] = useState(true);
+  const [isPrivate, _setIsPrivate] = useState(false);
   const [notifyViaEmail, setNotifyViaEmail] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<{confession?: string; email?: string}>({});

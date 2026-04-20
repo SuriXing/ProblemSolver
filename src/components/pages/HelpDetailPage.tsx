@@ -56,7 +56,7 @@ const HelpDetailPage: React.FC = () => {
   const [post, setPost] = useState<Post | null>(null);
   const [replies, setReplies] = useState<DatabaseReply[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [_error, setError] = useState<string | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | undefined>(undefined);
   
   // Wrap fetchPostAndReplies in useCallback to fix dependency issue

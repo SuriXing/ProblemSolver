@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useTypeSafeTranslation } from '../../utils/translationHelper';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCircleCheck, faEye, faCopy, faHome, faHandsHelping, faCircleInfo, faShare, faBookmark, faComments } from '@fortawesome/free-solid-svg-icons';
+import { faCircleCheck, faEye, faCopy, faHome, faHandsHelping, faCircleInfo, faBookmark, faComments } from '@fortawesome/free-solid-svg-icons';
 import StorageSystem, { UserData } from '../../utils/StorageSystem';
 import styles from './SuccessPage.module.css';
 import { useTranslation } from 'react-i18next';
@@ -22,10 +22,12 @@ if (rawMentorUrl && !isSafeMentorUrl) {
 const SuccessPage: React.FC = () => {
   const { t } = useTypeSafeTranslation();
   const location = useLocation();
-  const navigate = useNavigate();
   const [userData, setUserData] = useState<UserData | null>(null);
   const [accessCode, setAccessCode] = useState('');
   const [copied, setCopied] = useState(false);
+  // userData is fetched but not yet rendered (planned for the "what you submitted"
+  // recap card in A1). Read it to satisfy the linter without dropping the fetch.
+  void userData;
   
   // Get access code from location state
   useEffect(() => {
@@ -81,6 +83,7 @@ const SuccessPage: React.FC = () => {
   };
   
   // Share function to use the proper share page URL
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- wired up to the share button in A1; kept here so the URL contract stays in one place.
   const sharePost = () => {
     const shareUrl = `${window.location.origin}/share/${accessCode}`;
     navigator.clipboard.writeText(shareUrl).then(() => {
@@ -91,6 +94,7 @@ const SuccessPage: React.FC = () => {
 
   const { t: i18nT } = useTranslation();
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- used by tag chips in A1; helper kept here so tag rendering stays co-located.
   function renderTag(tag: string) {
     return i18nT(`tag${tag.charAt(0).toUpperCase() + tag.slice(1)}`, tag);
   }

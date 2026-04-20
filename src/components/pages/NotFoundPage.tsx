@@ -2,8 +2,6 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useTypeSafeTranslation } from '../../utils/translationHelper';
 import Layout from '../layout/Layout';
-import { Button } from 'antd';
-import { HomeOutlined } from '@ant-design/icons';
 import '../../styles/NotFoundPage.css';
 import Soft404SVG from '../../assets/soft_404.svg';
 

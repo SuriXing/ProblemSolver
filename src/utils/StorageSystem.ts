@@ -203,9 +203,9 @@ const StorageSystem = {
   clearAllData,
   
   storeDataSupabase: async (accessCode: string, userData: UserData) => {
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from('problems')
-      .upsert({ 
+      .upsert({
         access_code: accessCode,
         user_id: userData.userId,
         confession_text: userData.confessionText,

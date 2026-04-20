@@ -150,4 +150,4 @@ export type InsertTables<T extends keyof Database['public']['Tables']> = Databas
 export type UpdateTables<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Update'];
 
 // Possible update: Add a new type for the purpose field
-type PostPurpose = 'need_help' | 'offer_help'; 
+export type PostPurpose = 'need_help' | 'offer_help'; 

@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import i18n from '../i18n';
 import type { SupportedLanguages } from '../types/i18n.types';
 import { withLocalSuffix } from '../utils/environmentLabel';
 

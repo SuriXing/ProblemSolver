@@ -1,5 +1,4 @@
 import React from 'react';
-import { useTranslation } from 'react-i18next';
 import Header from './Header';
 import Footer from './Footer';
 import AccessCodeNotebook from '../pages/AccessCodeNotebook';
@@ -14,7 +13,6 @@ interface LayoutProps {
 }
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
-  const { t } = useTranslation();
   const { theme } = useTheme();
 
   return (

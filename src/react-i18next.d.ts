@@ -1,5 +1,5 @@
 import 'react-i18next';
-import { TFunction, TOptions } from 'i18next';
+import { TOptions } from 'i18next';
 import type { TranslationKey } from './types/i18n.types';
 
 declare module 'react-i18next' {
