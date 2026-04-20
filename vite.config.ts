@@ -39,10 +39,11 @@ export default defineConfig(({ mode }) => {
       outDir: 'dist',
       sourcemap: false, // Disabled: leaks source + string literals in prod
       target: 'es2015',
-      // Bump the warning floor so the known-large vendor chunks (react-dom,
-      // antd, fontawesome) don't spam CI. The per-chunk budget we actually
-      // care about is enforced by the manualChunks split below.
-      chunkSizeWarningLimit: 600,
+      // antd ships ~919KB / 288KB gzip as a single vendor chunk. Off the
+      // critical path (lazy-loaded with consumer routes), but still big.
+      // Bumping the warning so CI doesn't spam — followup P1.3 should audit
+      // antd subpath imports / consider babel-plugin-import to shrink it.
+      chunkSizeWarningLimit: 1000,
       rollupOptions: {
         input: {
           main: path.resolve(__dirname, 'index.html'),
@@ -51,16 +52,17 @@ export default defineConfig(({ mode }) => {
           inlineDynamicImports: false,
           // Split heavy vendor libs out of the main bundle so first paint
           // doesn't have to ship Ant Design + i18next + Supabase + FA on the
-          // critical path. Matching by id so dynamic imports share chunks.
+          // critical path. Path-anchored matches so we don't accidentally
+          // catch e.g. `@types/react` (P1.2 review fix).
           manualChunks(id: string) {
-            if (!id.includes('node_modules')) return undefined;
-            if (id.includes('antd') || id.includes('rc-') || id.includes('@ant-design')) return 'vendor-antd';
-            if (id.includes('react-router')) return 'vendor-router';
-            if (id.includes('@fortawesome')) return 'vendor-fa';
-            if (id.includes('i18next') || id.includes('react-i18next')) return 'vendor-i18n';
-            if (id.includes('@supabase')) return 'vendor-supabase';
-            if (id.includes('react-dom') || id.includes('scheduler')) return 'vendor-react-dom';
-            if (id.includes('/react/') || id.endsWith('/react')) return 'vendor-react';
+            if (!id.includes('/node_modules/')) return undefined;
+            if (/[\\/]node_modules[\\/](antd|@ant-design|rc-[^\\/]+)[\\/]/.test(id)) return 'vendor-antd';
+            if (/[\\/]node_modules[\\/](react-router|react-router-dom)[\\/]/.test(id)) return 'vendor-router';
+            if (/[\\/]node_modules[\\/]@fortawesome[\\/]/.test(id)) return 'vendor-fa';
+            if (/[\\/]node_modules[\\/](i18next|react-i18next|i18next-[^\\/]+)[\\/]/.test(id)) return 'vendor-i18n';
+            if (/[\\/]node_modules[\\/]@supabase[\\/]/.test(id)) return 'vendor-supabase';
+            if (/[\\/]node_modules[\\/](react-dom|scheduler)[\\/]/.test(id)) return 'vendor-react-dom';
+            if (/[\\/]node_modules[\\/]react[\\/]/.test(id)) return 'vendor-react';
             return undefined;
           },
         },
