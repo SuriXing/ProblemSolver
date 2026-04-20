@@ -121,6 +121,20 @@ CREATE POLICY "Admins can delete replies"
   USING (public.is_admin());
 
 
+-- ----------------------------------------------------------------------------
+-- 4. Tighten app_errors SELECT policy (S2.2 round 2 backend reviewer finding).
+--    2026_04_18_app_errors_admin_read.sql granted "any authenticated user"
+--    SELECT on the error log. Same anti-pattern this whole migration was
+--    written to kill. Replace with is_admin() gating.
+-- ----------------------------------------------------------------------------
+DROP POLICY IF EXISTS "Authenticated users can read app_errors" ON app_errors;
+DROP POLICY IF EXISTS "Admins can read errors" ON app_errors;
+DROP POLICY IF EXISTS "Admins can read app_errors" ON app_errors;
+CREATE POLICY "Admins can read app_errors"
+  ON app_errors FOR SELECT TO authenticated
+  USING (public.is_admin());
+
+
 -- ============================================================================
 -- Verification queries (run these AFTER seeding admin_users):
 --
