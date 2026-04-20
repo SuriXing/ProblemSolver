@@ -103,8 +103,11 @@ class AdminService {
    * Async admin check — hits Supabase to re-verify the JWT signature AND
    * confirms the user is in the admin_users allowlist (S2.1).
    *
-   * Caches the result in sessionStorage for 60s to avoid one round-trip per
-   * route navigation. Cache is keyed per-tab and auto-cleared on logout.
+   * Caches the result in module-scope memory for 60s to avoid one round-trip
+   * per route navigation. Cache is auto-cleared on logout AND on user-id
+   * mismatch (logout + login as a different user). NOT sessionStorage —
+   * sessionStorage is reachable from devtools/XSS, which would defeat the
+   * verification.
    *
    * Why no sync version anymore: the previous sync `isAuthenticated()` only
    * checked localStorage for an `sb-*-auth-token` key, which is trivially
