@@ -13,10 +13,15 @@ const AdminLoginPage: React.FC = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Redirect if already authenticated
-    if (AdminService.isAuthenticated()) {
-      navigate('/admin/dashboard');
-    }
+    // Redirect if already authenticated. isAuthenticated() became async in
+    // S2.1 (it now verifies admin_users membership server-side).
+    let cancelled = false;
+    AdminService.isAuthenticated().then((ok) => {
+      if (!cancelled && ok) navigate('/admin/dashboard');
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [navigate]);
 
   const handleLogin = async (values: { email: string; password: string }) => {

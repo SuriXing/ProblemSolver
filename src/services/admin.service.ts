@@ -19,8 +19,44 @@ export interface AdminStats {
   weeklyPosts: number;
 }
 
+// Cache key for the verified admin status. Holds { ok: boolean, ts: number }.
+// 60s TTL means we re-hit Supabase at most once per minute per tab — short
+// enough that a revoked admin can't moderate for long, long enough to avoid
+// hammering auth on every component mount.
+const ADMIN_VERIFY_CACHE_KEY = 'admin_verify_cache';
+const ADMIN_VERIFY_TTL_MS = 60_000;
+
 class AdminService {
   private static readonly SESSION_KEY = 'admin_session';
+
+  private static readCache(): { ok: boolean; ts: number } | null {
+    try {
+      const raw = sessionStorage.getItem(ADMIN_VERIFY_CACHE_KEY);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      if (typeof parsed?.ok !== 'boolean' || typeof parsed?.ts !== 'number') return null;
+      if (Date.now() - parsed.ts > ADMIN_VERIFY_TTL_MS) return null;
+      return parsed;
+    } catch {
+      return null;
+    }
+  }
+
+  private static writeCache(ok: boolean): void {
+    try {
+      sessionStorage.setItem(ADMIN_VERIFY_CACHE_KEY, JSON.stringify({ ok, ts: Date.now() }));
+    } catch {
+      // sessionStorage unavailable — proceed without cache.
+    }
+  }
+
+  private static clearCache(): void {
+    try {
+      sessionStorage.removeItem(ADMIN_VERIFY_CACHE_KEY);
+    } catch {
+      // ignore
+    }
+  }
 
   /**
    * Authenticate via Supabase Auth.
@@ -80,45 +116,51 @@ class AdminService {
   }
 
   /**
-   * Check whether the caller has a valid Supabase session.
+   * Async admin check — hits Supabase to re-verify the JWT signature AND
+   * confirms the user is in the admin_users allowlist (S2.1).
    *
-   * This is the sync version — used by ProtectedRoute to avoid a flash of
-   * content during navigation. It reads the Supabase-managed session from
-   * localStorage (written by the Supabase JS client, tamper-evident because
-   * it contains a signed JWT).
+   * Caches the result in sessionStorage for 60s to avoid one round-trip per
+   * route navigation. Cache is keyed per-tab and auto-cleared on logout.
    *
-   * A tampered session will fail at the next network call — the signed JWT
-   * won't validate against Supabase's signing key, and all privileged
-   * operations will return a 401. So the worst case of this sync check being
-   * fooled is a brief UI flicker before the first API call rejects.
+   * Why no sync version anymore: the previous sync `isAuthenticated()` only
+   * checked localStorage for an `sb-*-auth-token` key, which is trivially
+   * forgeable (`localStorage.setItem('sb-x-auth-token', '{}')`). Combined
+   * with the previous "any authenticated user = admin" RLS policies, this
+   * meant a tampered localStorage entry plus an attacker-issued JWT (or even
+   * a signed-up regular user, if signups were ever enabled) could see admin
+   * UI. ProtectedRoute now renders a loading state while this resolves.
    */
-  static isAuthenticated(): boolean {
+  static async isAuthenticated(): Promise<boolean> {
+    const cached = this.readCache();
+    if (cached) return cached.ok;
+
     try {
-      // Supabase JS v2 stores session in localStorage under this key prefix.
-      // We don't parse or trust it — we just check that the session exists.
-      // The real validation happens server-side on every request.
-      const keys = Object.keys(localStorage);
-      const hasSupabaseSession = keys.some(
-        (k) => k.startsWith('sb-') && k.endsWith('-auth-token'),
-      );
-      return hasSupabaseSession;
+      const { data, error } = await supabase.auth.getUser();
+      if (error || !data.user) {
+        this.writeCache(false);
+        return false;
+      }
+      const { data: row, error: adminErr } = await supabase
+        .from('admin_users')
+        .select('user_id')
+        .eq('user_id', data.user.id)
+        .maybeSingle();
+      const ok = !adminErr && !!row;
+      this.writeCache(ok);
+      return ok;
     } catch {
+      this.writeCache(false);
       return false;
     }
   }
 
   /**
-   * Async variant — hits Supabase to re-verify the JWT signature. Use this
-   * before any privileged operation that has UI consequences beyond a simple
-   * redirect (e.g., showing "welcome admin" on the dashboard).
+   * Back-compat alias — same semantics as isAuthenticated() now that the
+   * "verified" path is the only path. Kept so existing callsites in
+   * AdminDashboardPage and the service's own guards still compile.
    */
   static async isAuthenticatedVerified(): Promise<boolean> {
-    try {
-      const { data, error } = await supabase.auth.getUser();
-      return !error && !!data.user;
-    } catch {
-      return false;
-    }
+    return this.isAuthenticated();
   }
 
   static getCurrentAdmin(): AdminUser | null {
@@ -142,6 +184,7 @@ class AdminService {
     } catch {
       // ignore
     }
+    this.clearCache();
   }
 
   static async getDashboardStats(): Promise<AdminStats> {

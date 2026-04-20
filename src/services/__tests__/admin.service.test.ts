@@ -36,7 +36,9 @@ const fakeUser = {
 
 function seedSupabaseSession() {
   // The Supabase JS client writes to localStorage under this key prefix.
-  // Our sync isAuthenticated() just checks for its presence.
+  // Pre-S2.1 our sync isAuthenticated() trusted this. Post-S2.1 it does not —
+  // membership in admin_users is what matters. Kept for the "tampered token
+  // is no longer enough" assertion.
   localStorage.setItem('sb-fake-project-auth-token', JSON.stringify({ access_token: 'fake' }));
 }
 
@@ -45,13 +47,35 @@ function clearSupabaseSession() {
     .filter((k) => k.startsWith('sb-') && k.endsWith('-auth-token'))
     .forEach((k) => localStorage.removeItem(k));
   sessionStorage.removeItem('admin_session');
+  sessionStorage.removeItem('admin_verify_cache');
 }
 
-function mockAuthVerified(user = fakeUser) {
+function mockAuthVerified(_user = fakeUser) {
+  // S2.1: isAuthenticated() now does TWO awaits (getUser + admin_users). To
+  // keep existing per-method tests focused on the method-under-test (not on
+  // re-mocking the auth roundtrip), we pre-populate the in-memory cache that
+  // isAuthenticated() consults first. Tests that specifically care about the
+  // auth path itself (the AdminService.isAuthenticated describe block) clear
+  // this cache and exercise the real code path.
+  sessionStorage.setItem(
+    'admin_verify_cache',
+    JSON.stringify({ ok: true, ts: Date.now() }),
+  );
+  // Also wire getUser() in case any code path bypasses the cache.
+  supabaseMock.auth.getUser.mockResolvedValue({ data: { user: _user }, error: null });
+}
+
+function mockAuthVerifiedNonAdmin(user = fakeUser) {
+  sessionStorage.setItem(
+    'admin_verify_cache',
+    JSON.stringify({ ok: false, ts: Date.now() }),
+  );
   supabaseMock.auth.getUser.mockResolvedValue({ data: { user }, error: null });
 }
 
 function mockAuthUnverified() {
+  // No cached verdict — the real auth path runs and finds no user.
+  sessionStorage.removeItem('admin_verify_cache');
   supabaseMock.auth.getUser.mockResolvedValue({ data: { user: null }, error: null });
 }
 
@@ -125,52 +149,103 @@ describe('AdminService.login', () => {
 });
 
 // ---------------------------------------------------------------------------
-// isAuthenticated (sync — checks localStorage for supabase-managed session)
+// isAuthenticated — async, verifies JWT AND admin_users membership (S2.1)
 // ---------------------------------------------------------------------------
 
 describe('AdminService.isAuthenticated', () => {
-  it('returns false when no supabase session exists', () => {
-    expect(AdminService.isAuthenticated()).toBe(false);
+  beforeEach(() => {
+    sessionStorage.removeItem('admin_verify_cache');
   });
 
-  it('returns true when a supabase session exists in localStorage', () => {
-    seedSupabaseSession();
-    expect(AdminService.isAuthenticated()).toBe(true);
-  });
-
-  it('returns false after clearing the session', () => {
-    seedSupabaseSession();
-    clearSupabaseSession();
-    expect(AdminService.isAuthenticated()).toBe(false);
-  });
-});
-
-// ---------------------------------------------------------------------------
-// isAuthenticatedVerified (async — hits supabase.auth.getUser)
-// ---------------------------------------------------------------------------
-
-describe('AdminService.isAuthenticatedVerified', () => {
-  it('returns true when supabase.auth.getUser returns a user', async () => {
-    mockAuthVerified();
-    expect(await AdminService.isAuthenticatedVerified()).toBe(true);
-  });
-
-  it('returns false when supabase returns no user', async () => {
+  it('returns false when supabase has no session (no cache)', async () => {
     mockAuthUnverified();
-    expect(await AdminService.isAuthenticatedVerified()).toBe(false);
+    expect(await AdminService.isAuthenticated()).toBe(false);
   });
 
-  it('returns false when supabase returns an error', async () => {
-    supabaseMock.auth.getUser.mockResolvedValue({
-      data: { user: null },
-      error: { message: 'JWT expired' },
+  it('returns false even with a tampered localStorage entry, when getUser rejects', async () => {
+    // Pre-S2.1 attack: setting any sb-*-auth-token key was enough to be
+    // "authenticated". Now the JWT must actually validate server-side.
+    seedSupabaseSession();
+    mockAuthUnverified();
+    expect(await AdminService.isAuthenticated()).toBe(false);
+  });
+
+  it('returns false when getUser succeeds but user is not in admin_users', async () => {
+    supabaseMock.auth.getUser.mockResolvedValue({ data: { user: fakeUser }, error: null });
+    supabaseMock.from.mockImplementation((table: string) => {
+      const b = createQueryBuilder();
+      if (table === 'admin_users') {
+        b.maybeSingle = vi.fn().mockResolvedValue({ data: null, error: null });
+      }
+      return b;
     });
-    expect(await AdminService.isAuthenticatedVerified()).toBe(false);
+    expect(await AdminService.isAuthenticated()).toBe(false);
   });
 
-  it('returns false on exception', async () => {
+  it('returns true when getUser succeeds AND user is in admin_users', async () => {
+    supabaseMock.auth.getUser.mockResolvedValue({ data: { user: fakeUser }, error: null });
+    supabaseMock.from.mockImplementation((table: string) => {
+      const b = createQueryBuilder();
+      if (table === 'admin_users') {
+        b.maybeSingle = vi.fn().mockResolvedValue({ data: { user_id: fakeUser.id }, error: null });
+      }
+      return b;
+    });
+    expect(await AdminService.isAuthenticated()).toBe(true);
+  });
+
+  it('caches the verdict for subsequent calls within 60s', async () => {
+    supabaseMock.auth.getUser.mockResolvedValue({ data: { user: fakeUser }, error: null });
+    supabaseMock.from.mockImplementation((table: string) => {
+      const b = createQueryBuilder();
+      if (table === 'admin_users') {
+        b.maybeSingle = vi.fn().mockResolvedValue({ data: { user_id: fakeUser.id }, error: null });
+      }
+      return b;
+    });
+
+    expect(await AdminService.isAuthenticated()).toBe(true);
+    expect(supabaseMock.auth.getUser).toHaveBeenCalledTimes(1);
+
+    // Second call hits cache, no extra getUser
+    expect(await AdminService.isAuthenticated()).toBe(true);
+    expect(supabaseMock.auth.getUser).toHaveBeenCalledTimes(1);
+  });
+
+  it('expires cache after 60s', async () => {
+    sessionStorage.setItem(
+      'admin_verify_cache',
+      JSON.stringify({ ok: true, ts: Date.now() - 61_000 }),
+    );
+    mockAuthUnverified();
+    expect(await AdminService.isAuthenticated()).toBe(false);
+    expect(supabaseMock.auth.getUser).toHaveBeenCalled();
+  });
+
+  it('returns false on getUser exception', async () => {
     supabaseMock.auth.getUser.mockRejectedValue(new Error('network'));
-    expect(await AdminService.isAuthenticatedVerified()).toBe(false);
+    expect(await AdminService.isAuthenticated()).toBe(false);
+  });
+
+  it('ignores corrupt cache JSON and re-runs the auth check', async () => {
+    sessionStorage.setItem('admin_verify_cache', 'not-json{');
+    mockAuthUnverified();
+    expect(await AdminService.isAuthenticated()).toBe(false);
+    expect(supabaseMock.auth.getUser).toHaveBeenCalled();
+  });
+
+  it('ignores cache entries missing required fields', async () => {
+    sessionStorage.setItem('admin_verify_cache', JSON.stringify({ ok: 'yes' }));
+    mockAuthUnverified();
+    expect(await AdminService.isAuthenticated()).toBe(false);
+  });
+
+  it('isAuthenticatedVerified is an alias of isAuthenticated', async () => {
+    sessionStorage.setItem(
+      'admin_verify_cache',
+      JSON.stringify({ ok: true, ts: Date.now() }),
+    );
+    expect(await AdminService.isAuthenticatedVerified()).toBe(true);
   });
 });
 
@@ -205,11 +280,13 @@ describe('AdminService.getCurrentAdmin', () => {
 // ---------------------------------------------------------------------------
 
 describe('AdminService.logout', () => {
-  it('calls supabase.auth.signOut and clears the session hint', async () => {
+  it('calls supabase.auth.signOut and clears the session hint + verify cache', async () => {
     sessionStorage.setItem('admin_session', JSON.stringify({ id: 'x' }));
+    sessionStorage.setItem('admin_verify_cache', JSON.stringify({ ok: true, ts: Date.now() }));
     await AdminService.logout();
     expect(supabaseMock.auth.signOut).toHaveBeenCalled();
     expect(sessionStorage.getItem('admin_session')).toBeNull();
+    expect(sessionStorage.getItem('admin_verify_cache')).toBeNull();
   });
 
   it('swallows signOut errors and still clears the hint', async () => {
@@ -335,6 +412,13 @@ describe('AdminService.getAllPosts', () => {
 describe('AdminService.deletePost (soft-delete)', () => {
   it('returns unauthorized when supabase.auth.getUser returns no user', async () => {
     mockAuthUnverified();
+    const result = await AdminService.deletePost('post-1');
+    expect(result.success).toBe(false);
+    expect(result.error).toBe('Unauthorized');
+  });
+
+  it('returns unauthorized when authenticated user is not in admin_users', async () => {
+    mockAuthVerifiedNonAdmin();
     const result = await AdminService.deletePost('post-1');
     expect(result.success).toBe(false);
     expect(result.error).toBe('Unauthorized');
