@@ -340,7 +340,8 @@ export async function generateAccessCode(): Promise<string> {
     crypto.getRandomValues(randomValues);
     result = '';
     for (let i = 0; i < length; i++) {
-      result += characters[randomValues[i] % characters.length];
+      const rv = randomValues[i] ?? 0;
+      result += characters[rv % characters.length];
     }
 
     // Check uniqueness via the SECURITY DEFINER RPC. Direct SELECT on
@@ -363,20 +364,10 @@ export async function generateAccessCode(): Promise<string> {
 }
 
 /**
- * Send an email notification to the post author when a reply is created.
- *
- * DISABLED until the post_notifications table + server-side endpoint are built
- * (runbook U-X5). The columns notify_email and notify_via_email used to live
- * on the posts table, but they were never deployed — querying them returns
- * HTTP 400 PGRST204 (column not in schema cache). For now this function is a
- * no-op so reply creation is not slowed down by a doomed network round-trip.
- *
- * When the proper implementation lands, restore the lookup against the
- * post_notifications table (service-role-only) via the API endpoint, NOT
- * directly from the client.
+ * Reply notification helper was removed. The prior `_triggerReplyNotification`
+ * function was a no-op placeholder referencing columns (notify_email,
+ * notify_via_email) that no longer exist on `posts` (U-X5 moved them to a
+ * future post_notifications table). When server-side notifications ship,
+ * wire them in via the `/api/send-reply-notification` endpoint — never from
+ * the browser, never by querying PII columns directly from anon.
  */
-async function _triggerReplyNotification(reply: Reply): Promise<void> {
-  // No-op until U-X5 ships the post_notifications table.
-  // Keeping the function signature so createReply doesn't need to change.
-  void reply;
-}

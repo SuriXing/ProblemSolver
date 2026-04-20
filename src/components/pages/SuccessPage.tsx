@@ -5,7 +5,6 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCircleCheck, faEye, faCopy, faHome, faHandsHelping, faCircleInfo, faBookmark, faComments } from '@fortawesome/free-solid-svg-icons';
 import StorageSystem, { UserData } from '../../utils/StorageSystem';
 import styles from './SuccessPage.module.css';
-import { useTranslation } from 'react-i18next';
 import Layout from '../layout/Layout';
 
 // Validate VITE_MENTOR_URL: only render the cross-promo when the env var is
@@ -81,23 +80,6 @@ const SuccessPage: React.FC = () => {
     // Navigate to the past questions page without exposing the code in URL
     window.location.href = '/past-questions';
   };
-  
-  // Share function to use the proper share page URL
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- wired up to the share button in A1; kept here so the URL contract stays in one place.
-  const sharePost = () => {
-    const shareUrl = `${window.location.origin}/share/${accessCode}`;
-    navigator.clipboard.writeText(shareUrl).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    });
-  };
-
-  const { t: i18nT } = useTranslation();
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- used by tag chips in A1; helper kept here so tag rendering stays co-located.
-  function renderTag(tag: string) {
-    return i18nT(`tag${tag.charAt(0).toUpperCase() + tag.slice(1)}`, tag);
-  }
 
   return (
     <Layout>

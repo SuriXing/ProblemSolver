@@ -28,8 +28,7 @@ const SharePage: React.FC = () => {
   const [copied, setCopied] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [userData, setUserData] = useState<any>(null);
+  const [userData, _setUserData] = useState<any>(null);
   
   // Get the base URL
   const baseUrl = window.location.origin;

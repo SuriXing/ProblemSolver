@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useImperativeHandle, forwardRef } from 'react';
+import { useState, useEffect, useRef, useImperativeHandle, forwardRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DatabaseService } from '../../services/database.service';
 
@@ -37,7 +37,7 @@ export const saveAccessCodeToNotebook = (accessCode: string, note = '') => {
   }
 };
 
-const AccessCodeNotebook = forwardRef<AccessCodeNotebookRef>(function AccessCodeNotebook(props, ref) {
+const AccessCodeNotebook = forwardRef<AccessCodeNotebookRef>(function AccessCodeNotebook(_props, ref) {
   const navigate = useNavigate();
   const [entries, setEntries] = useState<NotebookEntry[]>([]);
   const [code, setCode] = useState('');
@@ -136,8 +136,10 @@ const AccessCodeNotebook = forwardRef<AccessCodeNotebookRef>(function AccessCode
   };
 
   const startEditingNote = (idx: number) => {
+    const entry = entries[idx];
+    if (!entry) return;
     setEditingIdx(idx);
-    setEditingNote(entries[idx].note || '');
+    setEditingNote(entry.note || '');
   };
 
   const saveEditingNote = () => {
@@ -174,6 +176,7 @@ const AccessCodeNotebook = forwardRef<AccessCodeNotebookRef>(function AccessCode
   // Copy just the access code — that's what the user actually wants to share
   const copyCode = (idx: number) => {
     const entry = entries[idx];
+    if (!entry) return;
     navigator.clipboard.writeText(entry.code).then(
       () => {
         setCopiedIdx(idx);
@@ -188,6 +191,7 @@ const AccessCodeNotebook = forwardRef<AccessCodeNotebookRef>(function AccessCode
   // Navigate to the problem page with the access code — PastQuestionsPage auto-fetches
   const goToProblem = (idx: number) => {
     const entry = entries[idx];
+    if (!entry) return;
     setOpen(false);
     navigate(`/past-questions?code=${entry.code}`);
   };
@@ -197,6 +201,7 @@ const AccessCodeNotebook = forwardRef<AccessCodeNotebookRef>(function AccessCode
   // doesn't lie about server truth.
   const toggleSolved = async (idx: number) => {
     const entry = entries[idx];
+    if (!entry) return;
     const newSolved = !entry.solved;
     const prevEntries = entries;
 

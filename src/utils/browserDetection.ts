@@ -53,27 +53,27 @@ export function detectBrowser(): BrowserInfo {
     info.isSafari = true;
     info.browserName = 'Safari';
     const match = ua.match(/Version\/(\d+(\.\d+)?)/);
-    info.browserVersion = match ? match[1] : 'Unknown';
+    info.browserVersion = match?.[1] ?? 'Unknown';
   } else if (/Chrome/.test(ua) && !/Edg/.test(ua)) {
     info.isChrome = true;
     info.browserName = 'Chrome';
     const match = ua.match(/Chrome\/(\d+(\.\d+)?)/);
-    info.browserVersion = match ? match[1] : 'Unknown';
+    info.browserVersion = match?.[1] ?? 'Unknown';
   } else if (/Edg/.test(ua)) {
     info.isEdge = true;
     info.browserName = 'Edge';
     const match = ua.match(/Edg\/(\d+(\.\d+)?)/);
-    info.browserVersion = match ? match[1] : 'Unknown';
+    info.browserVersion = match?.[1] ?? 'Unknown';
   } else if (/Firefox/.test(ua)) {
     info.isFirefox = true;
     info.browserName = 'Firefox';
     const match = ua.match(/Firefox\/(\d+(\.\d+)?)/);
-    info.browserVersion = match ? match[1] : 'Unknown';
+    info.browserVersion = match?.[1] ?? 'Unknown';
   } else if (/Trident|MSIE/.test(ua)) {
     info.isIE = true;
     info.browserName = 'Internet Explorer';
     const match = ua.match(/(MSIE |rv:)(\d+(\.\d+)?)/);
-    info.browserVersion = match ? match[2] : 'Unknown';
+    info.browserVersion = match?.[2] ?? 'Unknown';
   }
 
   return info;
