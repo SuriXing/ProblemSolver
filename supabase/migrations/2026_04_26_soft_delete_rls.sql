@@ -19,6 +19,8 @@
 -- That policy was created in 2026_04_12_replies_rls_policies.sql with
 -- USING (true) — read everything. Tighten it to live rows only.
 DROP POLICY IF EXISTS "Anyone can read posts" ON posts;
+DROP POLICY IF EXISTS "Anon reads non-deleted posts only" ON posts;
+DROP POLICY IF EXISTS "Authenticated reads all posts" ON posts;
 
 CREATE POLICY "Anon reads non-deleted posts only"
   ON posts
@@ -29,8 +31,44 @@ CREATE POLICY "Anon reads non-deleted posts only"
 -- Authenticated (= logged-in admin) keeps full read so the dashboard can
 -- show the Deleted section. Admin auth gating happens in the admin policy
 -- and at the service-role layer; this is just removing the anon footgun.
+--
+-- ⚠️  FUTURE: if regular users ever get authenticated sessions (not just
+-- admin), tighten this to `USING (is_admin() OR deleted_at IS NULL)`. Right
+-- now the only authenticated callers are admin dashboard users, so
+-- USING (true) is correct; but it's a time bomb if auth expands without
+-- revisiting this policy. See D1.2 round 1 security review.
 CREATE POLICY "Authenticated reads all posts"
   ON posts
+  FOR SELECT
+  TO authenticated
+  USING (true);
+
+
+-- ----------------------------------------------------------------------------
+-- Replies soft-delete gap: when a post is soft-deleted, its replies remain
+-- readable via a direct /rest/v1/replies query because the replies RLS was
+-- `USING (true)`. Tighten anon reads to only replies whose parent post is live.
+--
+-- D1.2 round 1 security review found this orphan-readable gap.
+-- ----------------------------------------------------------------------------
+DROP POLICY IF EXISTS "Anyone can read replies" ON replies;
+DROP POLICY IF EXISTS "Anon reads replies of non-deleted posts" ON replies;
+DROP POLICY IF EXISTS "Authenticated reads all replies" ON replies;
+
+CREATE POLICY "Anon reads replies of non-deleted posts"
+  ON replies
+  FOR SELECT
+  TO anon
+  USING (
+    EXISTS (
+      SELECT 1 FROM posts p
+       WHERE p.id = replies.post_id
+         AND p.deleted_at IS NULL
+    )
+  );
+
+CREATE POLICY "Authenticated reads all replies"
+  ON replies
   FOR SELECT
   TO authenticated
   USING (true);

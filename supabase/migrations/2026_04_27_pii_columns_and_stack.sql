@@ -22,7 +22,7 @@
 
 
 -- ----------------------------------------------------------------------------
--- 1. Revoke email-notification PII from anon/authenticated SELECT.
+-- 1. Revoke email-notification PII from anon SELECT.
 --
 -- The 2026_04_14_security_trio migration enumerated the SELECT grant list
 -- explicitly (id, user_id, title, content, tags, purpose, is_anonymous,
@@ -31,13 +31,20 @@
 -- mean anon currently has SELECT on ALL columns of any column added AFTER
 -- the trio ran (because the trio only revoked access_code, not the rest).
 --
--- Belt + suspenders: explicitly REVOKE on these two columns. Idempotent.
+-- ⚠️  ROUND 1 REVIEW FIX (D1.2): original version REVOKEd from both anon AND
+-- authenticated. That broke the admin dashboard — `admin.service.ts` does
+-- `select('*')` on posts from an authenticated session, which would fail with
+-- "permission denied for column notify_email" once the column-level REVOKE
+-- lands for the authenticated role. Admin legitimately needs to see who opted
+-- in to notifications (for moderation / triage / support). Only anon (the
+-- public app) is a leak.
+--
+-- Service-role (SUPABASE_SERVICE_ROLE_KEY, used in api/*.ts) bypasses GRANTs
+-- entirely, so any server-side code that ever needs to read notify_email
+-- keeps working regardless of this change.
 -- ----------------------------------------------------------------------------
-REVOKE SELECT (notify_email)    ON posts FROM anon, authenticated;
-REVOKE SELECT (notify_via_email) ON posts FROM anon, authenticated;
-
--- Service-role bypasses GRANTs so the API server can still read the email
--- when sending reply notifications. No code change needed.
+REVOKE SELECT (notify_email)     ON posts FROM anon;
+REVOKE SELECT (notify_via_email) ON posts FROM anon;
 
 
 -- ----------------------------------------------------------------------------
@@ -56,7 +63,8 @@ ALTER TABLE app_errors
 -- 1) Column grants on posts:
 --    SELECT grantee, privilege_type, column_name FROM information_schema.column_privileges
 --     WHERE table_name = 'posts' AND column_name IN ('notify_email','notify_via_email');
---    -- expect NO rows for grantee = 'anon' or 'authenticated'.
+--    -- expect NO rows for grantee = 'anon'. `authenticated` may still have SELECT
+--    -- (needed for admin dashboard).
 --
 -- 2) New stack length:
 --    INSERT INTO app_errors (source, error_message, error_stack)
