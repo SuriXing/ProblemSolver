@@ -14,10 +14,11 @@ describe('LoadingPage', () => {
     expect(screen.getByText('Please wait while we connect to the server')).toBeInTheDocument();
   });
 
-  it('renders a spinning icon', () => {
+  it('renders an aria-live status region with a spinner div', () => {
     const { container } = render(<LoadingPage />);
-    // FontAwesome spinner gets an SVG with the fa-spin class
-    const spinner = container.querySelector('svg.fa-spin');
-    expect(spinner).not.toBeNull();
+    // P1.2: spinner is now a CSS-only div (no FA) so the Suspense fallback
+    // doesn't drag the FA vendor chunk into the eager critical path.
+    expect(container.querySelector('[role="status"]')).not.toBeNull();
+    expect(container.querySelector('[aria-hidden="true"]')).not.toBeNull();
   });
 });
