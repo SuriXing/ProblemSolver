@@ -10,7 +10,7 @@
 import { chromium } from 'playwright';
 import { mkdirSync } from 'fs';
 
-const base = process.env.UI_SMOKE_URL || 'http://localhost:5173';
+const base = process.env.UI_SMOKE_URL || 'http://localhost:3000';
 const outDir = 'test-results/launch';
 mkdirSync(outDir, { recursive: true });
 
