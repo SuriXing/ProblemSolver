@@ -16,33 +16,58 @@ interface LayoutProps {
 /**
  * A1.1 focus restoration: SPA route changes don't move focus by default, so
  * screen-reader users stay on the old page's focused element and AT never
- * announces the new route. On every pathname change we (1) scroll to top,
+ * announces the new route. On every route change we (1) scroll to top,
  * (2) move focus to <main>, and (3) emit an aria-live announcement so the
- * page is verbally surfaced without stealing visible focus state.
+ * page is verbally surfaced.
+ *
+ * A1.2 review fixes:
+ * - Use location.key (changes on every nav) instead of pathname only — catches
+ *   query/hash changes within the same route (e.g. ?tab=2).
+ * - Track previous key via ref instead of an isFirstRender boolean so
+ *   StrictMode's double-mount in dev doesn't flip the guard false on initial
+ *   render and yank focus.
+ * - Delay announcement to 300ms so page-level useEffects that set
+ *   document.title have a chance to run first, avoiding the stale-title race.
+ *   Cancel the pending timeout on re-nav so rapid navigation still announces
+ *   the final page, not a dropped intermediate one.
  */
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { theme } = useTheme();
   const location = useLocation();
   const mainRef = useRef<HTMLElement>(null);
   const announceRef = useRef<HTMLDivElement>(null);
-  const isFirstRender = useRef(true);
+  const lastKeyRef = useRef<string | null>(null);
+  const announceTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
-    if (isFirstRender.current) {
-      isFirstRender.current = false;
+    if (lastKeyRef.current === null) {
+      lastKeyRef.current = location.key;
       return;
     }
+    if (lastKeyRef.current === location.key) return;
+    lastKeyRef.current = location.key;
+
     window.scrollTo(0, 0);
     mainRef.current?.focus();
-    if (announceRef.current) {
-      // Small timeout so AT treats this as a fresh announcement
-      announceRef.current.textContent = '';
-      const title = document.title || 'Page loaded';
-      setTimeout(() => {
-        if (announceRef.current) announceRef.current.textContent = title;
-      }, 50);
+
+    if (announceTimerRef.current !== null) {
+      window.clearTimeout(announceTimerRef.current);
     }
-  }, [location.pathname]);
+    if (announceRef.current) {
+      announceRef.current.textContent = '';
+    }
+    announceTimerRef.current = window.setTimeout(() => {
+      if (announceRef.current) {
+        announceRef.current.textContent = document.title || 'Page loaded';
+      }
+    }, 300);
+
+    return () => {
+      if (announceTimerRef.current !== null) {
+        window.clearTimeout(announceTimerRef.current);
+      }
+    };
+  }, [location.key]);
 
   return (
     <div className="layout">

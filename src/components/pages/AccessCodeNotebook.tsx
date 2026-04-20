@@ -406,7 +406,12 @@ const AccessCodeNotebook = forwardRef<AccessCodeNotebookRef>(function AccessCode
                         type="button"
                         onClick={() => startEditingNote(idx)}
                         style={{
+                          // A1.2 review: `font: 'inherit'` was resetting fontSize
+                          // to the inherited value (ul default, not 11). Use
+                          // explicit props only — no shorthand — and keep the
+                          // visual identical to the old div.
                           fontSize: 11,
+                          fontFamily: 'inherit',
                           color: entry.note ? '#555' : '#aaa',
                           fontStyle: entry.note ? 'normal' : 'italic',
                           cursor: 'pointer',
@@ -415,7 +420,6 @@ const AccessCodeNotebook = forwardRef<AccessCodeNotebookRef>(function AccessCode
                           border: 'none',
                           textAlign: 'left',
                           width: '100%',
-                          font: 'inherit',
                         }}
                         title="Click to edit note"
                         aria-label={entry.note ? `Edit note: ${entry.note}` : 'Add a note'}
