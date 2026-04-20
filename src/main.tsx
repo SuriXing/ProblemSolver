@@ -7,20 +7,16 @@ import { installGlobalErrorHandlers } from './utils/errorLog';
 
 installGlobalErrorHandlers();
 
-// Log to check if this file is executing
-console.log('main.tsx is executing');
-
 // Mount with proper error handling
 try {
   const rootElement = document.getElementById('root');
   if (!rootElement) throw new Error('Root element not found');
-  
+
   ReactDOM.createRoot(rootElement).render(
     <React.StrictMode>
       <App />
     </React.StrictMode>
   );
-  console.log('App mounted successfully');
 } catch (error) {
   console.error('Error mounting app:', error);
   // Display error in DOM as fallback — use textContent to avoid DOM XSS if the
