@@ -50,32 +50,44 @@ function clearSupabaseSession() {
   sessionStorage.removeItem('admin_verify_cache');
 }
 
-function mockAuthVerified(_user = fakeUser) {
-  // S2.1: isAuthenticated() now does TWO awaits (getUser + admin_users). To
-  // keep existing per-method tests focused on the method-under-test (not on
-  // re-mocking the auth roundtrip), we pre-populate the in-memory cache that
-  // isAuthenticated() consults first. Tests that specifically care about the
-  // auth path itself (the AdminService.isAuthenticated describe block) clear
-  // this cache and exercise the real code path.
-  sessionStorage.setItem(
-    'admin_verify_cache',
-    JSON.stringify({ ok: true, ts: Date.now() }),
-  );
-  // Also wire getUser() in case any code path bypasses the cache.
+async function mockAuthVerified(_user = fakeUser) {
+  // S2.1 round 2: cache is module-scope memory, not sessionStorage. Per-method
+  // tests want a verified admin without re-mocking from('admin_users') around
+  // their own from() mocks. We achieve that by:
+  //   1. wiring getUser() + admin_users membership ONCE
+  //   2. calling isAuthenticated() to populate the in-memory cache
+  //   3. resetting from() so the test owns it cleanly
+  // After step 3, subsequent isAuthenticated() calls within 60s hit the cache
+  // (which only consults getUser() to confirm same user — never from()).
   supabaseMock.auth.getUser.mockResolvedValue({ data: { user: _user }, error: null });
+  supabaseMock.from.mockImplementation((table: string) => {
+    const b = createQueryBuilder();
+    if (table === 'admin_users') {
+      b.maybeSingle = vi.fn().mockResolvedValue({ data: { user_id: _user.id }, error: null });
+    }
+    return b;
+  });
+  await AdminService.isAuthenticated();
+  // Now hand from() back to the test
+  supabaseMock.from.mockReset();
+  supabaseMock.from.mockReturnValue(createQueryBuilder());
 }
 
-function mockAuthVerifiedNonAdmin(user = fakeUser) {
-  sessionStorage.setItem(
-    'admin_verify_cache',
-    JSON.stringify({ ok: false, ts: Date.now() }),
-  );
+async function mockAuthVerifiedNonAdmin(user = fakeUser) {
   supabaseMock.auth.getUser.mockResolvedValue({ data: { user }, error: null });
+  supabaseMock.from.mockImplementation((table: string) => {
+    const b = createQueryBuilder();
+    if (table === 'admin_users') {
+      b.maybeSingle = vi.fn().mockResolvedValue({ data: null, error: null });
+    }
+    return b;
+  });
+  await AdminService.isAuthenticated();
+  supabaseMock.from.mockReset();
+  supabaseMock.from.mockReturnValue(createQueryBuilder());
 }
 
 function mockAuthUnverified() {
-  // No cached verdict — the real auth path runs and finds no user.
-  sessionStorage.removeItem('admin_verify_cache');
   supabaseMock.auth.getUser.mockResolvedValue({ data: { user: null }, error: null });
 }
 
@@ -86,6 +98,7 @@ function mockAuthUnverified() {
 beforeEach(() => {
   vi.clearAllMocks();
   clearSupabaseSession();
+  AdminService.__resetCache();
   supabaseMock.from.mockReturnValue(createQueryBuilder());
   supabaseMock.auth.signInWithPassword.mockResolvedValue({
     data: { user: null, session: null },
@@ -149,77 +162,86 @@ describe('AdminService.login', () => {
 });
 
 // ---------------------------------------------------------------------------
-// isAuthenticated — async, verifies JWT AND admin_users membership (S2.1)
+// isAuthenticated — async, verifies JWT AND admin_users membership (S2.1).
+// Cache is module-scope memory (not sessionStorage) since S2.1 round 2 —
+// see admin.service.ts ADMIN_VERIFY_TTL_MS comment for why.
 // ---------------------------------------------------------------------------
 
 describe('AdminService.isAuthenticated', () => {
   beforeEach(() => {
-    sessionStorage.removeItem('admin_verify_cache');
+    AdminService.__resetCache();
   });
 
-  it('returns false when supabase has no session (no cache)', async () => {
+  it('returns false when supabase has no session', async () => {
     mockAuthUnverified();
     expect(await AdminService.isAuthenticated()).toBe(false);
   });
 
   it('returns false even with a tampered localStorage entry, when getUser rejects', async () => {
-    // Pre-S2.1 attack: setting any sb-*-auth-token key was enough to be
-    // "authenticated". Now the JWT must actually validate server-side.
     seedSupabaseSession();
     mockAuthUnverified();
     expect(await AdminService.isAuthenticated()).toBe(false);
   });
 
+  it('cannot be bypassed by writing to sessionStorage admin_verify_cache (S2.2 fix)', async () => {
+    // The pre-fix bug: an attacker could `sessionStorage.setItem('admin_verify_cache',
+    // '{"ok":true,"ts":<now>}')` and the next isAuthenticated() call would
+    // return true without hitting Supabase. Now the cache is in-memory only,
+    // so this write does nothing.
+    sessionStorage.setItem(
+      'admin_verify_cache',
+      JSON.stringify({ ok: true, ts: Date.now() }),
+    );
+    mockAuthUnverified();
+    expect(await AdminService.isAuthenticated()).toBe(false);
+    // And it actually called getUser — the sessionStorage entry was ignored.
+    expect(supabaseMock.auth.getUser).toHaveBeenCalled();
+  });
+
   it('returns false when getUser succeeds but user is not in admin_users', async () => {
-    supabaseMock.auth.getUser.mockResolvedValue({ data: { user: fakeUser }, error: null });
-    supabaseMock.from.mockImplementation((table: string) => {
-      const b = createQueryBuilder();
-      if (table === 'admin_users') {
-        b.maybeSingle = vi.fn().mockResolvedValue({ data: null, error: null });
-      }
-      return b;
-    });
+    await mockAuthVerifiedNonAdmin();
     expect(await AdminService.isAuthenticated()).toBe(false);
   });
 
   it('returns true when getUser succeeds AND user is in admin_users', async () => {
-    supabaseMock.auth.getUser.mockResolvedValue({ data: { user: fakeUser }, error: null });
-    supabaseMock.from.mockImplementation((table: string) => {
-      const b = createQueryBuilder();
-      if (table === 'admin_users') {
-        b.maybeSingle = vi.fn().mockResolvedValue({ data: { user_id: fakeUser.id }, error: null });
-      }
-      return b;
-    });
+    await mockAuthVerified();
     expect(await AdminService.isAuthenticated()).toBe(true);
   });
 
-  it('caches the verdict for subsequent calls within 60s', async () => {
-    supabaseMock.auth.getUser.mockResolvedValue({ data: { user: fakeUser }, error: null });
+  it('caches the verdict for subsequent calls within 60s (1 admin_users lookup, 2 getUser calls)', async () => {
+    await mockAuthVerified();
+
+    expect(await AdminService.isAuthenticated()).toBe(true);
+    const adminLookupsAfterFirst = supabaseMock.from.mock.calls.filter(
+      (c) => c[0] === 'admin_users',
+    ).length;
+
+    // Second call hits in-memory cache; getUser still runs to confirm same
+    // user (cheap; no admin_users round-trip).
+    expect(await AdminService.isAuthenticated()).toBe(true);
+    const adminLookupsAfterSecond = supabaseMock.from.mock.calls.filter(
+      (c) => c[0] === 'admin_users',
+    ).length;
+
+    expect(adminLookupsAfterSecond).toBe(adminLookupsAfterFirst);
+  });
+
+  it('invalidates cache when user changes (logout + new login as different user)', async () => {
+    await mockAuthVerified(fakeUser);
+    expect(await AdminService.isAuthenticated()).toBe(true);
+
+    const otherUser = { ...fakeUser, id: 'uuid-other-002' };
+    supabaseMock.auth.getUser.mockResolvedValue({ data: { user: otherUser }, error: null });
     supabaseMock.from.mockImplementation((table: string) => {
       const b = createQueryBuilder();
       if (table === 'admin_users') {
-        b.maybeSingle = vi.fn().mockResolvedValue({ data: { user_id: fakeUser.id }, error: null });
+        // otherUser is NOT in admin_users
+        b.maybeSingle = vi.fn().mockResolvedValue({ data: null, error: null });
       }
       return b;
     });
 
-    expect(await AdminService.isAuthenticated()).toBe(true);
-    expect(supabaseMock.auth.getUser).toHaveBeenCalledTimes(1);
-
-    // Second call hits cache, no extra getUser
-    expect(await AdminService.isAuthenticated()).toBe(true);
-    expect(supabaseMock.auth.getUser).toHaveBeenCalledTimes(1);
-  });
-
-  it('expires cache after 60s', async () => {
-    sessionStorage.setItem(
-      'admin_verify_cache',
-      JSON.stringify({ ok: true, ts: Date.now() - 61_000 }),
-    );
-    mockAuthUnverified();
     expect(await AdminService.isAuthenticated()).toBe(false);
-    expect(supabaseMock.auth.getUser).toHaveBeenCalled();
   });
 
   it('returns false on getUser exception', async () => {
@@ -227,24 +249,8 @@ describe('AdminService.isAuthenticated', () => {
     expect(await AdminService.isAuthenticated()).toBe(false);
   });
 
-  it('ignores corrupt cache JSON and re-runs the auth check', async () => {
-    sessionStorage.setItem('admin_verify_cache', 'not-json{');
-    mockAuthUnverified();
-    expect(await AdminService.isAuthenticated()).toBe(false);
-    expect(supabaseMock.auth.getUser).toHaveBeenCalled();
-  });
-
-  it('ignores cache entries missing required fields', async () => {
-    sessionStorage.setItem('admin_verify_cache', JSON.stringify({ ok: 'yes' }));
-    mockAuthUnverified();
-    expect(await AdminService.isAuthenticated()).toBe(false);
-  });
-
   it('isAuthenticatedVerified is an alias of isAuthenticated', async () => {
-    sessionStorage.setItem(
-      'admin_verify_cache',
-      JSON.stringify({ ok: true, ts: Date.now() }),
-    );
+    await mockAuthVerified();
     expect(await AdminService.isAuthenticatedVerified()).toBe(true);
   });
 });
@@ -280,13 +286,19 @@ describe('AdminService.getCurrentAdmin', () => {
 // ---------------------------------------------------------------------------
 
 describe('AdminService.logout', () => {
-  it('calls supabase.auth.signOut and clears the session hint + verify cache', async () => {
+  it('calls supabase.auth.signOut, clears the session hint, and invalidates the in-memory cache', async () => {
+    // Prime the in-memory cache with a verified verdict
+    await mockAuthVerified();
+    expect(await AdminService.isAuthenticated()).toBe(true);
     sessionStorage.setItem('admin_session', JSON.stringify({ id: 'x' }));
-    sessionStorage.setItem('admin_verify_cache', JSON.stringify({ ok: true, ts: Date.now() }));
+
     await AdminService.logout();
     expect(supabaseMock.auth.signOut).toHaveBeenCalled();
     expect(sessionStorage.getItem('admin_session')).toBeNull();
-    expect(sessionStorage.getItem('admin_verify_cache')).toBeNull();
+
+    // After logout, with no session, isAuthenticated must NOT use the prior cache.
+    mockAuthUnverified();
+    expect(await AdminService.isAuthenticated()).toBe(false);
   });
 
   it('swallows signOut errors and still clears the hint', async () => {
@@ -310,7 +322,7 @@ describe('AdminService.getDashboardStats', () => {
   });
 
   it('returns aggregated counts', async () => {
-    mockAuthVerified();
+    await mockAuthVerified();
     let n = 0;
     supabaseMock.from.mockImplementation(() => {
       n++;
@@ -328,7 +340,7 @@ describe('AdminService.getDashboardStats', () => {
   });
 
   it('returns zeroes when counts are null', async () => {
-    mockAuthVerified();
+    await mockAuthVerified();
     supabaseMock.from.mockReturnValue(
       createQueryBuilder({ data: null, error: null, count: null }),
     );
@@ -341,7 +353,7 @@ describe('AdminService.getDashboardStats', () => {
   });
 
   it('returns zeroes on exception', async () => {
-    mockAuthVerified();
+    await mockAuthVerified();
     supabaseMock.from.mockImplementation(() => { throw new Error('db down'); });
 
     const stats = await AdminService.getDashboardStats();
@@ -363,7 +375,7 @@ describe('AdminService.getAllPosts', () => {
   });
 
   it('returns paginated posts and total count', async () => {
-    mockAuthVerified();
+    await mockAuthVerified();
     const postsBuilder = createQueryBuilder({ data: [fakePost], error: null });
     const countBuilder = createQueryBuilder({ data: null, error: null, count: 42 });
 
@@ -376,7 +388,7 @@ describe('AdminService.getAllPosts', () => {
   });
 
   it('calculates offset from page and limit', async () => {
-    mockAuthVerified();
+    await mockAuthVerified();
     const builder = createQueryBuilder({ data: [], error: null });
     supabaseMock.from.mockReturnValue(builder);
 
@@ -385,7 +397,7 @@ describe('AdminService.getAllPosts', () => {
   });
 
   it('returns empty on error', async () => {
-    mockAuthVerified();
+    await mockAuthVerified();
     supabaseMock.from.mockReturnValue(
       createQueryBuilder({ data: null, error: { message: 'fail' } }),
     );
@@ -396,7 +408,7 @@ describe('AdminService.getAllPosts', () => {
   });
 
   it('returns empty on exception', async () => {
-    mockAuthVerified();
+    await mockAuthVerified();
     supabaseMock.from.mockImplementation(() => { throw new Error('crash'); });
 
     const result = await AdminService.getAllPosts();
@@ -418,14 +430,14 @@ describe('AdminService.deletePost (soft-delete)', () => {
   });
 
   it('returns unauthorized when authenticated user is not in admin_users', async () => {
-    mockAuthVerifiedNonAdmin();
+    await mockAuthVerifiedNonAdmin();
     const result = await AdminService.deletePost('post-1');
     expect(result.success).toBe(false);
     expect(result.error).toBe('Unauthorized');
   });
 
   it('soft-deletes by setting deleted_at on the post (no replies touched)', async () => {
-    mockAuthVerified();
+    await mockAuthVerified();
     const builder = createQueryBuilder({ data: null, error: null });
     supabaseMock.from.mockReturnValue(builder);
 
@@ -442,7 +454,7 @@ describe('AdminService.deletePost (soft-delete)', () => {
   });
 
   it('returns failure when the soft-delete update errors', async () => {
-    mockAuthVerified();
+    await mockAuthVerified();
     supabaseMock.from.mockReturnValue(
       createQueryBuilder({ data: null, error: { message: 'update fail' } }),
     );
@@ -453,7 +465,7 @@ describe('AdminService.deletePost (soft-delete)', () => {
   });
 
   it('returns failure on exception', async () => {
-    mockAuthVerified();
+    await mockAuthVerified();
     supabaseMock.from.mockImplementation(() => { throw new Error('boom'); });
 
     const result = await AdminService.deletePost('post-1');
@@ -474,7 +486,7 @@ describe('AdminService.restorePost', () => {
   });
 
   it('clears deleted_at on the post', async () => {
-    mockAuthVerified();
+    await mockAuthVerified();
     const builder = createQueryBuilder({ data: null, error: null });
     supabaseMock.from.mockReturnValue(builder);
 
@@ -485,7 +497,7 @@ describe('AdminService.restorePost', () => {
   });
 
   it('returns failure on supabase error', async () => {
-    mockAuthVerified();
+    await mockAuthVerified();
     supabaseMock.from.mockReturnValue(
       createQueryBuilder({ data: null, error: { message: 'err' } }),
     );
@@ -508,7 +520,7 @@ describe('AdminService.hardDeletePost', () => {
   });
 
   it('deletes replies first, then the post', async () => {
-    mockAuthVerified();
+    await mockAuthVerified();
     supabaseMock.from.mockReturnValue(createQueryBuilder({ data: null, error: null }));
 
     const result = await AdminService.hardDeletePost('post-1');
@@ -518,7 +530,7 @@ describe('AdminService.hardDeletePost', () => {
   });
 
   it('returns failure when the post delete errors', async () => {
-    mockAuthVerified();
+    await mockAuthVerified();
     const okBuilder = createQueryBuilder({ data: null, error: null });
     const errBuilder = createQueryBuilder({ data: null, error: { message: 'delete fail' } });
 
@@ -543,7 +555,7 @@ describe('AdminService.updatePostStatus', () => {
   });
 
   it('updates status successfully', async () => {
-    mockAuthVerified();
+    await mockAuthVerified();
     supabaseMock.from.mockReturnValue(createQueryBuilder({ data: null, error: null }));
 
     const result = await AdminService.updatePostStatus('post-1', 'closed');
@@ -551,7 +563,7 @@ describe('AdminService.updatePostStatus', () => {
   });
 
   it('returns failure on supabase error', async () => {
-    mockAuthVerified();
+    await mockAuthVerified();
     supabaseMock.from.mockReturnValue(
       createQueryBuilder({ data: null, error: { message: 'err' } }),
     );
@@ -561,7 +573,7 @@ describe('AdminService.updatePostStatus', () => {
   });
 
   it('returns failure on exception', async () => {
-    mockAuthVerified();
+    await mockAuthVerified();
     supabaseMock.from.mockImplementation(() => { throw new Error('crash'); });
 
     const result = await AdminService.updatePostStatus('post-1', 'solved');
@@ -581,7 +593,7 @@ describe('AdminService.getPostReplies', () => {
   });
 
   it('returns replies on success', async () => {
-    mockAuthVerified();
+    await mockAuthVerified();
     supabaseMock.from.mockReturnValue(
       createQueryBuilder({ data: [fakeReply], error: null }),
     );
@@ -591,7 +603,7 @@ describe('AdminService.getPostReplies', () => {
   });
 
   it('returns empty array on error', async () => {
-    mockAuthVerified();
+    await mockAuthVerified();
     supabaseMock.from.mockReturnValue(
       createQueryBuilder({ data: null, error: { message: 'err' } }),
     );
@@ -601,7 +613,7 @@ describe('AdminService.getPostReplies', () => {
   });
 
   it('returns empty array on exception', async () => {
-    mockAuthVerified();
+    await mockAuthVerified();
     supabaseMock.from.mockImplementation(() => { throw new Error('boom'); });
 
     const result = await AdminService.getPostReplies('post-1');
@@ -622,7 +634,7 @@ describe('AdminService.deleteReply', () => {
   });
 
   it('deletes reply successfully', async () => {
-    mockAuthVerified();
+    await mockAuthVerified();
     supabaseMock.from.mockReturnValue(createQueryBuilder({ data: null, error: null }));
 
     const result = await AdminService.deleteReply('reply-1');
@@ -630,7 +642,7 @@ describe('AdminService.deleteReply', () => {
   });
 
   it('returns failure on supabase error', async () => {
-    mockAuthVerified();
+    await mockAuthVerified();
     supabaseMock.from.mockReturnValue(
       createQueryBuilder({ data: null, error: { message: 'err' } }),
     );
@@ -640,7 +652,7 @@ describe('AdminService.deleteReply', () => {
   });
 
   it('returns failure on exception', async () => {
-    mockAuthVerified();
+    await mockAuthVerified();
     supabaseMock.from.mockImplementation(() => { throw new Error('crash'); });
 
     const result = await AdminService.deleteReply('reply-1');
@@ -660,13 +672,13 @@ describe('AdminService.searchPosts', () => {
   });
 
   it('returns empty when query is too short', async () => {
-    mockAuthVerified();
+    await mockAuthVerified();
     const result = await AdminService.searchPosts('a');
     expect(result).toEqual([]);
   });
 
   it('returns matching posts', async () => {
-    mockAuthVerified();
+    await mockAuthVerified();
     supabaseMock.from.mockReturnValue(
       createQueryBuilder({ data: [fakePost], error: null }),
     );
@@ -679,7 +691,7 @@ describe('AdminService.searchPosts', () => {
   });
 
   it('does not include access_code in the search filter', async () => {
-    mockAuthVerified();
+    await mockAuthVerified();
     supabaseMock.from.mockReturnValue(createQueryBuilder({ data: [], error: null }));
 
     await AdminService.searchPosts('test');
@@ -691,7 +703,7 @@ describe('AdminService.searchPosts', () => {
   });
 
   it('strips PostgREST special characters to block filter injection', async () => {
-    mockAuthVerified();
+    await mockAuthVerified();
     supabaseMock.from.mockReturnValue(createQueryBuilder({ data: [], error: null }));
 
     await AdminService.searchPosts('evil),access_code.ilike.%(A');
@@ -708,7 +720,7 @@ describe('AdminService.searchPosts', () => {
   });
 
   it('returns empty array on error', async () => {
-    mockAuthVerified();
+    await mockAuthVerified();
     supabaseMock.from.mockReturnValue(
       createQueryBuilder({ data: null, error: { message: 'err' } }),
     );
@@ -718,7 +730,7 @@ describe('AdminService.searchPosts', () => {
   });
 
   it('returns empty array when data is null (no matches)', async () => {
-    mockAuthVerified();
+    await mockAuthVerified();
     supabaseMock.from.mockReturnValue(
       createQueryBuilder({ data: null, error: null }),
     );
@@ -728,7 +740,7 @@ describe('AdminService.searchPosts', () => {
   });
 
   it('returns empty array on exception', async () => {
-    mockAuthVerified();
+    await mockAuthVerified();
     supabaseMock.from.mockImplementation(() => { throw new Error('crash'); });
 
     const result = await AdminService.searchPosts('test');

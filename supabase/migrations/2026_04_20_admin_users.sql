@@ -1,23 +1,43 @@
 -- ============================================================================
--- S2.1: admin_users allowlist + tighten admin RLS policies
+-- S2.1 (revised in S2.2 round 2): admin_users allowlist + tightened RLS
 --
--- Run this in Supabase SQL Editor AFTER 2026_04_15_admin_auth.sql.
+-- Run this in Supabase SQL Editor. Self-sufficient — applies cleanly on a
+-- fresh project (does NOT require 2026_04_15_admin_auth.sql to have run).
 -- Idempotent — re-running is safe.
 --
--- WHY:
---   The 2026_04_15 migration treated "any authenticated user" as admin. That
---   model relied on a single dashboard switch (Authentication → Settings →
---   "Enable new user signups" = OFF). If anyone flips that switch, every
---   self-registered user becomes a moderator. This migration introduces an
---   explicit admin_users allowlist so that membership in that table — not
---   merely having a session — is what grants moderation rights.
+-- ⚠️  ⚠️  ⚠️  CRITICAL DEPLOYMENT WARNING — READ BEFORE APPLYING  ⚠️  ⚠️  ⚠️
 --
--- HUMAN ACTION REQUIRED AFTER APPLYING:
---   For each existing admin auth.users row, insert a matching admin_users row:
---     INSERT INTO admin_users (user_id, role)
---     SELECT id, 'super_admin' FROM auth.users WHERE email = 'admin@your-domain';
---   Otherwise the dashboard will lock out every existing admin.
+-- This migration creates an EMPTY admin_users table and replaces the previous
+-- "any authenticated user is admin" RLS policies with strict membership-gated
+-- ones. Until you INSERT a row for each existing admin, NO ONE can moderate
+-- posts/replies — the dashboard will appear to load but every Save/Delete
+-- silently fails.
+--
+-- BEFORE running this migration in production, prepare and review the seed:
+--
+--   -- Replace the email(s) with your actual admin account emails.
+--   INSERT INTO admin_users (user_id, role)
+--   SELECT id, 'super_admin'
+--     FROM auth.users
+--    WHERE email IN ('admin@your-domain.com');
+--
+-- Then run THIS migration immediately followed by the seed in the same
+-- session. If you forget the seed you will lock yourself out — recovery
+-- requires service-role access to insert the row manually.
+--
+-- ⚠️  ⚠️  ⚠️  END WARNING  ⚠️  ⚠️  ⚠️
 -- ============================================================================
+
+
+-- ----------------------------------------------------------------------------
+-- 0. Self-sufficiency: re-GRANT UPDATE/DELETE on posts/replies to
+--    `authenticated`. The earlier 2026_04_14_security_trio.sql REVOKEd these
+--    from anon+authenticated; 2026_04_15_admin_auth.sql restored them but
+--    only as part of its own setup. Restating here so this migration applies
+--    cleanly even if 2026_04_15 was skipped or rolled back.
+-- ----------------------------------------------------------------------------
+GRANT UPDATE, DELETE ON posts TO authenticated;
+GRANT UPDATE, DELETE ON replies TO authenticated;
 
 
 -- ----------------------------------------------------------------------------
@@ -62,36 +82,56 @@ GRANT EXECUTE ON FUNCTION public.is_admin() TO authenticated;
 
 
 -- ----------------------------------------------------------------------------
--- 3. Replace permissive "any authenticated" policies with is_admin() gating
+-- 3. Drop ALL prior permissive UPDATE/DELETE policies on posts/replies before
+--    creating the is_admin()-gated replacements. PostgreSQL ORs policies
+--    together, so a leftover "USING (true)" policy would bypass the gate.
+--
+--    Names below cover both this project's history (2026_04_15_admin_auth.sql)
+--    AND any older variants — drops are no-ops if absent.
 -- ----------------------------------------------------------------------------
 DROP POLICY IF EXISTS "Authenticated users can update posts" ON posts;
+DROP POLICY IF EXISTS "Authenticated users can delete posts" ON posts;
+DROP POLICY IF EXISTS "Authenticated users can update replies" ON replies;
+DROP POLICY IF EXISTS "Authenticated users can delete replies" ON replies;
+-- Defensive: any older "Allow ..." or "Enable ..." style names from earlier work.
+DROP POLICY IF EXISTS "Allow authenticated update posts" ON posts;
+DROP POLICY IF EXISTS "Allow authenticated delete posts" ON posts;
+DROP POLICY IF EXISTS "Allow authenticated update replies" ON replies;
+DROP POLICY IF EXISTS "Allow authenticated delete replies" ON replies;
+-- And the new names too, so re-running this migration is idempotent.
+DROP POLICY IF EXISTS "Admins can update posts" ON posts;
+DROP POLICY IF EXISTS "Admins can delete posts" ON posts;
+DROP POLICY IF EXISTS "Admins can update replies" ON replies;
+DROP POLICY IF EXISTS "Admins can delete replies" ON replies;
+
 CREATE POLICY "Admins can update posts"
   ON posts FOR UPDATE TO authenticated
   USING (public.is_admin()) WITH CHECK (public.is_admin());
 
-DROP POLICY IF EXISTS "Authenticated users can delete posts" ON posts;
 CREATE POLICY "Admins can delete posts"
   ON posts FOR DELETE TO authenticated
   USING (public.is_admin());
 
-DROP POLICY IF EXISTS "Authenticated users can update replies" ON replies;
 CREATE POLICY "Admins can update replies"
   ON replies FOR UPDATE TO authenticated
   USING (public.is_admin()) WITH CHECK (public.is_admin());
 
-DROP POLICY IF EXISTS "Authenticated users can delete replies" ON replies;
 CREATE POLICY "Admins can delete replies"
   ON replies FOR DELETE TO authenticated
   USING (public.is_admin());
 
 
 -- ============================================================================
--- Verification queries:
+-- Verification queries (run these AFTER seeding admin_users):
 --
--- 1) See the new policies (should all use is_admin()):
+-- 1) Confirm the new policies are the only UPDATE/DELETE policies on these
+--    tables (any leftover "Authenticated users can ..." rows = bug):
 -- SELECT tablename, policyname, qual FROM pg_policies
---  WHERE tablename IN ('posts','replies') AND policyname LIKE 'Admins can%';
+--  WHERE tablename IN ('posts','replies') AND cmd IN ('UPDATE','DELETE');
 --
 -- 2) Confirm a non-admin authenticated user is blocked:
--- SELECT public.is_admin();   -- should return false unless you're in admin_users
+-- SELECT public.is_admin();   -- false unless caller is in admin_users
+--
+-- 3) Smoke test as one of your seeded admins (from a logged-in client):
+--   -- should return true, then the UPDATE should succeed
 -- ============================================================================
