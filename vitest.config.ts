@@ -25,12 +25,15 @@ export default defineConfig({
         'src/styles/**',
         'src/**/*.css',
       ],
-      thresholds: {
-        lines: 85,
-        branches: 75,
-        functions: 75,
-        statements: 85,
-      },
+      // vitest 0.30 + @vitest/coverage-c8 reads thresholds as FLAT keys —
+      // the nested `thresholds: { ... }` form arrived in vitest ≥1.0 and is
+      // silently ignored on 0.30. Keep flat until D2 upgrades vitest.
+      // These are RATCHET FLOORS, not aspirational targets — set to current
+      // measured coverage so any regression fails CI. C2/A1 will raise them.
+      lines: 85,
+      branches: 75,
+      functions: 70,
+      statements: 85,
     },
   },
   resolve: {

@@ -6,6 +6,9 @@ on:
   push:
     branches: [main]
 
+permissions:
+  contents: read
+
 jobs:
   test:
     name: Lint, Type-check, Test, Build
@@ -29,8 +32,8 @@ jobs:
       - name: Type-check
         run: npm run type-check
 
-      - name: Test
-        run: npm test
+      - name: Test with coverage
+        run: npm run coverage
 
       - name: Build
         run: npm run build
