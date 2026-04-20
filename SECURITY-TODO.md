@@ -2,6 +2,14 @@
 
 > **Priority: rotate within 24h** — leaked keys are still live in production bundles.
 
+- [ ] **HUMAN ACTION REQUIRED — DO IMMEDIATELY AFTER APPLYING `2026_04_24_rate_limit.sql`:** Set the IP-hash salt, otherwise the bucket tokens are predictable from the migration source. Run in the Supabase SQL Editor (any single connection):
+  ```sql
+  -- Use openssl rand -hex 32 (or any 32+ char random string) on your laptop.
+  ALTER DATABASE postgres SET app.rate_limit_ip_salt = 'PASTE_LONG_RANDOM_HEX_HERE';
+  -- Then disconnect+reconnect (or restart project) so postgres picks it up.
+  -- Verify:
+  SELECT current_setting('app.rate_limit_ip_salt');  -- should NOT be 'UNSET-SALT-PLEASE-CONFIGURE'
+  ```
 - [ ] **HUMAN ACTION REQUIRED — DO BEFORE/WITH S2.1 MIGRATION:** Seed `admin_users` immediately after applying `2026_04_20_admin_users.sql`, or every admin gets locked out (Save/Delete silently fails, dashboard appears to work). **Strict order, single SQL Editor session:**
   1. List existing admin emails from Supabase dashboard → Authentication → Users.
   2. Apply the migration: paste `supabase/migrations/2026_04_20_admin_users.sql` and run.
