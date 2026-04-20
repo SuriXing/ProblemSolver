@@ -35,16 +35,35 @@
 
 
 -- ----------------------------------------------------------------------------
+-- 0. pgcrypto for digest()/encode()
+--
+-- Supabase enables pgcrypto by default in the `extensions` schema, but a
+-- fresh self-hosted project may not. The CREATE EXTENSION call is idempotent
+-- and ensures `digest('sha256')` resolves regardless of schema search order.
+--
+-- We then explicitly reference `extensions.digest()` in the functions below
+-- (instead of relying on search_path) — that's both faster (no path
+-- resolution) and safer (immune to a malicious `public.digest` shadow).
+-- ----------------------------------------------------------------------------
+CREATE EXTENSION IF NOT EXISTS pgcrypto WITH SCHEMA extensions;
+
+
+-- ----------------------------------------------------------------------------
 -- 1. Salt for IP hashing.
 --
--- IF YOU LEAVE THE DEFAULT, the hashes are predictable to anyone who reads
--- this file in source control. Per-deployment salt closes that. Set via
--- Supabase dashboard → Database → Custom config:
---   ALTER DATABASE postgres SET app.rate_limit_ip_salt = '<long random string>';
--- and reload (or restart the project). The function below uses
--- current_setting('app.rate_limit_ip_salt', true) and tolerates NULL by
--- falling back to a hard-coded warning marker (so behaviour is correct but
--- you'll see the marker in pg_stat_statements and know to set the salt).
+-- IF YOU LEAVE THE DEFAULT, the function FAILS CLOSED and rate_limit_check
+-- starts returning false (= rejecting all calls) for anything routed through
+-- request_ip_hash(). This is INTENTIONAL — fail-open with a known literal
+-- salt would let admins reading the bucket table deanonymize callers, AND
+-- a forgotten-salt deploy would silently look "working" while leaking PII.
+--
+-- Set via Supabase dashboard → SQL Editor (any single connection):
+--   ALTER DATABASE postgres SET app.rate_limit_ip_salt = '<long random hex>';
+-- and reload (disconnect + reconnect — `SET` at the database level needs a
+-- new session to take effect).
+--
+-- Verification: SELECT request_ip_hash() should return a 64-char hex string,
+-- NOT raise an exception.
 -- ----------------------------------------------------------------------------
 
 
@@ -61,6 +80,12 @@
 -- than NOW() - 1 hour every ~1 in 100 calls (cheap probabilistic cleanup).
 -- A nightly cron could replace this; for current traffic, probabilistic is
 -- fine and avoids a moving-parts dependency.
+--
+-- DESIGN NOTE — no secondary index on window_start.
+-- The eviction sweep is bounded by `NOW() - 1 hour` and runs only ~1% of
+-- the time. With expected bucket cardinality in the thousands, a seq scan
+-- is faster than maintaining a secondary index that DEFEATS HOT updates
+-- on every window-reset (since window_start is mutated). HOT > index here.
 -- ----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS rate_limit_buckets (
   kind         text        NOT NULL,
@@ -70,9 +95,7 @@ CREATE TABLE IF NOT EXISTS rate_limit_buckets (
   PRIMARY KEY (kind, token)
 );
 
-CREATE INDEX IF NOT EXISTS idx_rate_limit_buckets_window
-  ON rate_limit_buckets (window_start);
-
+-- ALTER TABLE ENABLE RLS is idempotent in Postgres — re-running is a no-op.
 ALTER TABLE rate_limit_buckets ENABLE ROW LEVEL SECURITY;
 
 -- No policies = no anon/authenticated access. The table is touched ONLY via
@@ -83,28 +106,39 @@ ALTER TABLE rate_limit_buckets ENABLE ROW LEVEL SECURITY;
 -- ----------------------------------------------------------------------------
 -- 3. request_ip_hash() — SECURITY DEFINER
 --
--- Returns SHA-256(salt || inet_client_addr()::text). Falls back to the
--- request id if inet_client_addr() is NULL (PgBouncer/edge cases).
+-- Returns SHA-256(salt || ':' || inet_client_addr()::text). RAISES EXCEPTION
+-- if the salt is unset — that bubbles up as NULL through the rate_limit_check
+-- caller (which catches it and returns false), making the gate fail-closed.
+--
+-- VOLATILE (default) because inet_client_addr() reads connection state and
+-- the function should not be cacheable by the planner.
 -- ----------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION request_ip_hash()
 RETURNS text
 LANGUAGE plpgsql
 SECURITY DEFINER
-STABLE
 SET search_path = public, pg_temp
 AS $$
 DECLARE
   v_salt text;
   v_ip   text;
 BEGIN
-  v_salt := COALESCE(current_setting('app.rate_limit_ip_salt', true), 'UNSET-SALT-PLEASE-CONFIGURE');
+  v_salt := current_setting('app.rate_limit_ip_salt', true);
+  IF v_salt IS NULL OR length(v_salt) < 16 THEN
+    -- Fail closed. See section 1 above.
+    RAISE EXCEPTION 'rate_limit_ip_salt unset or too short — see SECURITY-TODO.md'
+      USING ERRCODE = 'configuration_limit_exceeded';
+  END IF;
   v_ip := COALESCE(inet_client_addr()::text, 'no-ip');
-  RETURN encode(digest(v_salt || ':' || v_ip, 'sha256'), 'hex');
+  RETURN encode(extensions.digest(v_salt || ':' || v_ip, 'sha256'), 'hex');
 END;
 $$;
 
 REVOKE ALL ON FUNCTION request_ip_hash() FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION request_ip_hash() TO anon, authenticated;
+-- NOT granted to anon/authenticated. Callable only via the wrapped RPCs in
+-- this file (which run as definer themselves and chain through). S4.2 round 1:
+-- granting to anon was an unnecessary information disclosure (each caller
+-- could read their own IP hash, useful for deanonymization-by-correlation).
 
 
 -- ----------------------------------------------------------------------------
@@ -119,8 +153,14 @@ GRANT EXECUTE ON FUNCTION request_ip_hash() TO anon, authenticated;
 -- (kind, token) row. No race window — Postgres's row-level lock holds for
 -- the duration of the upsert.
 --
--- p_window_seconds: rolling-window duration. p_max: how many calls allowed
--- inside that window. Caller chooses the policy per bucket.
+-- VOLATILE — mutates state. Critical: callers MUST NOT mark themselves
+-- STABLE/IMMUTABLE if they call this. (S4.2 round 1 found exactly this bug:
+-- access_code_exists was STABLE → Postgres rejects writes from STABLE funcs
+-- → every RPC call would have errored.)
+--
+-- Wrapped in BEGIN/EXCEPTION so a salt-misconfig RAISE inside request_ip_hash
+-- (called by the wrapped RPCs, not here) propagates as a DB error, but a
+-- bucket-table glitch returns false rather than 500-ing the user request.
 -- ----------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION rate_limit_check(
   p_kind            text,
@@ -137,7 +177,6 @@ DECLARE
   v_now      timestamptz := now();
   v_window   interval;
   v_counter  int;
-  v_started  timestamptz;
 BEGIN
   -- Length guards on all inputs (defense vs DoS).
   IF p_kind IS NULL OR length(p_kind) > 64 OR length(p_kind) = 0 THEN
@@ -156,13 +195,18 @@ BEGIN
   v_window := make_interval(secs => p_window_seconds);
 
   -- Probabilistic eviction sweep. ~1% of calls scan + delete stale rows.
-  -- At 100 RPS that's 1 sweep/sec; bucket population stays bounded.
+  -- Bounded predicate (`< now() - 1h`); won't conflict with the upsert
+  -- below because that targets a fresh (kind, token) row, while this
+  -- DELETE only touches rows >1h old.
   IF random() < 0.01 THEN
     DELETE FROM rate_limit_buckets WHERE window_start < v_now - interval '1 hour';
   END IF;
 
   -- Atomic upsert + counter logic. If the existing window has aged out,
   -- reset window_start AND counter (= 1). Otherwise increment.
+  -- RETURNING gives the AFTER-update values — for a fresh row that's (1, now);
+  -- for a window-reset that's (1, now); for an in-window hit that's
+  -- (counter+1, original window_start). All three correct.
   INSERT INTO rate_limit_buckets (kind, token, window_start, counter)
   VALUES (p_kind, p_token, v_now, 1)
   ON CONFLICT (kind, token) DO UPDATE
@@ -176,7 +220,7 @@ BEGIN
                           THEN 1
                           ELSE rate_limit_buckets.counter + 1
                        END
-  RETURNING counter, window_start INTO v_counter, v_started;
+  RETURNING counter INTO v_counter;
 
   RETURN v_counter <= p_max;
 END;
@@ -193,7 +237,11 @@ REVOKE ALL ON FUNCTION rate_limit_check(text, text, int, int) FROM PUBLIC;
 --
 -- Insert a row into app_errors with hashed IP + the failed lookup value.
 -- Used by access_code_exists / get_post_by_access_code on miss so admins can
--- spot enumeration sweeps. Best-effort; failure to log is swallowed.
+-- spot enumeration sweeps.
+--
+-- Logging failures DO get raised as a WARNING so they show up in Postgres
+-- logs (audit-purpose preservation per S4.2 round 1) — the caller still
+-- continues, but the operator can spot a broken audit trail.
 -- ----------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION log_rpc_failure(p_kind text, p_value text)
 RETURNS void
@@ -208,12 +256,11 @@ BEGIN
       'rpc:' || left(p_kind, 32),
       'lookup miss',
       'rpc-miss:' || left(p_kind, 32),
-      jsonb_build_object('value_hash', encode(digest(COALESCE(p_value, ''), 'sha256'), 'hex'),
+      jsonb_build_object('value_hash', encode(extensions.digest(COALESCE(p_value, ''), 'sha256'), 'hex'),
                          'ip_hash', request_ip_hash())
     );
   EXCEPTION WHEN OTHERS THEN
-    -- swallow — logging failure must never break the caller
-    NULL;
+    RAISE WARNING 'log_rpc_failure: insert into app_errors failed: %', SQLERRM;
   END;
 END;
 $$;
@@ -223,6 +270,10 @@ REVOKE ALL ON FUNCTION log_rpc_failure(text, text) FROM PUBLIC;
 
 -- ----------------------------------------------------------------------------
 -- 6. Re-create access_code_exists with rate limit + length guard.
+--
+-- VOLATILE (NOT STABLE — see S4.2 round 1 finding). The function now mutates
+-- rate_limit_buckets via the rate_limit_check call; STABLE forbids that and
+-- Postgres would refuse to execute it.
 --
 -- Bucket policy: 30 calls / 60 seconds per IP hash. A real user generating
 -- a code calls this once per attempt; the loop in generateAccessCode caps
@@ -237,7 +288,6 @@ CREATE OR REPLACE FUNCTION access_code_exists(p_access_code text)
 RETURNS boolean
 LANGUAGE plpgsql
 SECURITY DEFINER
-STABLE
 SET search_path = public, pg_temp
 AS $$
 DECLARE
@@ -269,6 +319,8 @@ GRANT EXECUTE ON FUNCTION access_code_exists(text) TO anon, authenticated;
 -- 7. Re-create get_post_by_access_code with rate limit + length guard +
 --    miss logging.
 --
+-- VOLATILE for the same reason as access_code_exists.
+--
 -- Tighter bucket: 15 calls / 60s per IP. Legitimate use is "user pastes
 -- their code and views the post" — once or twice per session. Anything
 -- above 15/min from one IP is enumeration.
@@ -277,7 +329,6 @@ CREATE OR REPLACE FUNCTION get_post_by_access_code(p_access_code text)
 RETURNS jsonb
 LANGUAGE plpgsql
 SECURITY DEFINER
-STABLE
 SET search_path = public, pg_temp
 AS $$
 DECLARE
@@ -355,11 +406,17 @@ GRANT EXECUTE ON FUNCTION increment_views(uuid) TO anon, authenticated;
 -- ============================================================================
 -- Verification queries:
 --
--- 1) Confirm rate_limit_check correctly windows. Should show
+-- 1) Confirm the salt is set (CRITICAL — without it every RPC fails closed):
+--   SELECT current_setting('app.rate_limit_ip_salt', true);
+--   -- NULL or short string → set it via:
+--   --   ALTER DATABASE postgres SET app.rate_limit_ip_salt = '<32+ char hex>';
+--   -- and disconnect+reconnect.
+--
+-- 2) Confirm rate_limit_check correctly windows. Should show
 --    counter resetting after the window passes:
 --   SELECT rate_limit_check('test', 'tok', 3, 5);  -- t,t,t,f,f then wait 5s, t
 --
--- 2) Confirm access_code_exists is gated:
+-- 3) Confirm access_code_exists is gated:
 --   DO $$
 --   DECLARE i int; v boolean; BEGIN
 --     FOR i IN 1..35 LOOP
@@ -369,12 +426,6 @@ GRANT EXECUTE ON FUNCTION increment_views(uuid) TO anon, authenticated;
 --     -- treated as misses).
 --   END $$;
 --
--- 3) Confirm bucket cleanup is happening (run after some traffic):
+-- 4) Confirm bucket cleanup is happening (run after some traffic):
 --   SELECT count(*), min(window_start), max(window_start) FROM rate_limit_buckets;
---
--- 4) ENSURE you set the salt:
---   SHOW app.rate_limit_ip_salt;
---   -- If "ERROR: unrecognized configuration parameter", run:
---   --   ALTER DATABASE postgres SET app.rate_limit_ip_salt = '<random>';
---   -- then disconnect+reconnect.
 -- ============================================================================
