@@ -192,9 +192,17 @@ html[data-theme-mode="light"] .footer,
   outline-offset: 2px;
 }
 
-/* Visible focus ring on all interactive elements — Ant Design removes
-   default outlines; restore for keyboard users via :focus-visible. */
-*:focus-visible {
+/* A1.2 review: scoped from `*:focus-visible` to specific interactive
+   elements so we don't double-ring Ant Design's own focus styles. Ant
+   components (.ant-btn, .ant-input, etc.) keep their built-in focus ring;
+   we only fill in for native controls and our own custom <button>s. */
+a:focus-visible,
+button:not([class*="ant-"]):focus-visible,
+input:not([class*="ant-"]):focus-visible,
+select:not([class*="ant-"]):focus-visible,
+textarea:not([class*="ant-"]):focus-visible,
+[role="button"]:not([class*="ant-"]):focus-visible,
+[tabindex]:not([tabindex="-1"]):not([class*="ant-"]):focus-visible {
   outline: 2px solid var(--primary-color, #5B7BFA);
   outline-offset: 2px;
 }
