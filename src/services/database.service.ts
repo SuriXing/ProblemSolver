@@ -1,7 +1,7 @@
 import { supabase } from '../lib/supabase';
 import { Post, Reply, InsertTables } from '../types/database.types';
 import { getSupabaseUrl } from '../utils/supabaseUtils';
-import i18next from 'i18next';
+import { IS_DEV } from '../utils/environment';
 
 // Get the Supabase URL from environment variables
 const supabaseUrl = getSupabaseUrl();
@@ -15,12 +15,11 @@ export const DatabaseService = {
    */
   async createPost(postData: Omit<InsertTables<'posts'>, 'id' | 'created_at' | 'updated_at' | 'views'>): Promise<Post | null> {
     try {
-      // 异步生成唯一的访问码
+      // Generate a unique access code for the post.
       const access_code = await generateAccessCode();
-      
-      // Log the request for debugging
-      console.log(i18next.t('creatingPost'));
-      
+
+      if (IS_DEV) console.log('[db] createPost: inserting via', supabaseUrl);
+
       // Make sure user_id is null if it's undefined (Supabase prefers explicit null)
       const finalPostData = {
         ...postData,
@@ -28,37 +27,30 @@ export const DatabaseService = {
         views: 0,
         user_id: postData.user_id || null
       };
-      
-      // Log the Supabase URL being used
-      console.log(i18next.t('usingSupabaseUrl', { url: supabaseUrl }));
-      
+
       // Try a simple query first to test connection
       const { error: testError } = await supabase.from('posts').select('count', { count: 'exact', head: true });
       if (testError) {
-        console.error(i18next.t('testQueryFailed'));
+        console.error('[db] createPost: connection test query failed', testError.message, testError.code);
         return null;
       }
-      
+
       // Now try the insert
       const { data, error } = await supabase
         .from('posts')
         .insert([finalPostData])
         .select()
         .single();
-      
+
       if (error) {
-        console.error(i18next.t('errorCreatingPost'));
-        // Log more details about the error
-        if (error.details) console.error('Error details:', error.details);
-        if (error.hint) console.error('Error hint:', error.hint);
-        if (error.code) console.error('Error code:', error.code);
+        console.error('[db] createPost: insert failed', error.message, error.code, error.details, error.hint);
         return null;
       }
-      
-      console.log(i18next.t('postCreatedSuccess'));
+
+      if (IS_DEV) console.log('[db] createPost: success');
       return data as Post;
     } catch (error) {
-      console.error('Exception creating post:', error);
+      console.error('[db] createPost: exception', error);
       return null;
     }
   },
@@ -100,14 +92,11 @@ export const DatabaseService = {
    */
   async getPostByAccessCode(accessCode: string): Promise<Post | null> {
     try {
-      console.log(i18next.t('fetchingPost', { accessCode }));
+      if (IS_DEV) console.log('[db] getPostByAccessCode', { accessCode });
 
       if (!accessCode || accessCode.trim() === '') {
-        console.log(i18next.t('emptyAccessCode'));
         return null;
       }
-
-      console.log(i18next.t('queryCheck'));
 
       const normalized = accessCode.trim().toUpperCase();
 
@@ -116,12 +105,12 @@ export const DatabaseService = {
       });
 
       if (error) {
-        console.error('get_post_by_access_code RPC error:', error.message, error.code);
+        console.error('[db] get_post_by_access_code RPC error:', error.message, error.code);
         return null;
       }
 
       if (!post) {
-        console.log(i18next.t('noMatchingPost'));
+        if (IS_DEV) console.log('[db] getPostByAccessCode: no match');
         return null;
       }
 
@@ -133,10 +122,10 @@ export const DatabaseService = {
         .order('created_at', { ascending: true });
 
       const result = { ...(post as any), replies: replies ?? [] } as Post;
-      console.log(i18next.t('postRetrieveStatus', { status: 'found' }));
+      if (IS_DEV) console.log('[db] getPostByAccessCode: found');
       return result;
     } catch (error) {
-      console.error('Exception fetching post by access code:', error);
+      console.error('[db] getPostByAccessCode: exception', error);
       return null;
     }
   },

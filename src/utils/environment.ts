@@ -1,8 +1,16 @@
 /**
- * Centralized environment variable access for Vite
+ * Centralized environment variable access for Vite.
+ *
+ * ⚠️  Security: anon key is public-safe; service-role key MUST NOT live on a
+ * VITE_ variable — Vite bundles VITE_* into client JS, which would ship a
+ * key that bypasses RLS to every visitor.
+ *
+ * C1.1: dropped the legacy `getEnv(key)` and `getEnvironment()` helpers.
+ * They were thin wrappers around this module's own exports and invited
+ * string-typo bugs (`getEnv('SUBASE_URL')` returns '' silently). Import the
+ * named constants directly.
  */
 
-// Define types for environment variables
 interface ImportMetaEnv {
   VITE_SUPABASE_URL: string;
   VITE_SUPABASE_ANON_KEY: string;
@@ -13,29 +21,11 @@ interface ImportMetaEnv {
   [key: string]: any;
 }
 
-// Simplified access to environment variables
 const env: ImportMetaEnv = import.meta.env;
 
-// Supabase configuration (anon key is public-safe; service role key MUST NOT be
-// in a VITE_ variable — it bypasses RLS and would be bundled into client JS).
 export const SUPABASE_URL = env.VITE_SUPABASE_URL || '';
 export const SUPABASE_ANON_KEY = env.VITE_SUPABASE_ANON_KEY || '';
 
-// Environment information
 export const NODE_ENV = env.MODE || 'development';
 export const IS_PROD = env.PROD || NODE_ENV === 'production';
 export const IS_DEV = env.DEV || NODE_ENV === 'development';
-
-// Function to safely access any env variable with fallback
-export function getEnv(key: string, fallback = ''): string {
-  const fullKey = key.startsWith('VITE_') ? key : `VITE_${key}`;
-  return env[fullKey] || fallback;
-}
-
-// Simplified environment access function
-export function getEnvironment() {
-  return {
-    SUPABASE_URL,
-    SUPABASE_ANON_KEY
-  };
-} 
