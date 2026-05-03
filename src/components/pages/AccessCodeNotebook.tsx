@@ -137,7 +137,10 @@ const AccessCodeNotebook = forwardRef<AccessCodeNotebookRef>(function AccessCode
 
   const startEditingNote = (idx: number) => {
     const entry = entries[idx];
-    if (!entry) return;
+    if (!entry) {
+      console.error('[notebook] startEditingNote: out-of-range idx', idx);
+      return;
+    }
     setEditingIdx(idx);
     setEditingNote(entry.note || '');
   };
@@ -176,7 +179,10 @@ const AccessCodeNotebook = forwardRef<AccessCodeNotebookRef>(function AccessCode
   // Copy just the access code — that's what the user actually wants to share
   const copyCode = (idx: number) => {
     const entry = entries[idx];
-    if (!entry) return;
+    if (!entry) {
+      console.error('[notebook] copyCode: out-of-range idx', idx);
+      return;
+    }
     navigator.clipboard.writeText(entry.code).then(
       () => {
         setCopiedIdx(idx);
@@ -191,7 +197,10 @@ const AccessCodeNotebook = forwardRef<AccessCodeNotebookRef>(function AccessCode
   // Navigate to the problem page with the access code — PastQuestionsPage auto-fetches
   const goToProblem = (idx: number) => {
     const entry = entries[idx];
-    if (!entry) return;
+    if (!entry) {
+      console.error('[notebook] goToProblem: out-of-range idx', idx);
+      return;
+    }
     setOpen(false);
     navigate(`/past-questions?code=${entry.code}`);
   };
@@ -201,7 +210,10 @@ const AccessCodeNotebook = forwardRef<AccessCodeNotebookRef>(function AccessCode
   // doesn't lie about server truth.
   const toggleSolved = async (idx: number) => {
     const entry = entries[idx];
-    if (!entry) return;
+    if (!entry) {
+      console.error('[notebook] toggleSolved: out-of-range idx', idx);
+      return;
+    }
     const newSolved = !entry.solved;
     const prevEntries = entries;
 
