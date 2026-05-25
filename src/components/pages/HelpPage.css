@@ -52,14 +52,16 @@
 .tag {
   display: inline-block;
   padding: 5px 12px;
-  background-color: #f0f0f0;
+  background-color: var(--bg-surface, #f0f0f0);
+  color: var(--text-color, #333);
   border-radius: 16px;
   cursor: pointer;
   transition: all 0.3s;
 }
 
 .tag:hover {
-  background-color: #e0e0e0;
+  background-color: color-mix(in srgb, var(--primary-color, #1890ff) 15%, transparent);
+  color: var(--primary-color, #1890ff);
 }
 
 .tag.active {
@@ -129,7 +131,8 @@
 .post-tag {
   font-size: 12px;
   padding: 2px 8px;
-  background-color: #f0f0f0;
+  background-color: var(--bg-surface, #f0f0f0);
+  color: var(--text-color, #333);
   border-radius: 12px;
 }
 
