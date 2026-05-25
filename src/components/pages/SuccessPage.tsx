@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { useTypeSafeTranslation } from '../../utils/translationHelper';
+import { useExitNavigate } from '../../context/NavigationLockContext';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCircleCheck, faEye, faCopy, faHome, faHandsHelping, faCircleInfo, faBookmark, faComments } from '@fortawesome/free-solid-svg-icons';
 import StorageSystem, { UserData } from '../../utils/StorageSystem';
@@ -21,6 +22,7 @@ if (rawMentorUrl && !isSafeMentorUrl) {
 const SuccessPage: React.FC = () => {
   const { t } = useTypeSafeTranslation();
   const location = useLocation();
+  const { navigateWithExit } = useExitNavigate();
   const [userData, setUserData] = useState<UserData | null>(null);
   const [accessCode, setAccessCode] = useState('');
   const [copied, setCopied] = useState(false);
@@ -83,7 +85,7 @@ const SuccessPage: React.FC = () => {
 
   return (
     <Layout>
-      <section className={styles.successView}>
+      <section className={`${styles.successView} page-fade-in`}>
         <div className={styles.successHeader}>
           <div className={styles.successIcon}>
             <FontAwesomeIcon icon={faCircleCheck} />
@@ -149,12 +151,18 @@ const SuccessPage: React.FC = () => {
 
         <div className={styles.successActions}>
           <div className={styles.actionButtons}>
-            <Link to="/">
+            <a
+              href="#/"
+              onClick={(e) => { e.preventDefault(); navigateWithExit('/'); }}
+            >
               <FontAwesomeIcon icon={faHome} /> <span>{t('returnHome')}</span>
-            </Link>
-            <Link to="/help">
+            </a>
+            <a
+              href="#/help"
+              onClick={(e) => { e.preventDefault(); navigateWithExit('/help'); }}
+            >
               <FontAwesomeIcon icon={faHandsHelping} /> <span>{t('helpOthers')}</span>
-            </Link>
+            </a>
           </div>
         </div>
 

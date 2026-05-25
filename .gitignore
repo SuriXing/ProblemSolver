@@ -52,3 +52,4 @@ playwright-report/
 test-results/
 .vercel
 .harness.archive-*/
+.harness.old-2026-04/

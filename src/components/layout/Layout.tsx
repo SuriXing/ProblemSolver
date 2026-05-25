@@ -40,10 +40,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const announceTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
-    if (lastKeyRef.current === null) {
-      lastKeyRef.current = location.key;
-      return;
-    }
+    // A-1 fix: drop the lastKeyRef === null early-return so first-mount also
+    // gets focus + announcement. Layout is per-page (re-mounts each route),
+    // so we can't rely on a "previous key" to detect navigation.
     if (lastKeyRef.current === location.key) return;
     lastKeyRef.current = location.key;
 

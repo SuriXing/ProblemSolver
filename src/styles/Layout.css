@@ -5,6 +5,44 @@
   min-height: 100vh;
 }
 
+/* Slow page-enter animation — used by destination pages (Confession, Help)
+   so navigating from the HomePage feels like a long inhale after the short
+   exit fade. Pair with `className="page-fade-in"` on the page root. */
+@keyframes page-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+    filter: blur(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+.page-fade-in {
+  /* Defect #7: duration via CSS var (single source). `both` ensures the `from`
+     keyframe (opacity:0) applies before first paint (defect #6 — prevents FOUC).
+     F-4: removed permanent `will-change` — animation runs once on mount; the
+     always-on layer cost outweighed any benefit. */
+  animation: page-fade-in var(--transition-enter-ms) cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Defect #4: honor prefers-reduced-motion — instant fade, no blur.
+   T-2: kill the animation outright so the `from` keyframe (blur(8px))
+   cannot show even for one frame. */
+@media (prefers-reduced-motion: reduce) {
+  .page-fade-in {
+    animation: none !important;
+    animation-duration: 1ms !important;
+    animation-delay: 0ms !important;
+    filter: none !important;
+    transform: none !important;
+    opacity: 1 !important;
+  }
+}
+
 .main-content {
   flex: 1;
   padding-top: 64px; /* 考虑 header 的高度 */
