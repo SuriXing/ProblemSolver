@@ -272,5 +272,6 @@
       "dismiss": "I understand",
       "hotlines": "988 Suicide & Crisis Lifeline — Call or text 988\nCrisis Text Line — Text HOME to 741741"
     }
-  }
+  },
+  "confessionSubmitError": "Something went wrong. Please try again."
 }
