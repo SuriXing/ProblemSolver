@@ -37,6 +37,8 @@ const TagSelector: React.FC<TagSelectorProps> = ({
     { id: 'family', label: safeT('tagFamily', 'Family') },
     { id: 'health', label: safeT('tagHealth', 'Health') },
     { id: 'social', label: safeT('tag.social', 'Social') },
+    { id: 'academic', label: safeT('tag.academic', 'Academic') },
+    { id: 'school', label: safeT('tag.school', 'School') },
     { id: 'other', label: safeT('tagOther', 'Other') }
   ];
 

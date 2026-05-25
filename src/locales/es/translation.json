@@ -3,7 +3,7 @@
   "pageNotFoundMessage": "La página que estás buscando no existe o ha sido movida.",
   "returnHome": "Volver al inicio",
   "redirecting": "Redirigiendo...",
-  "goToPastQuestions": "Preguntas anteriores",
+  "goToPastQuestions": "Mis publicaciones",
   "mentorTableNav": "Mesa de mentores",
   "debug": "Depurar",
   "debugMenu": "Menú de depuración",
@@ -111,7 +111,7 @@
   "reactionThumbsUp": "Reacción de me gusta",
   "confessionTitle": "Comparte tus Preocupaciones",
   "confessionSubtitle": "Comparte tus inquietudes de forma segura y recibe respuestas reconfortantes",
-  "confessionPlaceholder": "Escribe aquí tus preocupaciones...",
+  "confessionPlaceholder": "Comparte lo que tienes en mente...",
   "send": "Enviar",
   "emailPlaceholder": "Ingrese su correo electrónico",
   "addTags": "Agregar etiquetas",
@@ -125,9 +125,11 @@
     "study": "Estudio",
     "health": "Salud",
     "social": "Social",
-    "other": "Otro"
+    "other": "Otro",
+    "academic": "Escuela",
+    "school": "Estudios"
   },
-  "confessionPlaceholderHint": "Tu confesión se mostrará aquí.",
+  "confessionPlaceholderHint": "Tu mensaje se mostrará aquí.",
   "viewMyPost": "Ver mi publicación",
   "replies": "Respuestas",
   "yourReply": "Tu respuesta",
@@ -283,5 +285,14 @@
   "savedCodes": "Códigos guardados",
   "savedCodesDesc": "Publicaciones enviadas desde este dispositivo",
   "noSavedCodes": "Aún no hay códigos guardados",
-  "orEnterManually": "O ingresa un código manualmente"
+  "orEnterManually": "O ingresa un código manualmente",
+  "adminTitle": "Inicio de sesión de administrador",
+  "adminSubtitle": "Sistema de administración Problem Solver",
+  "adminEmailRequired": "Por favor ingrese su correo",
+  "adminEmailInvalid": "Formato de correo inválido",
+  "adminPasswordRequired": "Por favor ingrese su contraseña",
+  "adminEmailPlaceholder": "Correo electrónico",
+  "adminPasswordPlaceholder": "Contraseña",
+  "adminLoggingIn": "Iniciando sesión...",
+  "adminLoginButton": "Iniciar sesión"
 }

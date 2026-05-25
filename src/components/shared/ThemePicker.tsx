@@ -4,7 +4,16 @@ import { useTheme, THEMES, ThemeId, ThemeMode } from '../../hooks/useTheme';
 const ThemePicker: React.FC = () => {
   const { themeId, setTheme, mode, setMode } = useTheme();
   const [open, setOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 576);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // Hide on mobile
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 576px)');
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
 
   // Close on outside click
   useEffect(() => {
@@ -19,6 +28,8 @@ const ThemePicker: React.FC = () => {
   }, [open]);
 
   const themeList = Object.values(THEMES);
+
+  if (isMobile) return null;
 
   return (
     <div
