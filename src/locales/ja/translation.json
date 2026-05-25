@@ -277,5 +277,11 @@
       "hotlines": "いのちの電話 — 0570-783-556\nよりそいホットライン — 0120-279-338"
     }
   },
-  "confessionSubmitError": "問題が発生しました。もう一度お試しください。"
+  "confessionSubmitError": "問題が発生しました。もう一度お試しください。",
+  "screenshotHint": "📸 このコードをスクリーンショットで保存してください",
+  "viewMyPosts": "自分の投稿を見る",
+  "savedCodes": "保存済みアクセスコード",
+  "savedCodesDesc": "このデバイスから投稿したもの",
+  "noSavedCodes": "保存されたコードはありません",
+  "orEnterManually": "またはコードを手動で入力"
 }

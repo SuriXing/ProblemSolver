@@ -3,7 +3,7 @@
   "pageNotFoundMessage": "The page you are looking for doesn't exist or has been moved.",
   "returnHome": "Return Home",
   "redirecting": "Redirecting...",
-  "goToPastQuestions": "Past Questions",
+  "goToPastQuestions": "My Posts",
   "mentorTableNav": "Mentor Table",
   "debug": "Debug",
   "debugMenu": "Debug Menu",
@@ -134,7 +134,7 @@
   "showEnvironmentVariables": "Show Environment Variables",
   "confessionTitle": "Share Your Concerns",
   "confessionSubtitle": "Safely share your troubles and receive warm responses",
-  "confessionPlaceholder": "Type your confession here...",
+  "confessionPlaceholder": "Share what's on your mind...",
   "confessionPlaceholderHint": "Your confession will be shown here.",
   "viewMyPost": "View My Post",
   "addTags": "Add Tags",
@@ -163,7 +163,9 @@
     "study": "Study",
     "health": "Health",
     "social": "Social",
-    "other": "Other"
+    "other": "Other",
+    "academic": "Academic",
+    "school": "School"
   },
   "replies": "Replies",
   "yourReply": "Your Reply",
@@ -277,5 +279,20 @@
       "hotlines": "988 Suicide & Crisis Lifeline — Call or text 988\nCrisis Text Line — Text HOME to 741741"
     }
   },
-  "confessionSubmitError": "Something went wrong. Please try again."
+  "confessionSubmitError": "Something went wrong. Please try again.",
+  "screenshotHint": "📸 Screenshot this code to save it",
+  "viewMyPosts": "View My Posts",
+  "savedCodes": "Your Saved Codes",
+  "savedCodesDesc": "Posts you've submitted from this device",
+  "noSavedCodes": "No saved codes yet",
+  "orEnterManually": "Or enter a code manually",
+  "adminTitle": "Admin Login",
+  "adminSubtitle": "Problem Solver Admin System",
+  "adminEmailRequired": "Please enter your email",
+  "adminEmailInvalid": "Invalid email format",
+  "adminPasswordRequired": "Please enter your password",
+  "adminEmailPlaceholder": "Email",
+  "adminPasswordPlaceholder": "Password",
+  "adminLoggingIn": "Logging in...",
+  "adminLoginButton": "Login"
 }

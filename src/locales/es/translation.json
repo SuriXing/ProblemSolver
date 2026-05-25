@@ -277,5 +277,11 @@
       "hotlines": "SAPTEL (México) — 800-911-2000\nLínea de Crisis (México) — 800-290-0024\nLínea Internacional — +1-888-628-9454 (español)"
     }
   },
-  "confessionSubmitError": "Algo salió mal. Por favor, inténtalo de nuevo."
+  "confessionSubmitError": "Algo salió mal. Por favor, inténtalo de nuevo.",
+  "screenshotHint": "📸 Haz una captura de pantalla para guardar este código",
+  "viewMyPosts": "Ver mis publicaciones",
+  "savedCodes": "Códigos guardados",
+  "savedCodesDesc": "Publicaciones enviadas desde este dispositivo",
+  "noSavedCodes": "Aún no hay códigos guardados",
+  "orEnterManually": "O ingresa un código manualmente"
 }
