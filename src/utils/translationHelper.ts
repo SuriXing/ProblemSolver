@@ -64,7 +64,8 @@ export function getCurrentLanguage(): SupportedLanguages {
     'en': 'en'
   };
 
-  return languageMap[browserLang] || 'en';
+  const baseLang = browserLang.split('-')[0] ?? '';
+  return languageMap[baseLang] || 'en';
 }
 
 /**
