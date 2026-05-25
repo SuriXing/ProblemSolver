@@ -1,3 +1,4 @@
+// Community help page — fetches posts with purpose='need_help'
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useTypeSafeTranslation } from '../../utils/translationHelper';
