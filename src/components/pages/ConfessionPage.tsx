@@ -7,10 +7,12 @@ import '../../styles/ConfessionPage.css';
 import StorageSystem from '../../utils/StorageSystem';
 import { DatabaseService } from '../../services/database.service';
 import { checkThrottle, recordAction, THROTTLE_RULES } from '../../utils/rateLimit';
+import { useExitNavigate } from '../../context/NavigationLockContext';
 
 const ConfessionPage: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { navigateWithExit } = useExitNavigate();
   const [confession, setConfession] = useState('');
   const [email, setEmail] = useState('');
   const [isAnonymous, _setIsAnonymous] = useState(true);
@@ -155,7 +157,7 @@ const ConfessionPage: React.FC = () => {
 
   return (
     <Layout>
-      <div className="confession-page">
+      <div className="confession-page page-fade-in">
         <div className="container">
           <h1 className="confession-title">{t('confessionTitle')}</h1>
           <p className="confession-subtitle">{t('confessionSubtitle')}</p>
@@ -236,10 +238,10 @@ const ConfessionPage: React.FC = () => {
             </div>
             
             <div className="form-actions">
-              <button 
-                type="button" 
-                className="btn-primary-outline" 
-                onClick={() => navigate('/')}
+              <button
+                type="button"
+                className="btn-primary-outline"
+                onClick={() => navigateWithExit('/')}
               >
                 {t('returnHome')}
               </button>

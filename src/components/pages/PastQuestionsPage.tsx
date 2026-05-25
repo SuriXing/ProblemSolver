@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useTypeSafeTranslation } from '../../utils/translationHelper';
+import { useExitNavigate } from '../../context/NavigationLockContext';
 import Layout from '../layout/Layout';
 import DebugMenu from '../DebugMenu';
 import { DatabaseService } from '../../services/database.service';
@@ -28,6 +29,7 @@ const PastQuestionsPage: React.FC<PastQuestionsPageProps> = ({ showDebug, debugP
   const { t } = useTypeSafeTranslation();
   const navigate = useNavigate();
   const location = useLocation();
+  const { navigateWithExit } = useExitNavigate();
   const [accessCode, setAccessCode] = useState('');
   const [fetchedPost, setFetchedPost] = useState<Post | null>(null);
   const [replies, setReplies] = useState<any[]>([]);
@@ -127,7 +129,7 @@ const PastQuestionsPage: React.FC<PastQuestionsPageProps> = ({ showDebug, debugP
 
   return (
     <Layout>
-      <div className="container past-questions-container" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minHeight: '80vh', justifyContent: 'flex-start', position: 'relative' }}>
+      <div className="container past-questions-container page-fade-in" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minHeight: '80vh', justifyContent: 'flex-start', position: 'relative' }}>
         <h1 style={{ textAlign: 'center', marginBottom: 24 }}>{t('goToPastQuestions')}</h1>
         <form onSubmit={handleAccessCodeSubmit} className="accessCodeForm" style={{ marginBottom: 32, display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', maxWidth: 400 }}>
           <label htmlFor="access-code-input" style={{ fontWeight: 500, textAlign: 'center', marginBottom: 8 }}>{t('enterAccessCode')}</label>
@@ -187,9 +189,7 @@ const PastQuestionsPage: React.FC<PastQuestionsPageProps> = ({ showDebug, debugP
             </div>
             {/* Back to Home button */}
             <div style={{ display: 'flex', justifyContent: 'center', marginTop: 16 }}>
-              <Link to="/">
-                <Button type="default">{t('backToHome')}</Button>
-              </Link>
+              <Button type="default" onClick={() => navigateWithExit('/')}>{t('backToHome')}</Button>
             </div>
           </Card>
         )}
