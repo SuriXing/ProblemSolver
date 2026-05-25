@@ -95,7 +95,8 @@ const ConfessionPage: React.FC = () => {
       // longer sent to the DB until a separate `post_notifications` table is
       // built (see runbook U-X5). The local UI state is preserved so users can
       // still check the box; it just doesn't persist server-side yet.
-      const post = await DatabaseService.createPost({
+      const SUBMIT_TIMEOUT_MS = 10_000;
+      const postPromise = DatabaseService.createPost({
         title: t('confessionTitle'),
         content: confession,
         is_anonymous: isAnonymous,
@@ -104,6 +105,10 @@ const ConfessionPage: React.FC = () => {
         purpose: 'need_help',
         user_id: isAnonymous ? undefined : `anon-${crypto.getRandomValues(new Uint8Array(8)).reduce((acc, v) => acc + v.toString(16).padStart(2, '0'), '')}`,
       });
+      const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('Request timed out')), SUBMIT_TIMEOUT_MS)
+      );
+      const post = await Promise.race([postPromise, timeoutPromise]);
 
       if (!post) {
         // createPost returned null — the database write actually failed.
@@ -116,7 +121,6 @@ const ConfessionPage: React.FC = () => {
           (t('confessionFailedToSubmit') as string) ||
             'Sorry, we could not save your confession right now. Please check your connection and try again.'
         );
-        setIsSubmitting(false);
         return;
       }
 
@@ -148,9 +152,10 @@ const ConfessionPage: React.FC = () => {
         }
       });
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Unknown error';
       console.error('Unexpected error in form submission:', err);
-      alert(`An unexpected error occurred: ${message}`);
+      const fallback = safeT('confessionSubmitError', 'Something went wrong. Please try again.');
+      alert(fallback);
+    } finally {
       setIsSubmitting(false);
     }
   };
