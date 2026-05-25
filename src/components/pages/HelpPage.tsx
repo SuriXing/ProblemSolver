@@ -61,17 +61,12 @@ const HelpPage: React.FC = () => {
   const postsPerPage = 10;
   const [helpItems, setHelpItems] = useState<Post[]>([]);
 
-  // Get all available tags
-  const availableTags = {
-    'zh-CN': ['焦虑', '社交', '人际关系', '学习', '工作', '健康', '家庭', '感情', '其他'],
-    'en': ['Anxiety', 'Social', 'Relationships', 'Study', 'Work', 'Health', 'Family', 'Love', 'Other']
-  };
-  
+  // Get all available tags via i18n
+  const tagKeys = ['anxiety', 'social', 'relationships', 'study', 'work', 'health', 'family', 'academic', 'school', 'other'] as const;
+
   // Get tags based on current language
   const getTags = () => {
-    const currentLang = localStorage.getItem('language') || 'zh-CN';
-    const tags = availableTags[currentLang as keyof typeof availableTags] || availableTags['en'];
-    return tags || []; // Ensure we always return an array
+    return tagKeys.map(key => i18nextT(`tag.${key}`, { defaultValue: key }));
   };
 
   // Load all posts from storage
