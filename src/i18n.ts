@@ -57,7 +57,7 @@ const options: InitOptions = {
     }
   },
   lng: getCurrentLanguage(),
-  fallbackLng: ['zh-CN', 'en'],
+  fallbackLng: ['en', 'zh-CN'],
   load: 'currentOnly',
   
   interpolation: {
