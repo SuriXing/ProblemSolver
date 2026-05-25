@@ -147,6 +147,15 @@ const ConfessionPage: React.FC = () => {
       localStorage.setItem('accessCode', accessCode);
       StorageSystem.storeData(accessCode, userData);
 
+      // Save to savedAccessCodes for the Past Questions page
+      try {
+        const saved = JSON.parse(localStorage.getItem('savedAccessCodes') || '[]');
+        saved.push({ code: accessCode, timestamp: Date.now(), preview: confession.slice(0, 50) });
+        localStorage.setItem('savedAccessCodes', JSON.stringify(saved));
+      } catch {
+        // Non-critical — don't block navigation on storage failure
+      }
+
       navigate('/success', {
         state: {
           accessCode: accessCode,

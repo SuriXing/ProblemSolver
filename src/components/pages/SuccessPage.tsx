@@ -108,6 +108,7 @@ const SuccessPage: React.FC = () => {
             </button>
           </div>
           {copied && <p className={styles.copyStatus}>{t('copied')}</p>}
+          <p className={styles.screenshotHint}>{t('screenshotHint')}</p>
           <p className={styles.accessCodeDesc}>{t('saveAccessCode')}</p>
           <button id="view-post-btn" className={styles.viewPostBtn} onClick={viewPost}>
             <FontAwesomeIcon icon={faEye} /> <span>{t('viewMyPost')}</span>

@@ -3,7 +3,7 @@
   "pageNotFoundMessage": "您要查找的页面不存在或已被移动。",
   "returnHome": "返回首页",
   "redirecting": "重定向中...",
-  "goToPastQuestions": "过去的问题",
+  "goToPastQuestions": "我的帖子",
   "mentorTableNav": "名人桌",
   "debug": "调试",
   "debugMenu": "调试菜单",
@@ -132,8 +132,8 @@
   "showEnvironmentVariables": "显示环境变量",
   "confessionTitle": "分享你的心事",
   "confessionSubtitle": "在这里安全地倾诉烦恼，获得温暖回应",
-  "confessionPlaceholder": "在这里输入你的告白...",
-  "confessionPlaceholderHint": "你的告白会显示在这里。",
+  "confessionPlaceholder": "说出你的心事...",
+  "confessionPlaceholderHint": "你的心事会显示在这里。",
   "viewMyPost": "查看我的帖子",
   "addTags": "添加标签",
   "emailPlaceholder": "输入您的电子邮件",
@@ -155,7 +155,9 @@
     "study": "学习",
     "health": "健康",
     "social": "社交",
-    "other": "其他"
+    "other": "其他",
+    "academic": "学习",
+    "school": "考试"
   },
   "replies": "回复",
   "yourReply": "你的回复",
@@ -277,5 +279,20 @@
       "hotlines": "全国心理援助热线 — 400-161-9995\n北京心理危机研究与干预中心 — 010-82951332"
     }
   },
-  "confessionSubmitError": "出了点问题，请重试。"
+  "confessionSubmitError": "出了点问题，请重试。",
+  "screenshotHint": "📸 截图保存这个访问码",
+  "viewMyPosts": "查看我的帖子",
+  "savedCodes": "已保存的访问码",
+  "savedCodesDesc": "你在这台设备上提交的帖子",
+  "noSavedCodes": "还没有保存的访问码",
+  "orEnterManually": "或手动输入访问码",
+  "adminTitle": "管理员登录",
+  "adminSubtitle": "Problem Solver 管理系统",
+  "adminEmailRequired": "请输入邮箱",
+  "adminEmailInvalid": "邮箱格式不正确",
+  "adminPasswordRequired": "请输入密码",
+  "adminEmailPlaceholder": "邮箱 / Email",
+  "adminPasswordPlaceholder": "密码 / Password",
+  "adminLoggingIn": "登录中...",
+  "adminLoginButton": "登录"
 }

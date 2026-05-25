@@ -48,16 +48,24 @@
 .accessCodeDisplay {
   background-color: var(--bg-surface);
   border-radius: 8px;
-  padding: 1rem;
+  padding: 1.2rem 1.5rem;
   display: flex;
   justify-content: center;
   align-items: center;
   margin: 0 auto 1rem;
-  max-width: 300px;
-  font-size: 1.2rem;
-  font-weight: 600;
-  letter-spacing: 1px;
+  max-width: 360px;
+  font-size: 1.8rem;
+  font-weight: 700;
+  font-family: 'Courier New', Courier, monospace;
+  letter-spacing: 3px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.screenshotHint {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin: -0.4rem 0 1rem;
+  opacity: 0.85;
 }
 
 .copyCodeBtn {
@@ -359,7 +367,7 @@
   }
   
   .accessCodeDisplay {
-    font-size: 1rem;
+    font-size: 1.4rem;
   }
 
   .tooltipHeader {

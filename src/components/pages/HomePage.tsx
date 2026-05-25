@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useTypeSafeTranslation } from '../../utils/translationHelper';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faHandsHelping, faComments, faCrown } from '@fortawesome/free-solid-svg-icons';
+import { faHandsHelping, faComments, faCrown, faClockRotateLeft } from '@fortawesome/free-solid-svg-icons';
 import Layout from '../layout/Layout';
 import { withLocalSuffix } from '../../utils/environmentLabel';
 import { useExitNavigate } from '../../context/NavigationLockContext';
@@ -13,7 +13,21 @@ const HomePage: React.FC = () => {
   const { isExiting, exitClassName, navigateWithExit } = useExitNavigate();
   // Per-card click feedback (defect #9). The clicked card scales down via CSS
   // within ~80ms — well under the 60ms read window in OUT-7.
-  const [clickedCard, setClickedCard] = useState<null | 'confess' | 'help'>(null);
+  const [clickedCard, setClickedCard] = useState<null | 'confess' | 'help' | 'myPosts'>(null);
+  const [hasSavedCodes, setHasSavedCodes] = useState(false);
+
+  // Check if user has saved access codes (returning user)
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('savedAccessCodes');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length > 0) setHasSavedCodes(true);
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
 
   // Update page title when language changes
   useEffect(() => {
@@ -27,6 +41,10 @@ const HomePage: React.FC = () => {
   const handleHelpClick = () => {
     setClickedCard('help');
     navigateWithExit('/help');
+  };
+  const handleMyPostsClick = () => {
+    setClickedCard('myPosts');
+    navigateWithExit('/past-questions');
   };
   // Defect #10: admin uses fast variant (--transition-admin-ms ≈ 200ms).
   const handleAdminClick = () => navigateWithExit('/admin/login', { fast: true });
@@ -95,6 +113,30 @@ const HomePage: React.FC = () => {
                 {t('goHelp')}
               </div>
             </div>
+
+            {hasSavedCodes && (
+              <div
+                className={`option-card${clickedCard === 'myPosts' ? ' clicked' : ''}`}
+                onClick={handleMyPostsClick}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    handleMyPostsClick();
+                  }
+                }}
+                role="button"
+                tabIndex={0}
+              >
+                <div className="option-icon" style={{ backgroundColor: 'color-mix(in srgb, var(--primary) 15%, transparent)' }}>
+                  <FontAwesomeIcon icon={faClockRotateLeft} style={{ color: 'var(--primary)' }} />
+                </div>
+                <h2>{t('viewMyPosts')}</h2>
+                <p>{t('savedCodesDesc')}</p>
+                <div className="btn-primary" style={{ backgroundColor: 'transparent', color: 'var(--primary)', border: '1px solid var(--primary)' }}>
+                  {t('viewMyPosts')}
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
