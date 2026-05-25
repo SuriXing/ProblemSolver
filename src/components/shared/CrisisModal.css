@@ -48,6 +48,12 @@
   white-space: pre-line;
 }
 
+.crisis-modal__hotlines a {
+  color: var(--color-primary, #6366f1);
+  text-decoration: underline;
+  font-weight: 700;
+}
+
 .crisis-modal__dismiss {
   padding: 10px 28px;
   border: none;

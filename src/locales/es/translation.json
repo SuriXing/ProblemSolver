@@ -264,13 +264,13 @@
   "crisis": {
     "banner": {
       "title": "Recursos de crisis",
-      "hotlines": "Línea de la Vida — 800-911-2000 | Línea de Crisis — 800-290-0024"
+      "hotlines": "SAPTEL (México) — 800-911-2000 | Línea de Crisis — 800-290-0024 | Internacional — +1-888-628-9454 (español)"
     },
     "modal": {
       "title": "Nos importas",
       "message": "Parece que podrías estar pasando por un momento muy difícil. No estás solo/a — hay ayuda disponible ahora mismo.",
       "dismiss": "Entendido",
-      "hotlines": "Línea de la Vida — 800-911-2000\nLínea de Crisis — 800-290-0024"
+      "hotlines": "SAPTEL (México) — 800-911-2000\nLínea de Crisis (México) — 800-290-0024\nLínea Internacional — +1-888-628-9454 (español)"
     }
   }
 }
