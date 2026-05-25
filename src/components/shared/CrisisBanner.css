@@ -31,9 +31,15 @@
   /* inline by default */
 }
 
+.crisis-banner a {
+  color: inherit;
+  text-decoration: underline;
+  font-weight: 600;
+}
+
 @media (max-width: 480px) {
   .crisis-banner {
-    font-size: 0.7rem;
+    font-size: 0.75rem;
     padding: 6px 10px;
   }
   .crisis-banner--prominent {
