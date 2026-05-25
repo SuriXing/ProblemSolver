@@ -8,6 +8,9 @@ import StorageSystem from '../../utils/StorageSystem';
 import { DatabaseService } from '../../services/database.service';
 import { checkThrottle, recordAction, THROTTLE_RULES } from '../../utils/rateLimit';
 import { useExitNavigate } from '../../context/NavigationLockContext';
+import CrisisBanner from '../shared/CrisisBanner';
+import CrisisModal from '../shared/CrisisModal';
+import { useCrisisDetection } from '../../hooks/useCrisisDetection';
 
 const ConfessionPage: React.FC = () => {
   const { t } = useTranslation();
@@ -22,6 +25,7 @@ const ConfessionPage: React.FC = () => {
   const [errors, setErrors] = useState<{confession?: string; email?: string}>({});
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const { showModal, dismiss, checkText } = useCrisisDetection();
 
   // Safe translation function
   const safeT = (key: string, fallback: string) => {
@@ -183,7 +187,7 @@ const ConfessionPage: React.FC = () => {
                 ref={textareaRef}
                 className={`confession-textarea ${errors.confession ? 'error' : ''}`}
                 value={confession}
-                onChange={(e) => setConfession(e.target.value.slice(0, 4000))}
+                onChange={(e) => { const v = e.target.value.slice(0, 4000); setConfession(v); checkText(v); }}
                 placeholder={t('confessionPlaceholder') || 'Type your confession here...'}
                 rows={8}
                 maxLength={4000}
@@ -256,8 +260,10 @@ const ConfessionPage: React.FC = () => {
               </button>
             </div>
           </form>
+          <CrisisBanner prominent />
         </div>
       </div>
+      <CrisisModal open={showModal} onDismiss={dismiss} />
     </Layout>
   );
 };

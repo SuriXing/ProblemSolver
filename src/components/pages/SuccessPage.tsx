@@ -7,6 +7,7 @@ import { faCircleCheck, faEye, faCopy, faHome, faHandsHelping, faCircleInfo, faB
 import StorageSystem, { UserData } from '../../utils/StorageSystem';
 import styles from './SuccessPage.module.css';
 import Layout from '../layout/Layout';
+import CrisisBanner from '../shared/CrisisBanner';
 
 // Validate VITE_MENTOR_URL: only render the cross-promo when the env var is
 // a http(s) URL. Blocks javascript:/data: XSS sinks (bug-bash R2 finding 6).
@@ -178,6 +179,7 @@ const SuccessPage: React.FC = () => {
           </ul>
         </div>
       </section>
+      <CrisisBanner prominent />
     </Layout>
   );
 };

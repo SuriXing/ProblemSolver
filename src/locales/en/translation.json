@@ -260,5 +260,17 @@
       "title": "Save your code to the Notebook",
       "body": "Open the small notebook in the bottom-left corner to save this code with a note (e.g. \"School issue\") so you never lose track of which problem is which."
     }
+  },
+  "crisis": {
+    "banner": {
+      "title": "Crisis Resources",
+      "hotlines": "988 Suicide & Crisis Lifeline — Call or text 988 | Crisis Text Line — Text HOME to 741741"
+    },
+    "modal": {
+      "title": "We care about you",
+      "message": "It sounds like you might be going through a really tough time. You're not alone — help is available right now.",
+      "dismiss": "I understand",
+      "hotlines": "988 Suicide & Crisis Lifeline — Call or text 988\nCrisis Text Line — Text HOME to 741741"
+    }
   }
 }

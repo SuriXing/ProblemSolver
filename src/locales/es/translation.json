@@ -260,5 +260,17 @@
       "title": "Guarda tu código en la Libreta",
       "body": "Abre la pequeña libreta en la esquina inferior izquierda para guardar este código con una nota (p. ej., \"Tema del colegio\") y así nunca perder de vista qué problema es cuál."
     }
+  },
+  "crisis": {
+    "banner": {
+      "title": "Recursos de crisis",
+      "hotlines": "Línea de la Vida — 800-911-2000 | Línea de Crisis — 800-290-0024"
+    },
+    "modal": {
+      "title": "Nos importas",
+      "message": "Parece que podrías estar pasando por un momento muy difícil. No estás solo/a — hay ayuda disponible ahora mismo.",
+      "dismiss": "Entendido",
+      "hotlines": "Línea de la Vida — 800-911-2000\nLínea de Crisis — 800-290-0024"
+    }
   }
 }

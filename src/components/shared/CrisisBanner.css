@@ -1,0 +1,42 @@
+.crisis-banner {
+  text-align: center;
+  padding: 8px 16px;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  border-top: 1px solid rgba(128, 128, 128, 0.15);
+  line-height: 1.5;
+}
+
+.crisis-banner--prominent {
+  font-size: 0.875rem;
+  padding: 14px 16px;
+  color: var(--text-secondary);
+  background: rgba(128, 128, 128, 0.06);
+  border-radius: 8px;
+  margin: 16px auto;
+  max-width: 600px;
+}
+
+.crisis-banner--prominent .crisis-banner__icon {
+  display: block;
+  font-size: 1.25rem;
+  margin-bottom: 4px;
+}
+
+.crisis-banner--prominent .crisis-banner__title {
+  font-weight: 600;
+}
+
+.crisis-banner__sep {
+  /* inline by default */
+}
+
+@media (max-width: 480px) {
+  .crisis-banner {
+    font-size: 0.7rem;
+    padding: 6px 10px;
+  }
+  .crisis-banner--prominent {
+    font-size: 0.8rem;
+  }
+}

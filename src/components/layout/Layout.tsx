@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import Header from './Header';
 import Footer from './Footer';
+import CrisisBanner from '../shared/CrisisBanner';
 import AccessCodeNotebook from '../pages/AccessCodeNotebook';
 import Aurora from '../shared/Aurora';
 import ThemePicker from '../shared/ThemePicker';
@@ -100,6 +101,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         }}
       />
       <Footer />
+      <CrisisBanner />
       <AccessCodeNotebook />
       <ThemePicker />
       <ThemeModeToggle />
