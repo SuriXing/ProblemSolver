@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import i18next, { TOptions } from 'i18next';
 
-const FALLBACK_LANGUAGES = ['zh-CN', 'en'] as const;
+const FALLBACK_LANGUAGES = ['en', 'zh-CN'] as const;
 type SupportedLanguages = 'zh-CN' | 'en' | 'ja' | 'ko' | 'es';
 
 /**
@@ -64,7 +64,7 @@ export function getCurrentLanguage(): SupportedLanguages {
     'en': 'en'
   };
 
-  return languageMap[browserLang] || 'zh-CN';
+  return languageMap[browserLang] || 'en';
 }
 
 /**
