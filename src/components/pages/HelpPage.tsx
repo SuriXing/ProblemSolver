@@ -75,23 +75,31 @@ const HelpPage: React.FC = () => {
   };
 
   // Load all posts from storage
-  useEffect(() => {
-    async function fetchPosts() {
-      try {
-        setLoading(true);
-        const posts = await DatabaseService.getPostsByPurpose('need_help');
-        setHelpItems(posts);
-      } catch (err: unknown) {
-        const message = err instanceof Error ? err.message : String(err);
-        console.error('Error fetching posts:', err);
-        setError(`Failed to load posts: ${message}`);
-      } finally {
-        setLoading(false);
-      }
+  const fetchPosts = React.useCallback(async () => {
+    setLoading(true);
+    setError(null);
+
+    const timeoutId = setTimeout(() => {
+      setLoading(false);
+      setError(t('helpLoadTimeout'));
+    }, 10000);
+
+    try {
+      const posts = await DatabaseService.getPostsByPurpose('need_help');
+      clearTimeout(timeoutId);
+      setHelpItems(posts);
+    } catch (err: unknown) {
+      clearTimeout(timeoutId);
+      console.error('Error fetching posts:', err);
+      setError(t('helpLoadError'));
+    } finally {
+      setLoading(false);
     }
-    
+  }, [t]);
+
+  useEffect(() => {
     fetchPosts();
-  }, []);
+  }, [fetchPosts]);
 
   // Force reload translations
   useEffect(() => {
@@ -203,6 +211,13 @@ const HelpPage: React.FC = () => {
         ) : error ? (
           <div className="error-container">
             <p>{error}</p>
+            <Button type="primary" onClick={fetchPosts} style={{ marginTop: 12 }}>
+              {t('retryLoad')}
+            </Button>
+          </div>
+        ) : helpItems.length === 0 ? (
+          <div className="no-posts-container">
+            <p>{t('helpEmptyState')}</p>
           </div>
         ) : currentPosts.length === 0 ? (
           <div className="no-posts-container">
