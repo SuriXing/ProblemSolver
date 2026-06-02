@@ -33,7 +33,16 @@ jobs:
         run: npm run type-check
 
       - name: Test with coverage
+        env:
+          # Stub envs so module-load checks (getSupabaseUrl etc.) don't throw
+          # when v8 coverage imports every src file for instrumentation.
+          # These are NOT real credentials — never connect to Supabase from CI.
+          VITE_SUPABASE_URL: https://stub.supabase.co
+          VITE_SUPABASE_ANON_KEY: stub-anon-key-for-ci
         run: npm run coverage
 
       - name: Build
+        env:
+          VITE_SUPABASE_URL: https://stub.supabase.co
+          VITE_SUPABASE_ANON_KEY: stub-anon-key-for-ci
         run: npm run build
