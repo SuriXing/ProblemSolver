@@ -47,7 +47,7 @@ async function rpc(fn, body) {
   });
   const text = await res.text();
   let data = null;
-  try { data = JSON.parse(text); } catch {}
+  try { data = JSON.parse(text); } catch { /* best-effort: non-JSON response leaves data null */ }
   return { status: res.status, data, text };
 }
 
@@ -59,7 +59,7 @@ async function rest(method, path, body, prefer = 'return=representation') {
   });
   const text = await res.text();
   let data = null;
-  try { data = JSON.parse(text); } catch {}
+  try { data = JSON.parse(text); } catch { /* best-effort: non-JSON response leaves data null */ }
   return { status: res.status, data, text };
 }
 
