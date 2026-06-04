@@ -1,9 +1,18 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import App from './App';
+import './styles/reset.css'; // Reset first — this was only ever imported by the dead CRA entry, now folded into the real one.
 import './index.css';
+import './assets/css/global.css';
+import './assets/css/index.css';
+import App from './App';
 import { installGlobalErrorHandlers } from './utils/errorLog';
-// import './assets/css/index.css'; // Only enable if this file exists and is needed
+
+// Add the loaded class to body once the DOM is ready. The old CRA entry
+// (src/index.tsx) used to do this; global.css and index.css both key their
+// entrance transitions off body.loaded, so it must survive the entry merge.
+document.addEventListener('DOMContentLoaded', () => {
+  document.body.classList.add('loaded');
+});
 
 installGlobalErrorHandlers();
 
