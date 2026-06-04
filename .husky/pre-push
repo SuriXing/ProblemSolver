@@ -1,0 +1,6 @@
+# Push-time gate: a typo can slip past pre-commit's staged check, so the
+# push itself runs the whole gauntlet before anything lands on main.
+npm run type-check &&
+  npm run lint -- --max-warnings 0 &&
+  npm run coverage &&
+  npm run build
