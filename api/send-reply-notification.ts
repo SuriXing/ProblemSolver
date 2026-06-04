@@ -110,7 +110,7 @@ function rateLimitHit(bucket: Bucket, key: string, limit: number, now: number): 
   // Evict global stale entries cheaply (only when the bucket grows past 500).
   if (bucket.size > 500) {
     for (const [k, ts] of bucket) {
-      const last = ts.length ? ts[ts.length - 1] : 0;
+      const last = ts.length ? (ts[ts.length - 1] ?? 0) : 0;
       if (now - last > WINDOW_MS) bucket.delete(k);
     }
   }
@@ -314,8 +314,8 @@ export default async function handler(req: any, res: any) {
       return;
     }
 
-    const data = await response.json().catch(() => ({}));
-    res.status(200).json({ sent: true, id: data.id });
+    const data = (await response.json().catch(() => ({}))) as { id?: unknown };
+    res.status(200).json({ sent: true, id: data.id ?? null });
   } catch (err) {
     console.error('[email] Unexpected error sending email:', err);
     // Do NOT echo err back to caller — could leak internal hostnames,
