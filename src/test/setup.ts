@@ -1,8 +1,10 @@
 import '@testing-library/jest-dom';
 import { vi } from 'vitest';
 
-// Mock import.meta.env for all tests
-vi.stubGlobal('import', { meta: { env: { MODE: 'test', DEV: true, PROD: false, SSR: false } } });
+// Mock import.meta.env for all tests. Stub the Supabase vars so
+// database.service / supabaseUtils can load without real credentials —
+// the fetch layer is mocked elsewhere; these are throwaway placeholders.
+vi.stubGlobal('import', { meta: { env: { MODE: 'test', DEV: true, PROD: false, SSR: false, VITE_SUPABASE_URL: 'https://test.supabase.co', VITE_SUPABASE_ANON_KEY: 'test-anon-key' } } });
 
 // Create a Storage-like mock that behaves as real Web Storage:
 // - reserved methods/properties work as expected
