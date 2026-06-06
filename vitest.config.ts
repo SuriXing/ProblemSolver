@@ -9,6 +9,14 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
     exclude: ['**/node_modules/**', '**/dist/**', '**/.claude/**', 'e2e/**'],
+    // Provide throwaway Supabase vars so database.service / supabaseUtils can
+    // load under a plain `npm test` / `npm run coverage` WITHOUT real
+    // credentials (the client + fetch layers are mocked; these never touch
+    // a network). Real keys only ever come from a .env / CI secret.
+    env: {
+      VITE_SUPABASE_URL: 'https://test.supabase.co',
+      VITE_SUPABASE_ANON_KEY: 'test-anon-key',
+    },
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html', 'text-summary'],
@@ -41,4 +49,4 @@ export default defineConfig({
       '@': resolve(__dirname, './src'),
     },
   },
-}); 
+});
