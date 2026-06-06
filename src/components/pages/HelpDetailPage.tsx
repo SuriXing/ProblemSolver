@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { useTypeSafeTranslation } from '../../utils/translationHelper';
+import { useExitNavigate } from '../../context/NavigationLockContext';
 import { 
   Card, 
   Button, 
@@ -52,6 +53,7 @@ const HelpDetailPage: React.FC = () => {
   const { accessCode } = useParams<{ accessCode: string }>();
   const { t } = useTypeSafeTranslation();
   const { t: i18nT } = useTranslation();
+  const { navigateWithExit } = useExitNavigate();
   
   const [post, setPost] = useState<Post | null>(null);
   const [replies, setReplies] = useState<DatabaseReply[]>([]);
@@ -143,9 +145,7 @@ const HelpDetailPage: React.FC = () => {
         <div className="error-container">
           <h2>{t('postNotFound')}</h2>
           <p>{t('postNotFoundDesc')}</p>
-          <Link to="/help">
-            <Button type="primary">{t('backToHelp')}</Button>
-          </Link>
+          <Button type="primary" onClick={() => navigateWithExit('/help')}>{t('backToHelp')}</Button>
         </div>
       </Layout>
     );
@@ -153,12 +153,16 @@ const HelpDetailPage: React.FC = () => {
   
   return (
     <Layout>
-      <div className="help-detail-container">
+      <div className="help-detail-container page-fade-in">
         <Card className="post-card">
           <div className="post-header">
-            <Link to="/help" className="back-link">
+            <a
+              href="#/help"
+              className="back-link"
+              onClick={(e) => { e.preventDefault(); navigateWithExit('/help'); }}
+            >
               <ArrowLeftOutlined /> {t('backToHelp')}
-            </Link>
+            </a>
             
             <div className="post-meta">
               <span className="post-time">{getTimeAgo(post.created_at, t)}</span>

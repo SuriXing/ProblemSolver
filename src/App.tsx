@@ -3,7 +3,9 @@ import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import './i18n'; // Import i18n setup
 import { IS_PROD } from './utils/environment';
 import { TranslationProvider } from './context/TranslationContext';
+import { NavigationLockProvider } from './context/NavigationLockContext';
 import { useTranslation } from 'react-i18next';
+import './styles/transitions.css';
 
 // P1.1: every route is code-split. Only the chunks a user actually navigates
 // to get downloaded — first-paint cost is just App + router + i18n shell.
@@ -52,6 +54,7 @@ function App() {
     <TranslationProvider>
       <Suspense fallback={<LoadingPage />}>
         <HashRouter>
+          <NavigationLockProvider>
           {isLoading ? (
             <LoadingPage />
           ) : (
@@ -109,6 +112,7 @@ function App() {
               {showEnvDebug && <EnvDebug />}
             </>
           )}
+          </NavigationLockProvider>
         </HashRouter>
       </Suspense>
     </TranslationProvider>

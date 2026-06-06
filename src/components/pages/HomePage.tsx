@@ -1,72 +1,66 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useTypeSafeTranslation } from '../../utils/translationHelper';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHandsHelping, faComments, faCrown } from '@fortawesome/free-solid-svg-icons';
 import Layout from '../layout/Layout';
 import { withLocalSuffix } from '../../utils/environmentLabel';
+import { useExitNavigate } from '../../context/NavigationLockContext';
+import { prefersReducedMotion } from '../../utils/transitions';
 import '../../styles/HomePage.css';
 
 const HomePage: React.FC = () => {
   const { t, i18n } = useTypeSafeTranslation();
-  const navigate = useNavigate();
-  
-  const [visibleElements, setVisibleElements] = useState({
-    heroTitle: false,
-    heroSubtitle: false,
-    optionCard1: false,
-    optionCard2: false
-  });
+  const { isExiting, exitClassName, navigateWithExit } = useExitNavigate();
+  // Per-card click feedback (defect #9). The clicked card scales down via CSS
+  // within ~80ms — well under the 60ms read window in OUT-7.
+  const [clickedCard, setClickedCard] = useState<null | 'confess' | 'help'>(null);
 
   // Update page title when language changes
   useEffect(() => {
     document.title = withLocalSuffix(t('siteName'));
   }, [t, i18n.language]);
 
-  // Navigation handlers
   const handleConfessClick = () => {
-    navigate('/confession');
+    setClickedCard('confess');
+    navigateWithExit('/confession');
   };
-
   const handleHelpClick = () => {
-    navigate('/help');
+    setClickedCard('help');
+    navigateWithExit('/help');
   };
+  // Defect #10: admin uses fast variant (--transition-admin-ms ≈ 200ms).
+  const handleAdminClick = () => navigateWithExit('/admin/login', { fast: true });
 
-  const handleAdminClick = () => {
-    navigate('/admin/login');
-  };
-
-  // Add animation when component mounts
-  useEffect(() => {
-    const timers = [
-      setTimeout(() => setVisibleElements(prev => ({ ...prev, heroTitle: true })), 100),
-      setTimeout(() => setVisibleElements(prev => ({ ...prev, heroSubtitle: true })), 300),
-      setTimeout(() => setVisibleElements(prev => ({ ...prev, optionCard1: true })), 500),
-      setTimeout(() => setVisibleElements(prev => ({ ...prev, optionCard2: true })), 700)
-    ];
-
-    return () => timers.forEach(timer => clearTimeout(timer));
-  }, []);
+  // Defect #8: removed the visibleElements cascade. The page-enter keyframe
+  // already handles the arrival animation; per-element fades were redundant
+  // and conflicted with the section-level animation.
 
   return (
     <Layout>
-      <section id="home-view">
+      <section
+        id="home-view"
+        className={isExiting ? exitClassName : ''}
+        // A-3: hide exiting page from focus + AT
+        {...(isExiting ? { inert: '' as unknown as undefined } : {})}
+      >
         <div className="hero">
           <div className="container">
-            <h1 className={`hero-title ${visibleElements.heroTitle ? 'visible' : ''}`}>
-              {t('homeTitle')}
-            </h1>
-            <p className={`hero-subtitle ${visibleElements.heroSubtitle ? 'visible' : ''}`}>
-              {t('homeSubtitle')}
-            </p>
+            <h1 className="hero-title">{t('homeTitle')}</h1>
+            <p className="hero-subtitle">{t('homeSubtitle')}</p>
           </div>
         </div>
 
         <div className="container options-container">
           <div className="option-cards">
-            <div 
-              className={`option-card ${visibleElements.optionCard1 ? 'visible' : ''}`}
+            <div
+              className={`option-card${clickedCard === 'confess' ? ' clicked' : ''}`}
               onClick={handleConfessClick}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  handleConfessClick();
+                }
+              }}
               role="button"
               tabIndex={0}
             >
@@ -81,8 +75,14 @@ const HomePage: React.FC = () => {
             </div>
 
             <div
-              className={`option-card ${visibleElements.optionCard2 ? 'visible' : ''}`}
+              className={`option-card${clickedCard === 'help' ? ' clicked' : ''}`}
               onClick={handleHelpClick}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  handleHelpClick();
+                }
+              }}
               role="button"
               tabIndex={0}
             >
@@ -108,6 +108,7 @@ const HomePage: React.FC = () => {
           <button
             onClick={handleAdminClick}
             type="button"
+            data-testid="admin-login-button"
             aria-label={t('adminLogin') || 'Admin login'}
             style={{
               background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
@@ -122,16 +123,21 @@ const HomePage: React.FC = () => {
               justifyContent: 'center',
               fontSize: '18px',
               boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
-              transition: 'all 0.3s ease',
+              // A-4: respect reduced-motion
+              transition: prefersReducedMotion() ? 'none' : 'all 0.3s ease',
               opacity: 0.7
             }}
             onMouseOver={(e) => {
               e.currentTarget.style.opacity = '1';
-              e.currentTarget.style.transform = 'scale(1.1)';
+              if (!prefersReducedMotion()) {
+                e.currentTarget.style.transform = 'scale(1.1)';
+              }
             }}
             onMouseOut={(e) => {
               e.currentTarget.style.opacity = '0.7';
-              e.currentTarget.style.transform = 'scale(1)';
+              if (!prefersReducedMotion()) {
+                e.currentTarget.style.transform = 'scale(1)';
+              }
             }}
             title={t('adminLogin') || 'Admin login'}
           >

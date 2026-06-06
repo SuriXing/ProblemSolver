@@ -20,6 +20,7 @@ import { Post } from '../../types/database.types';
 import { DatabaseService } from '../../services/database.service';
 import './HelpPage.css'; // Make sure this CSS file exists
 import { useTranslation } from 'react-i18next';
+import { useExitNavigate } from '../../context/NavigationLockContext';
 
 // Helper function to get time ago
 const getTimeAgo = (timestamp: string, t: (key: string, options?: any) => string): string => {
@@ -50,6 +51,7 @@ const getTimeAgo = (timestamp: string, t: (key: string, options?: any) => string
 const HelpPage: React.FC = () => {
   const { t, i18n } = useTypeSafeTranslation();
   const { t: i18nextT } = useTranslation();
+  const { navigateWithExit } = useExitNavigate();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -143,17 +145,22 @@ const HelpPage: React.FC = () => {
 
   return (
     <Layout>
-      <div className="help-page-container">
+      <div className="help-page-container page-fade-in">
         <div className="help-header">
           <h1>{t('helpPageTitle')}</h1>
           <p>{t('helpPageDescription')}</p>
 
           <div className="action-buttons">
-            <Link to="/" className="back-button">
+            <button
+              type="button"
+              className="back-button"
+              onClick={() => navigateWithExit('/')}
+              style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
+            >
               <Button type="default" icon={<ArrowLeftOutlined />}>
                 {t('backToHome')}
               </Button>
-            </Link>
+            </button>
           </div>
         </div>
 

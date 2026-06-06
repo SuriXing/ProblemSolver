@@ -4,6 +4,7 @@ import { Card, Form, Input, Button, Alert, Typography, Space } from 'antd';
 import { MailOutlined, LockOutlined, CrownOutlined } from '@ant-design/icons';
 import AdminService from '../../services/admin.service';
 import Layout from '../layout/Layout';
+import { useExitNavigate } from '../../context/NavigationLockContext';
 
 const { Title, Text } = Typography;
 
@@ -11,6 +12,7 @@ const AdminLoginPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
+  const { navigateWithExit } = useExitNavigate();
 
   useEffect(() => {
     // Redirect if already authenticated. isAuthenticated() became async in
@@ -47,7 +49,7 @@ const AdminLoginPage: React.FC = () => {
 
   return (
     <Layout>
-      <div style={{
+      <div className="page-fade-in" style={{
         minHeight: '80vh',
         display: 'flex',
         alignItems: 'center',
@@ -134,7 +136,7 @@ const AdminLoginPage: React.FC = () => {
           <div style={{ textAlign: 'center', marginTop: 16 }}>
             <Button
               type="link"
-              onClick={() => navigate('/')}
+              onClick={() => navigateWithExit('/')}
               style={{ padding: 0 }}
             >
               返回首页

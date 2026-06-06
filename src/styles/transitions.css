@@ -1,0 +1,18 @@
+/* Single source of truth for page transition durations.
+   Read in TS via getTransitionDurations() in src/utils/transitions.ts. */
+:root {
+  --transition-exit-ms: 500ms;
+  --transition-enter-ms: 1400ms;
+  --transition-admin-ms: 200ms;
+}
+
+/* prefers-reduced-motion: collapse animations to ~instant.
+   Combined with the JS branch (skip setTimeout), this gives a hard-cut
+   navigation that meets WCAG 2.3.3. */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --transition-exit-ms: 1ms;
+    --transition-enter-ms: 1ms;
+    --transition-admin-ms: 1ms;
+  }
+}
