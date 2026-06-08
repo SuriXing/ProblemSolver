@@ -4,6 +4,7 @@ import '../../../test/mocks/supabase';
 import React from 'react';
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
+import { NavigationLockProvider } from '../../../context/NavigationLockContext';
 
 vi.mock('../../layout/Layout', () => ({
   default: ({ children }: any) => <div data-testid="layout">{children}</div>,
@@ -54,13 +55,13 @@ describe('HelpPage', () => {
 
   it('shows loading state initially', () => {
     mockGetPostsByPurpose.mockReturnValue(new Promise(() => {})); // never resolves
-    render(<MemoryRouter><HelpPage /></MemoryRouter>);
+    render(<MemoryRouter><NavigationLockProvider><HelpPage /></NavigationLockProvider></MemoryRouter>);
     expect(screen.getByText('loadingPosts')).toBeInTheDocument();
   });
 
   it('renders posts after loading', async () => {
     mockGetPostsByPurpose.mockResolvedValue(samplePosts);
-    render(<MemoryRouter><HelpPage /></MemoryRouter>);
+    render(<MemoryRouter><NavigationLockProvider><HelpPage /></NavigationLockProvider></MemoryRouter>);
 
     await waitFor(() => {
       expect(screen.getByText('I need help with my homework')).toBeInTheDocument();
@@ -70,7 +71,7 @@ describe('HelpPage', () => {
 
   it('renders search input', async () => {
     mockGetPostsByPurpose.mockResolvedValue(samplePosts);
-    render(<MemoryRouter><HelpPage /></MemoryRouter>);
+    render(<MemoryRouter><NavigationLockProvider><HelpPage /></NavigationLockProvider></MemoryRouter>);
 
     await waitFor(() => {
       expect(screen.getByPlaceholderText('searchPlaceholder')).toBeInTheDocument();
@@ -79,7 +80,7 @@ describe('HelpPage', () => {
 
   it('filters posts by search term', async () => {
     mockGetPostsByPurpose.mockResolvedValue(samplePosts);
-    render(<MemoryRouter><HelpPage /></MemoryRouter>);
+    render(<MemoryRouter><NavigationLockProvider><HelpPage /></NavigationLockProvider></MemoryRouter>);
 
     await waitFor(() => {
       expect(screen.getByText('I need help with my homework')).toBeInTheDocument();
@@ -94,7 +95,7 @@ describe('HelpPage', () => {
 
   it('shows empty state when no posts match', async () => {
     mockGetPostsByPurpose.mockResolvedValue(samplePosts);
-    render(<MemoryRouter><HelpPage /></MemoryRouter>);
+    render(<MemoryRouter><NavigationLockProvider><HelpPage /></NavigationLockProvider></MemoryRouter>);
 
     await waitFor(() => {
       expect(screen.getByText('I need help with my homework')).toBeInTheDocument();
@@ -108,16 +109,16 @@ describe('HelpPage', () => {
 
   it('shows error state when fetch fails', async () => {
     mockGetPostsByPurpose.mockRejectedValue(new Error('Network error'));
-    render(<MemoryRouter><HelpPage /></MemoryRouter>);
+    render(<MemoryRouter><NavigationLockProvider><HelpPage /></NavigationLockProvider></MemoryRouter>);
 
     await waitFor(() => {
-      expect(screen.getByText(/Failed to load posts/)).toBeInTheDocument();
+      expect(screen.getByText(/Unable to load community posts/)).toBeInTheDocument();
     });
   });
 
   it('renders back to home link', async () => {
     mockGetPostsByPurpose.mockResolvedValue([]);
-    render(<MemoryRouter><HelpPage /></MemoryRouter>);
+    render(<MemoryRouter><NavigationLockProvider><HelpPage /></NavigationLockProvider></MemoryRouter>);
 
     await waitFor(() => {
       expect(screen.getByText('backToHome')).toBeInTheDocument();
@@ -126,7 +127,7 @@ describe('HelpPage', () => {
 
   it('renders filter radio buttons', async () => {
     mockGetPostsByPurpose.mockResolvedValue(samplePosts);
-    render(<MemoryRouter><HelpPage /></MemoryRouter>);
+    render(<MemoryRouter><NavigationLockProvider><HelpPage /></NavigationLockProvider></MemoryRouter>);
 
     await waitFor(() => {
       expect(screen.getByText('allPosts')).toBeInTheDocument();
