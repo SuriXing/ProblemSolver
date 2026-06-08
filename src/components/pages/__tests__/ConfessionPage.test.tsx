@@ -2,8 +2,9 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import '../../../test/mocks/i18n';
 import '../../../test/mocks/supabase';
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
+import { NavigationLockProvider } from '../../../context/NavigationLockContext';
 
 const mockNavigate = vi.fn();
 vi.mock('react-router-dom', async () => {
@@ -48,7 +49,7 @@ describe('ConfessionPage', () => {
   });
 
   it('renders form elements', () => {
-    render(<MemoryRouter><ConfessionPage /></MemoryRouter>);
+    render(<MemoryRouter><NavigationLockProvider><ConfessionPage /></NavigationLockProvider></MemoryRouter>);
     expect(screen.getByText('confessionTitle')).toBeInTheDocument();
     expect(screen.getByPlaceholderText('confessionPlaceholder')).toBeInTheDocument();
     expect(screen.getByText('send')).toBeInTheDocument();
@@ -56,7 +57,7 @@ describe('ConfessionPage', () => {
   });
 
   it('shows validation error when confession is empty on submit', async () => {
-    render(<MemoryRouter><ConfessionPage /></MemoryRouter>);
+    render(<MemoryRouter><NavigationLockProvider><ConfessionPage /></NavigationLockProvider></MemoryRouter>);
     const submitBtn = screen.getByText('send');
     fireEvent.click(submitBtn);
 
@@ -67,7 +68,7 @@ describe('ConfessionPage', () => {
   });
 
   it('shows email validation error when email notification checked without valid email', async () => {
-    render(<MemoryRouter><ConfessionPage /></MemoryRouter>);
+    render(<MemoryRouter><NavigationLockProvider><ConfessionPage /></NavigationLockProvider></MemoryRouter>);
 
     // Type a confession
     const textarea = screen.getByPlaceholderText('confessionPlaceholder');
@@ -89,7 +90,7 @@ describe('ConfessionPage', () => {
   it('navigates to /success on successful submission', async () => {
     mockCreatePost.mockResolvedValue({ id: 'post-1', access_code: 'XYZ789' });
 
-    render(<MemoryRouter><ConfessionPage /></MemoryRouter>);
+    render(<MemoryRouter><NavigationLockProvider><ConfessionPage /></NavigationLockProvider></MemoryRouter>);
 
     const textarea = screen.getByPlaceholderText('confessionPlaceholder');
     fireEvent.change(textarea, { target: { value: 'My confession text' } });
@@ -110,7 +111,7 @@ describe('ConfessionPage', () => {
     mockCreatePost.mockResolvedValue(null);
     const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
 
-    render(<MemoryRouter><ConfessionPage /></MemoryRouter>);
+    render(<MemoryRouter><NavigationLockProvider><ConfessionPage /></NavigationLockProvider></MemoryRouter>);
 
     const textarea = screen.getByPlaceholderText('confessionPlaceholder');
     fireEvent.change(textarea, { target: { value: 'My confession text' } });
@@ -132,26 +133,33 @@ describe('ConfessionPage', () => {
   });
 
   it('navigates home when return home button is clicked', () => {
-    render(<MemoryRouter><ConfessionPage /></MemoryRouter>);
+    vi.useFakeTimers();
+    render(<MemoryRouter><NavigationLockProvider><ConfessionPage /></NavigationLockProvider></MemoryRouter>);
     const homeBtn = screen.getByText('returnHome');
     fireEvent.click(homeBtn);
+    // Navigation waits for the NavigationLock exit animation.
+    act(() => { vi.advanceTimersByTime(2500); });
     expect(mockNavigate).toHaveBeenCalledWith('/');
+    vi.useRealTimers();
   });
 
   it('shows error alert on unexpected exception', async () => {
     mockCreatePost.mockRejectedValue(new Error('Boom'));
     const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
 
-    render(<MemoryRouter><ConfessionPage /></MemoryRouter>);
+    render(<MemoryRouter><NavigationLockProvider><ConfessionPage /></NavigationLockProvider></MemoryRouter>);
 
     const textarea = screen.getByPlaceholderText('confessionPlaceholder');
     fireEvent.change(textarea, { target: { value: 'My confession text' } });
 
     fireEvent.click(screen.getByText('send'));
 
+    // The app deliberately does NOT echo the raw error into the alert (it
+    // would leak internal details); it shows a safe translated fallback.
     await waitFor(() => {
-      expect(alertSpy).toHaveBeenCalledWith(expect.stringContaining('Boom'));
+      expect(alertSpy).toHaveBeenCalled();
     });
+    expect(alertSpy).not.toHaveBeenCalledWith(expect.stringContaining('Boom'));
 
     alertSpy.mockRestore();
   });
