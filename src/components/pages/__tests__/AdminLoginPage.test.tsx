@@ -2,8 +2,9 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import '../../../test/mocks/i18n';
 import '../../../test/mocks/supabase';
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
+import { NavigationLockProvider } from '../../../context/NavigationLockContext';
 
 const mockNavigate = vi.fn();
 vi.mock('react-router-dom', async () => {
@@ -39,26 +40,25 @@ describe('AdminLoginPage', () => {
   });
 
   it('renders login form with email and password fields', () => {
-    render(<MemoryRouter><AdminLoginPage /></MemoryRouter>);
-    expect(screen.getByPlaceholderText(/邮箱/)).toBeInTheDocument();
-    expect(screen.getByPlaceholderText(/密码/)).toBeInTheDocument();
+    render(<MemoryRouter><NavigationLockProvider><AdminLoginPage /></NavigationLockProvider></MemoryRouter>);
+    expect(screen.getByPlaceholderText('adminEmailPlaceholder')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('adminPasswordPlaceholder')).toBeInTheDocument();
   });
 
   it('renders login button', () => {
-    render(<MemoryRouter><AdminLoginPage /></MemoryRouter>);
-    // Antd inserts a space between two-char Chinese text in buttons
-    const submitBtn = screen.getByRole('button', { name: /登/ });
+    render(<MemoryRouter><NavigationLockProvider><AdminLoginPage /></NavigationLockProvider></MemoryRouter>);
+    const submitBtn = screen.getByRole('button', { name: /adminLoginButton/ });
     expect(submitBtn).toBeInTheDocument();
   });
 
   it('renders title', () => {
-    render(<MemoryRouter><AdminLoginPage /></MemoryRouter>);
-    expect(screen.getByText('管理员登录')).toBeInTheDocument();
+    render(<MemoryRouter><NavigationLockProvider><AdminLoginPage /></NavigationLockProvider></MemoryRouter>);
+    expect(screen.getByText('adminTitle')).toBeInTheDocument();
   });
 
   it('redirects to dashboard when already authenticated', async () => {
     mockIsAuthenticated.mockResolvedValue(true);
-    render(<MemoryRouter><AdminLoginPage /></MemoryRouter>);
+    render(<MemoryRouter><NavigationLockProvider><AdminLoginPage /></NavigationLockProvider></MemoryRouter>);
     await waitFor(() =>
       expect(mockNavigate).toHaveBeenCalledWith('/admin/dashboard'),
     );
@@ -67,12 +67,12 @@ describe('AdminLoginPage', () => {
   it('navigates to dashboard on successful login', async () => {
     mockLogin.mockResolvedValue({ success: true, admin: { username: 'admin' } });
 
-    render(<MemoryRouter><AdminLoginPage /></MemoryRouter>);
+    render(<MemoryRouter><NavigationLockProvider><AdminLoginPage /></NavigationLockProvider></MemoryRouter>);
 
-    fireEvent.change(screen.getByPlaceholderText(/邮箱/), { target: { value: 'admin@problem-solver.com' } });
-    fireEvent.change(screen.getByPlaceholderText(/密码/), { target: { value: 'admin123' } });
+    fireEvent.change(screen.getByPlaceholderText('adminEmailPlaceholder'), { target: { value: 'admin@problem-solver.com' } });
+    fireEvent.change(screen.getByPlaceholderText('adminPasswordPlaceholder'), { target: { value: 'admin123' } });
 
-    const loginBtn = screen.getByRole('button', { name: /登/ });
+    const loginBtn = screen.getByRole('button', { name: /adminLoginButton/ });
     fireEvent.click(loginBtn);
 
     await waitFor(() => {
@@ -83,12 +83,12 @@ describe('AdminLoginPage', () => {
   it('shows error on failed login', async () => {
     mockLogin.mockResolvedValue({ success: false, error: 'Invalid credentials' });
 
-    render(<MemoryRouter><AdminLoginPage /></MemoryRouter>);
+    render(<MemoryRouter><NavigationLockProvider><AdminLoginPage /></NavigationLockProvider></MemoryRouter>);
 
-    fireEvent.change(screen.getByPlaceholderText(/邮箱/), { target: { value: 'admin@problem-solver.com' } });
-    fireEvent.change(screen.getByPlaceholderText(/密码/), { target: { value: 'wrong' } });
+    fireEvent.change(screen.getByPlaceholderText('adminEmailPlaceholder'), { target: { value: 'admin@problem-solver.com' } });
+    fireEvent.change(screen.getByPlaceholderText('adminPasswordPlaceholder'), { target: { value: 'wrong' } });
 
-    fireEvent.click(screen.getByRole('button', { name: /登/ }));
+    fireEvent.click(screen.getByRole('button', { name: /adminLoginButton/ }));
 
     await waitFor(() => {
       expect(screen.getByText('Invalid credentials')).toBeInTheDocument();
@@ -98,12 +98,12 @@ describe('AdminLoginPage', () => {
   it('shows error on login exception', async () => {
     mockLogin.mockRejectedValue(new Error('Network error'));
 
-    render(<MemoryRouter><AdminLoginPage /></MemoryRouter>);
+    render(<MemoryRouter><NavigationLockProvider><AdminLoginPage /></NavigationLockProvider></MemoryRouter>);
 
-    fireEvent.change(screen.getByPlaceholderText(/邮箱/), { target: { value: 'admin@problem-solver.com' } });
-    fireEvent.change(screen.getByPlaceholderText(/密码/), { target: { value: 'pass' } });
+    fireEvent.change(screen.getByPlaceholderText('adminEmailPlaceholder'), { target: { value: 'admin@problem-solver.com' } });
+    fireEvent.change(screen.getByPlaceholderText('adminPasswordPlaceholder'), { target: { value: 'pass' } });
 
-    fireEvent.click(screen.getByRole('button', { name: /登/ }));
+    fireEvent.click(screen.getByRole('button', { name: /adminLoginButton/ }));
 
     await waitFor(() => {
       expect(screen.getByText('An error occurred during login')).toBeInTheDocument();
@@ -111,13 +111,17 @@ describe('AdminLoginPage', () => {
   });
 
   it('renders return home button', () => {
-    render(<MemoryRouter><AdminLoginPage /></MemoryRouter>);
-    expect(screen.getByText('返回首页')).toBeInTheDocument();
+    render(<MemoryRouter><NavigationLockProvider><AdminLoginPage /></NavigationLockProvider></MemoryRouter>);
+    expect(screen.getByText('backToHome')).toBeInTheDocument();
   });
 
   it('navigates home when return button is clicked', () => {
-    render(<MemoryRouter><AdminLoginPage /></MemoryRouter>);
-    fireEvent.click(screen.getByText('返回首页'));
+    vi.useFakeTimers();
+    render(<MemoryRouter><NavigationLockProvider><AdminLoginPage /></NavigationLockProvider></MemoryRouter>);
+    fireEvent.click(screen.getByText('backToHome'));
+    // Navigation waits for the NavigationLock exit animation.
+    act(() => { vi.advanceTimersByTime(2500); });
     expect(mockNavigate).toHaveBeenCalledWith('/');
+    vi.useRealTimers();
   });
 });
