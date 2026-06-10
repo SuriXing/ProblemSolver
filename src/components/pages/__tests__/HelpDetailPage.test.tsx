@@ -4,6 +4,7 @@ import '../../../test/mocks/supabase';
 import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
+import { NavigationLockProvider } from '../../../context/NavigationLockContext';
 
 let mockAccessCode: string | undefined = 'HELP123';
 vi.mock('react-router-dom', async () => {
@@ -76,7 +77,7 @@ describe('HelpDetailPage', () => {
 
   it('shows loading state initially', () => {
     mockGetPostByAccessCode.mockReturnValue(new Promise(() => {}));
-    render(<MemoryRouter><HelpDetailPage /></MemoryRouter>);
+    render(<MemoryRouter><NavigationLockProvider><HelpDetailPage /></NavigationLockProvider></MemoryRouter>);
     expect(screen.getByText('loadingPosts')).toBeInTheDocument();
   });
 
@@ -84,7 +85,7 @@ describe('HelpDetailPage', () => {
     mockGetPostByAccessCode.mockResolvedValue(samplePost);
     mockGetRepliesByPostId.mockResolvedValue(sampleReplies);
 
-    render(<MemoryRouter><HelpDetailPage /></MemoryRouter>);
+    render(<MemoryRouter><NavigationLockProvider><HelpDetailPage /></NavigationLockProvider></MemoryRouter>);
 
     await waitFor(() => {
       expect(screen.getByText('My problem description')).toBeInTheDocument();
@@ -95,7 +96,7 @@ describe('HelpDetailPage', () => {
     mockGetPostByAccessCode.mockResolvedValue(samplePost);
     mockGetRepliesByPostId.mockResolvedValue(sampleReplies);
 
-    render(<MemoryRouter><HelpDetailPage /></MemoryRouter>);
+    render(<MemoryRouter><NavigationLockProvider><HelpDetailPage /></NavigationLockProvider></MemoryRouter>);
 
     await waitFor(() => {
       expect(screen.getByText('Here is some advice')).toBeInTheDocument();
@@ -106,7 +107,7 @@ describe('HelpDetailPage', () => {
     mockGetPostByAccessCode.mockResolvedValue(samplePost);
     mockGetRepliesByPostId.mockResolvedValue([]);
 
-    render(<MemoryRouter><HelpDetailPage /></MemoryRouter>);
+    render(<MemoryRouter><NavigationLockProvider><HelpDetailPage /></NavigationLockProvider></MemoryRouter>);
 
     await waitFor(() => {
       expect(screen.getByText('noRepliesYet')).toBeInTheDocument();
@@ -116,7 +117,7 @@ describe('HelpDetailPage', () => {
   it('shows post not found when post is null', async () => {
     mockGetPostByAccessCode.mockResolvedValue(null);
 
-    render(<MemoryRouter><HelpDetailPage /></MemoryRouter>);
+    render(<MemoryRouter><NavigationLockProvider><HelpDetailPage /></NavigationLockProvider></MemoryRouter>);
 
     await waitFor(() => {
       expect(screen.getByText('postNotFound')).toBeInTheDocument();
@@ -128,7 +129,7 @@ describe('HelpDetailPage', () => {
     mockGetPostByAccessCode.mockResolvedValue(samplePost);
     mockGetRepliesByPostId.mockResolvedValue([]);
 
-    render(<MemoryRouter><HelpDetailPage /></MemoryRouter>);
+    render(<MemoryRouter><NavigationLockProvider><HelpDetailPage /></NavigationLockProvider></MemoryRouter>);
 
     await waitFor(() => {
       expect(screen.getByTestId('reply-form')).toBeInTheDocument();
@@ -139,7 +140,7 @@ describe('HelpDetailPage', () => {
     mockGetPostByAccessCode.mockResolvedValue(samplePost);
     mockGetRepliesByPostId.mockResolvedValue([]);
 
-    render(<MemoryRouter><HelpDetailPage /></MemoryRouter>);
+    render(<MemoryRouter><NavigationLockProvider><HelpDetailPage /></NavigationLockProvider></MemoryRouter>);
 
     await waitFor(() => {
       expect(screen.getByText('backToHelp')).toBeInTheDocument();
@@ -150,7 +151,7 @@ describe('HelpDetailPage', () => {
     mockGetPostByAccessCode.mockResolvedValue(samplePost);
     mockGetRepliesByPostId.mockResolvedValue([]);
 
-    render(<MemoryRouter><HelpDetailPage /></MemoryRouter>);
+    render(<MemoryRouter><NavigationLockProvider><HelpDetailPage /></NavigationLockProvider></MemoryRouter>);
 
     await waitFor(() => {
       expect(mockIncrementViewCount).toHaveBeenCalledWith('post-1');
