@@ -32,10 +32,10 @@ describe('translationHelper', () => {
       expect(getCurrentLanguage()).toBe('ko');
     });
 
-    it('returns zh-CN as default for unsupported language', () => {
+    it('returns en as default for unsupported language', () => {
       localStorage.removeItem('language');
       Object.defineProperty(navigator, 'language', { value: 'fr', configurable: true });
-      expect(getCurrentLanguage()).toBe('zh-CN');
+      expect(getCurrentLanguage()).toBe('en');
     });
 
     it('ignores invalid language in localStorage', () => {
