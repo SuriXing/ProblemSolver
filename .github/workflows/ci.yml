@@ -26,6 +26,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Audit production dependencies (fail on high)
+        run: npm audit --omit=dev --audit-level=high
+
       - name: Lint (zero warnings)
         run: npm run lint -- --max-warnings 0
 
@@ -46,3 +49,41 @@ jobs:
           VITE_SUPABASE_URL: https://stub.supabase.co
           VITE_SUPABASE_ANON_KEY: stub-anon-key-for-ci
         run: npm run build
+
+  e2e:
+    name: Playwright (UI smoke)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run e2e (offline specs)
+        # Scope to specs that mock the Supabase REST layer (page.route) or
+        # assert pure page structure, so the job is green without a provisioned
+        # backend. The auth/data-flow specs (admin-flow, confession-flow,
+        # success-pages, topic-detail) POST to a live Supabase and need a test
+        # project with credentials; run those separately against staging.
+        env:
+          VITE_SUPABASE_URL: https://stub.supabase.co
+          VITE_SUPABASE_ANON_KEY: stub-anon-key-for-ci
+        run: npx playwright test e2e/navigation.spec.ts e2e/help-flow.spec.ts e2e/journey-confession-to-lookup.spec.ts e2e/session-verification.spec.ts --reporter=line
+
+      - name: Upload Playwright report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
