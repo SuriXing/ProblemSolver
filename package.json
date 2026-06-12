@@ -94,5 +94,8 @@
     "src/**/*.test.{ts,tsx}": [
       "vitest run --reporter=dot --passWithNoTests"
     ]
+  },
+  "overrides": {
+    "ws": "^8.21.0"
   }
 }
