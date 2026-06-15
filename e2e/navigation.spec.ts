@@ -31,6 +31,6 @@ test.describe('Navigation', () => {
 
   test('admin login page loads', async ({ page }) => {
     await page.goto('/#/admin/login');
-    await expect(page.locator('text=/登录|login/i')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('text=/登录|login/i').first()).toBeVisible({ timeout: 10000 });
   });
 });
