@@ -105,10 +105,12 @@ const ConfessionPage: React.FC = () => {
         purpose: 'need_help',
         user_id: isAnonymous ? undefined : `anon-${crypto.getRandomValues(new Uint8Array(8)).reduce((acc, v) => acc + v.toString(16).padStart(2, '0'), '')}`,
       });
-      const timeoutPromise = new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error('Request timed out')), SUBMIT_TIMEOUT_MS)
-      );
+      let timerId: ReturnType<typeof setTimeout> | undefined;
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        timerId = setTimeout(() => reject(new Error('Request timed out')), SUBMIT_TIMEOUT_MS);
+      });
       const post = await Promise.race([postPromise, timeoutPromise]);
+      clearTimeout(timerId);
 
       if (!post) {
         // createPost returned null — the database write actually failed.
