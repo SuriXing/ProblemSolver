@@ -1,6 +1,5 @@
-# Push-time gate: a typo can slip past pre-commit's staged check, so the
-# push itself runs the whole gauntlet before anything lands on main.
-npm run type-check &&
-  npm run lint -- --max-warnings 0 &&
-  npm run coverage &&
-  npm run build
+#!/bin/sh
+# Push-time gate. Runs the SAME checks, in the same order, with the same stub
+# env as the CI "test" job (ci.yml) — so a push that passes here cannot make CI
+# go red. See scripts/gates-push.mjs for the exact step list.
+node scripts/gates-push.mjs
