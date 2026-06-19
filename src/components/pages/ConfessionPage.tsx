@@ -19,8 +19,10 @@ const ConfessionPage: React.FC = () => {
   const [confession, setConfession] = useState('');
   const [isAnonymous, _setIsAnonymous] = useState(true);
   const [isPrivate, _setIsPrivate] = useState(false);
+  const [notifyViaEmail, setNotifyViaEmail] = useState(false);
+  const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errors, setErrors] = useState<{confession?: string}>({});
+  const [errors, setErrors] = useState<{confession?: string; email?: string}>({});
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { showModal, dismiss, checkText } = useCrisisDetection();
@@ -44,10 +46,14 @@ const ConfessionPage: React.FC = () => {
   }, []);
 
   const validateForm = (): boolean => {
-    const newErrors: {confession?: string} = {};
+    const newErrors: {confession?: string; email?: string} = {};
     
     if (!confession.trim()) {
       newErrors.confession = safeT('confessionRequired', 'Please enter your confession');
+    }
+    
+    if (notifyViaEmail && (!email.trim() || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.trim()))) {
+      newErrors.email = safeT('validEmailRequired', 'Please enter a valid email address');
     }
     
     setErrors(newErrors);
@@ -123,6 +129,16 @@ const ConfessionPage: React.FC = () => {
       recordAction(THROTTLE_RULES.confession);
       const accessCode = post.access_code || 'UNKNOWN';
       console.log('Submission successful, access code:', accessCode);
+
+      // Best-effort email opt-in. If this write fails it should NOT block the
+      // user's submission — notifications are a nice-to-have layer. The RPC is
+      // rate-limited + validates the address server-side, so a bad row can't
+      // land here.
+      if (notifyViaEmail && email.trim()) {
+        DatabaseService.optInEmailNotifications({ accessCode, email: email.trim() }).catch(
+          (optErr) => console.error('[db] email opt-in failed (non-blocking):', optErr)
+        );
+      }
 
       // Save to localStorage for retrieval on success page
       const userData = {
@@ -226,12 +242,27 @@ const ConfessionPage: React.FC = () => {
             <div className="form-section">
               <h3>{t('privacySettings')}</h3>
               <div className="checkbox-group">
-                <label className="checkbox-label is disabled">
-                  <input type="checkbox" disabled />
+                <label className="checkbox-label">
+                  <input
+                    type="checkbox"
+                    checked={notifyViaEmail}
+                    onChange={(e) => setNotifyViaEmail(e.target.checked)}
+                  />
                   {t('notifyViaEmail')}
                 </label>
-                <p className="email-note">{t('notifyComingSoon')}</p>
               </div>
+              {notifyViaEmail && (
+                <div className="form-group">
+                  <input
+                    type="email"
+                    className={`email-input ${errors.email ? 'error' : ''}`}
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder={t('emailPlaceholder') || 'Enter your email'}
+                  />
+                  {errors.email && <div className="error-message">{errors.email}</div>}
+                </div>
+              )}
             </div>
             
             <div className="form-actions">

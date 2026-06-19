@@ -34,9 +34,11 @@ vi.mock('../../../utils/StorageSystem', () => ({
 }));
 
 const mockCreatePost = vi.fn();
+const mockOptIn = vi.fn();
 vi.mock('../../../services/database.service', () => ({
   DatabaseService: {
     createPost: (...args: any[]) => mockCreatePost(...args),
+    optInEmailNotifications: (...args: any[]) => mockOptIn(...args),
   },
 }));
 
@@ -46,6 +48,7 @@ describe('ConfessionPage', () => {
   beforeEach(() => {
     mockNavigate.mockClear();
     mockCreatePost.mockReset();
+    mockOptIn.mockReset();
   });
 
   it('renders form elements', () => {
@@ -67,17 +70,44 @@ describe('ConfessionPage', () => {
     });
   });
 
-  it('shows the email opt-in as disabled (not yet available)', async () => {
+  it('validates email when the opt-in box is checked', async () => {
     render(<MemoryRouter><NavigationLockProvider><ConfessionPage /></NavigationLockProvider></MemoryRouter>);
 
-    // Email notifications aren't wired up server-side yet, so the opt-in must be
-    // visibly disabled rather than silently collecting an email that would never
-    // notify anyone. No email is required to submit.
-    const checkbox = screen.getByText('notifyViaEmail')
-      .closest('label')
-      ?.querySelector('input[type="checkbox"]') as HTMLInputElement | null;
-    expect(checkbox).not.toBeNull();
-    expect(checkbox!.disabled).toBe(true);
+    const textarea = screen.getByPlaceholderText('confessionPlaceholder');
+    fireEvent.change(textarea, { target: { value: 'My confession text' } });
+
+    // Enable email notification, but leave the email field blank
+    fireEvent.click(screen.getByText('notifyViaEmail'));
+
+    const submitBtn = screen.getByText('send');
+    fireEvent.click(submitBtn);
+
+    await waitFor(() => {
+      expect(screen.getByText('Please enter a valid email address')).toBeInTheDocument();
+    });
+    expect(mockCreatePost).not.toHaveBeenCalled();
+  });
+
+  it('records the email opt-in after a successful submission', async () => {
+    mockCreatePost.mockResolvedValue({ id: 'post-1', access_code: 'XYZ789' });
+    mockOptIn.mockResolvedValue(true);
+
+    render(<MemoryRouter><NavigationLockProvider><ConfessionPage /></NavigationLockProvider></MemoryRouter>);
+
+    fireEvent.change(screen.getByPlaceholderText('confessionPlaceholder'), {
+      target: { value: 'My confession text' },
+    });
+    fireEvent.click(screen.getByText('notifyViaEmail'));
+    fireEvent.change(screen.getByPlaceholderText('emailPlaceholder'), {
+      target: { value: 'me@example.com' },
+    });
+    fireEvent.click(screen.getByText('send'));
+
+    await waitFor(() => expect(mockOptIn).toHaveBeenCalled());
+    expect(mockOptIn).toHaveBeenCalledWith({
+      accessCode: 'XYZ789',
+      email: 'me@example.com',
+    });
   });
 
   it('navigates to /success on successful submission', async () => {
