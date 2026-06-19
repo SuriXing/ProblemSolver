@@ -231,6 +231,34 @@ export const DatabaseService = {
   },
   
   /**
+   * Opt this post's owner (by access code) into email notifications.
+   *
+   * Writes ONLY the consent row — no email is sent by this method. The actual
+   * send happens server-side (future change). This stores the address in the
+   * PII-closed post_notifications table via the opt_in_email_notification RPC
+   * (the RPC rate-limits per IP and validates the email, so we don't open a
+   * spam / PII-enumeration path).
+   *
+   * Returns true when the consent was recorded (or already existed).
+   */
+  async optInEmailNotifications(options: { accessCode: string; email: string }): Promise<boolean> {
+    try {
+      const { error } = await supabase.rpc('opt_in_email_notification', {
+        p_access_code: options.accessCode,
+        p_email: options.email,
+      });
+      if (error) {
+        console.error('[db] optInEmailNotifications RPC error:', error.message, error.code);
+        return false;
+      }
+      return true;
+    } catch (error) {
+      console.error('[db] optInEmailNotifications exception:', error);
+      return false;
+    }
+  },
+
+  /**
    * Get all replies for a specific post
    */
   async getRepliesByPostId(postId: string): Promise<Reply[]> {
