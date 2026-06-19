@@ -15,7 +15,7 @@ export default defineConfig(({ mode }) => {
         '@': path.resolve(__dirname, './src'),
       },
     },
-    base: '/',
+    base: process.env.BASE_PATH || env.BASE_PATH || '/',
     server: {
       port: 3000,
       open: true,
