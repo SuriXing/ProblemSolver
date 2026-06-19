@@ -43,12 +43,18 @@ COMMENT ON TABLE public.post_notifications IS
   'Email opt-in consent for post owners. PII. WITHOUT row-level SELECT for anon.';
 
 -- Email format sanity (lightweight). Full validation happens in the RPC/UI.
+-- DROP-then-ADD so re-running the migration stays idempotent (the IF NOT EXISTS
+-- on CREATE TABLE is not enough once the table + constraints already exist).
+ALTER TABLE public.post_notifications
+  DROP CONSTRAINT IF EXISTS post_notifications_email_format_check;
 ALTER TABLE public.post_notifications
   ADD CONSTRAINT post_notifications_email_format_check
   CHECK (email ~* '^[^@\s]+@[^@\s]+\.[^@\s]+$');
 
 -- access_code can't exceed the same bound the app uses (generateAccessCode is 8
 -- chars, but we bound hard here against abuse).
+ALTER TABLE public.post_notifications
+  DROP CONSTRAINT IF EXISTS post_notifications_access_code_len_check;
 ALTER TABLE public.post_notifications
   ADD CONSTRAINT post_notifications_access_code_len_check
   CHECK (length(access_code) BETWEEN 1 AND 64);
@@ -95,17 +101,24 @@ BEGIN
     RETURN false;
   END IF;
 
-  v_mail := trim(lower(COALESCE(p_email, '')));
+  v_mail := trim(lower(COALESCE(p_email, '[]')));
   IF v_mail = '' OR length(v_mail) > 254
      OR v_mail !~* '^[^@\s]+@[^@\s]+\.[^@\s]+$' THEN
     RETURN false;
   END IF;
 
-  -- --- Rate limit: per-IP sliding window (reuses the S4.1 machinery). ------------
-  --   max 10 opt-ins per IP / 10 min. Generous for a real user, bounds a bot.
-  IF NOT rate_limit_check('email_optin', request_ip_hash(), 10, 600) THEN
-    RETURN false;
-  END IF;
+  -- --- Note on rate limiting ---------------------------------------------
+  --   This RPC DOES NOT call rate_limit_check(). When this migration was first
+  --   written it reused the per-IP rate_limit_check() from 2026_04_24, but
+  --   that function (and the rate_limit_buckets table) do NOT exist on the
+  --   live AnonCafe-v2 database — that migration never fully landed there.
+  --   Calling a missing function makes the whole opt-in fail, so the call was
+  --   removed. Trade-off: opt-in is a single idempotent upsert of a validated
+  --   (access_code, email) pair into a PII-closed table; abuse here is bounded
+  --   by the format/length CHECKs above and can't relay email (the send side
+  --   isn't wired yet). If/when the core rate-limit migrations are applied, add
+  --   `IF NOT rate_limit_check('email_optin'::text, request_ip_hash(), 10, 600)`
+  --   back in front of the upsert.
 
   -- --- Upsert the consent ---------------------------------------------------------
   --   ON CONFLICT lets a user who opts in, then submits another post, overwrite
