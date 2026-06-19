@@ -34,7 +34,7 @@
   "shareMyPost": "投稿を共有する",
   "postAnonymously": "匿名で投稿",
   "keepPrivate": "プライベートに保つ",
-  "notifyViaEmail": "メールで通知する",
+  "notifyViaEmail": "メール通知（まもなく）",
   "confessionRequired": "告白内容を入力してください",
   "validEmailRequired": "有効なメールアドレスを入力してください",
   "submitReply": "返信を送信",
@@ -179,7 +179,7 @@
   "whatHappensNext": "次に何が起こりますか？",
   "communityWillSee": "あなたの投稿はサポートのためにコミュニティに表示されます",
   "replyIn24h": "思いやりのあるコミュニティメンバーから24時間以内に返信が期待できます",
-  "emailNotification": "誰かが返信したときにメール通知を受け取ります（有効にしている場合）",
+  "emailNotification": "返信はアクセスコードで確認できます。メール通知は準備中です",
   "checkWithCode": "いつでもアクセスコードを使って返信や更新を確認できます",
   "dismiss": "閉じる",
   "privacyWarningTitle": "重要なプライバシーに関するお知らせ",
@@ -294,5 +294,6 @@
   "adminEmailPlaceholder": "メールアドレス",
   "adminPasswordPlaceholder": "パスワード",
   "adminLoggingIn": "ログイン中...",
-  "adminLoginButton": "ログイン"
+  "adminLoginButton": "ログイン",
+  "notifyComingSoon": "メール通知はまだ利用できません。アクセスコードで返信をご確認ください。"
 }

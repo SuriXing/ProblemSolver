@@ -11,8 +11,8 @@ export interface UserData {
   confessionText: string;
   selectedTags: string[];
   privacyOption: string;
-  emailNotification: boolean;
-  email: string;
+  emailNotification?: boolean;
+  email?: string;
   timestamp: string;
   replies: Reply[];
   views: number;
