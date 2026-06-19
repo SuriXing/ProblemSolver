@@ -18,7 +18,7 @@
   "none": "无",
   "shareMyPost": "分享我的帖子",
   "keepPrivate": "保持私密",
-  "notifyViaEmail": "通过电子邮件通知我",
+  "notifyViaEmail": "电子邮件提醒（即将推出）",
   "confessionRequired": "请输入您的倾诉内容",
   "validEmailRequired": "请输入有效的电子邮件地址",
   "submitReply": "提交回复",
@@ -194,7 +194,7 @@
   "whatHappensNext": "接下来会发生什么？",
   "communityWillSee": "您的帖子将对社区可见，以获得支持",
   "replyIn24h": "预计在24小时内收到来自关心您的社区成员的回复",
-  "emailNotification": "当有人回复时，您将收到电子邮件通知（如果已启用）",
+  "emailNotification": "回复可通过访问码在此查看——邮件提醒即将推出",
   "checkWithCode": "随时使用您的访问代码来查看回复和更新",
   "dismiss": "关闭",
   "privacyWarningTitle": "重要隐私提醒",
@@ -294,5 +294,6 @@
   "adminEmailPlaceholder": "邮箱 / Email",
   "adminPasswordPlaceholder": "密码 / Password",
   "adminLoggingIn": "登录中...",
-  "adminLoginButton": "登录"
+  "adminLoginButton": "登录",
+  "notifyComingSoon": "邮件提醒功能尚未上线，请用访问码在“我的投稿”里查看回复。"
 }

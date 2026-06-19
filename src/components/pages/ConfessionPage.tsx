@@ -17,12 +17,10 @@ const ConfessionPage: React.FC = () => {
   const navigate = useNavigate();
   const { navigateWithExit } = useExitNavigate();
   const [confession, setConfession] = useState('');
-  const [email, setEmail] = useState('');
   const [isAnonymous, _setIsAnonymous] = useState(true);
   const [isPrivate, _setIsPrivate] = useState(false);
-  const [notifyViaEmail, setNotifyViaEmail] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errors, setErrors] = useState<{confession?: string; email?: string}>({});
+  const [errors, setErrors] = useState<{confession?: string}>({});
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { showModal, dismiss, checkText } = useCrisisDetection();
@@ -46,14 +44,10 @@ const ConfessionPage: React.FC = () => {
   }, []);
 
   const validateForm = (): boolean => {
-    const newErrors: {confession?: string; email?: string} = {};
+    const newErrors: {confession?: string} = {};
     
     if (!confession.trim()) {
       newErrors.confession = safeT('confessionRequired', 'Please enter your confession');
-    }
-    
-    if (notifyViaEmail && (!email || !email.includes('@'))) {
-      newErrors.email = safeT('validEmailRequired', 'Please enter a valid email address');
     }
     
     setErrors(newErrors);
@@ -138,8 +132,6 @@ const ConfessionPage: React.FC = () => {
         timestamp: new Date().toISOString(),
         accessCode: accessCode,
         privacyOption: isPrivate ? 'private' : 'public',
-        emailNotification: notifyViaEmail,
-        email: notifyViaEmail ? email : '',
         replies: [],
         views: 0
       };
@@ -234,27 +226,12 @@ const ConfessionPage: React.FC = () => {
             <div className="form-section">
               <h3>{t('privacySettings')}</h3>
               <div className="checkbox-group">
-                <label className="checkbox-label">
-                  <input
-                    type="checkbox"
-                    checked={notifyViaEmail}
-                    onChange={(e) => setNotifyViaEmail(e.target.checked)}
-                  />
+                <label className="checkbox-label is disabled">
+                  <input type="checkbox" disabled />
                   {t('notifyViaEmail')}
                 </label>
+                <p className="email-note">{t('notifyComingSoon')}</p>
               </div>
-              {notifyViaEmail && (
-                <div className="form-group">
-                  <input
-                    type="email"
-                    className={`email-input ${errors.email ? 'error' : ''}`}
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder={t('emailPlaceholder') || 'Enter your email'}
-                  />
-                  {errors.email && <div className="error-message">{errors.email}</div>}
-                </div>
-              )}
             </div>
             
             <div className="form-actions">
