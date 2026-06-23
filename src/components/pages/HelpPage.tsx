@@ -75,13 +75,14 @@ const HelpPage: React.FC = () => {
   };
 
   // Load all posts from storage
+  const fetchedRef = React.useRef(false);
   const fetchPosts = React.useCallback(async () => {
     setLoading(true);
     setError(null);
 
     const timeoutId = setTimeout(() => {
       setLoading(false);
-      setError(t('helpLoadTimeout'));
+      setError('Loading took too long. Please check your connection and try again.');
     }, 10000);
 
     try {
@@ -91,14 +92,17 @@ const HelpPage: React.FC = () => {
     } catch (err: unknown) {
       clearTimeout(timeoutId);
       console.error('Error fetching posts:', err);
-      setError(t('helpLoadError'));
+      setError('Unable to load community posts. Please try again.');
     } finally {
       setLoading(false);
     }
-  }, [t]);
+  }, []);
 
   useEffect(() => {
-    fetchPosts();
+    if (!fetchedRef.current) {
+      fetchedRef.current = true;
+      fetchPosts();
+    }
   }, [fetchPosts]);
 
   // Force reload translations
