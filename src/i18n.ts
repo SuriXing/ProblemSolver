@@ -1,7 +1,6 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import HttpBackend from 'i18next-http-backend';
-import LanguageDetector from 'i18next-browser-languagedetector';
 import { getCurrentLanguage } from './utils/translationHelper';
 import { withLocalSuffix } from './utils/environmentLabel';
 import type { InitOptions, Module } from 'i18next';
@@ -24,18 +23,11 @@ const backendOptions = {
   addPath: '/locales/{{lng}}/{{ns}}.missing.json'
 };
 
-const detectorOptions = {
-  order: ['localStorage', 'navigator'],
-  lookupLocalStorage: 'language'
-};
-
 // 为模块添加必要的类型定义
 const typedHttpBackend = HttpBackend as unknown as Module;
-const typedLanguageDetector = LanguageDetector as unknown as Module;
 
 const i18nInstance = i18n
   .use(typedHttpBackend)
-  .use(typedLanguageDetector)
   .use(initReactI18next);
 
 const options: InitOptions = {
@@ -63,8 +55,6 @@ const options: InitOptions = {
   interpolation: {
     escapeValue: false
   },
-
-  detection: detectorOptions,
 
   backend: backendOptions,
 
