@@ -277,5 +277,11 @@
       "hotlines": "자살예방상담전화 — 1393\n정신건강위기상담전화 — 1577-0199"
     }
   },
-  "confessionSubmitError": "문제가 발생했습니다. 다시 시도해주세요."
+  "confessionSubmitError": "문제가 발생했습니다. 다시 시도해주세요.",
+  "screenshotHint": "📸 이 코드를 스크린샷으로 저장하세요",
+  "viewMyPosts": "내 게시물 보기",
+  "savedCodes": "저장된 액세스 코드",
+  "savedCodesDesc": "이 기기에서 제출한 게시물",
+  "noSavedCodes": "저장된 코드가 없습니다",
+  "orEnterManually": "또는 코드를 직접 입력"
 }

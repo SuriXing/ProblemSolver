@@ -35,6 +35,20 @@ const PastQuestionsPage: React.FC<PastQuestionsPageProps> = ({ showDebug, debugP
   const [replies, setReplies] = useState<any[]>([]);
   const [fetchingPost, setFetchingPost] = useState(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
+  const [savedCodes, setSavedCodes] = useState<Array<{ code: string; timestamp: number; preview: string }>>([]);
+
+  // Load saved codes from localStorage
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('savedAccessCodes');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) setSavedCodes(parsed);
+      }
+    } catch {
+      // ignore corrupt data
+    }
+  }, []);
 
   // Shared fetch logic — used by both manual form submit and auto-populate from URL/sessionStorage
   const fetchPostByCode = useCallback(async (code: string) => {
@@ -131,6 +145,55 @@ const PastQuestionsPage: React.FC<PastQuestionsPageProps> = ({ showDebug, debugP
     <Layout>
       <div className="container past-questions-container page-fade-in" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minHeight: '80vh', justifyContent: 'flex-start', position: 'relative' }}>
         <h1 style={{ textAlign: 'center', marginBottom: 24 }}>{t('goToPastQuestions')}</h1>
+
+        {/* Saved codes from this device */}
+        {savedCodes.length > 0 && (
+          <div style={{ width: '100%', maxWidth: 500, marginBottom: 32 }}>
+            <h3 style={{ marginBottom: 4 }}>{t('savedCodes')}</h3>
+            <p style={{ color: 'var(--text-secondary, #888)', fontSize: '0.85rem', marginBottom: 12 }}>{t('savedCodesDesc')}</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {[...savedCodes].reverse().map((item, idx) => (
+                <div
+                  key={idx}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '10px 14px',
+                    background: 'var(--bg-surface, #fff)',
+                    borderRadius: 8,
+                    border: '1px solid color-mix(in srgb, var(--primary-color, #5B7BFA) 15%, transparent)',
+                    boxShadow: '0 1px 4px rgba(0,0,0,0.05)',
+                  }}
+                >
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <span style={{ fontFamily: "'Courier New', Courier, monospace", fontWeight: 700, fontSize: '1.1rem', letterSpacing: 1 }}>{item.code}</span>
+                    {item.preview && (
+                      <p style={{ margin: '4px 0 0', fontSize: '0.8rem', color: 'var(--text-secondary, #888)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {item.preview}
+                      </p>
+                    )}
+                    <p style={{ margin: '2px 0 0', fontSize: '0.75rem', color: '#aaa' }}>
+                      {new Date(item.timestamp).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <button
+                    className="btn-primary"
+                    style={{ marginLeft: 12, padding: '6px 16px', fontSize: '0.85rem', flexShrink: 0 }}
+                    onClick={() => { setAccessCode(item.code); fetchPostByCode(item.code); }}
+                  >
+                    {t('viewMyPost')}
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Manual code entry */}
+        {savedCodes.length > 0 && (
+          <p style={{ color: 'var(--text-secondary, #888)', fontSize: '0.9rem', marginBottom: 8 }}>{t('orEnterManually')}</p>
+        )}
         <form onSubmit={handleAccessCodeSubmit} className="accessCodeForm" style={{ marginBottom: 32, display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', maxWidth: 400 }}>
           <label htmlFor="access-code-input" style={{ fontWeight: 500, textAlign: 'center', marginBottom: 8 }}>{t('enterAccessCode')}</label>
           <Input
