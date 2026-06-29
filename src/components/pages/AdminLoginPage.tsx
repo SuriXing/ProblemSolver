@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Card, Form, Input, Button, Alert, Typography, Space } from 'antd';
 import { MailOutlined, LockOutlined, CrownOutlined } from '@ant-design/icons';
 import AdminService from '../../services/admin.service';
@@ -13,6 +14,7 @@ const AdminLoginPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
   const { navigateWithExit } = useExitNavigate();
+  const { t } = useTranslation();
 
   useEffect(() => {
     // Redirect if already authenticated. isAuthenticated() became async in
@@ -69,10 +71,10 @@ const AdminLoginPage: React.FC = () => {
             <Space direction="vertical" size="small">
               <CrownOutlined style={{ fontSize: 48, color: '#1890ff' }} />
               <Title level={2} style={{ margin: 0, color: '#1890ff' }}>
-                管理员登录
+                {t('adminTitle')}
               </Title>
               <Text type="secondary">
-                Problem Solver 管理系统
+                {t('adminSubtitle')}
               </Text>
             </Space>
           </div>
@@ -86,13 +88,13 @@ const AdminLoginPage: React.FC = () => {
             <Form.Item
               name="email"
               rules={[
-                { required: true, message: '请输入邮箱' },
-                { type: 'email', message: '邮箱格式不正确' },
+                { required: true, message: t('adminEmailRequired') },
+                { type: 'email', message: t('adminEmailInvalid') },
               ]}
             >
               <Input
                 prefix={<MailOutlined />}
-                placeholder="邮箱 / Email"
+                placeholder={t('adminEmailPlaceholder')}
                 autoComplete="email"
                 type="email"
               />
@@ -100,11 +102,11 @@ const AdminLoginPage: React.FC = () => {
 
             <Form.Item
               name="password"
-              rules={[{ required: true, message: '请输入密码' }]}
+              rules={[{ required: true, message: t('adminPasswordRequired') }]}
             >
               <Input.Password
                 prefix={<LockOutlined />}
-                placeholder="密码 / Password"
+                placeholder={t('adminPasswordPlaceholder')}
                 autoComplete="current-password"
               />
             </Form.Item>
@@ -128,7 +130,7 @@ const AdminLoginPage: React.FC = () => {
                 loading={loading}
                 style={{ width: '100%', height: 48 }}
               >
-                {loading ? '登录中...' : '登录'}
+                {loading ? t('adminLoggingIn') : t('adminLoginButton')}
               </Button>
             </Form.Item>
           </Form>
@@ -139,7 +141,7 @@ const AdminLoginPage: React.FC = () => {
               onClick={() => navigateWithExit('/')}
               style={{ padding: 0 }}
             >
-              返回首页
+              {t('backToHome')}
             </Button>
           </div>
         </Card>

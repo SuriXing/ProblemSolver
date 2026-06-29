@@ -3,7 +3,7 @@
   "pageNotFoundMessage": "찾으시는 페이지가 존재하지 않거나 이동되었습니다.",
   "returnHome": "홈으로 돌아가기",
   "redirecting": "리다이렉팅 중...",
-  "goToPastQuestions": "이전 질문",
+  "goToPastQuestions": "내 게시물",
   "mentorTableNav": "멘토 테이블",
   "debug": "디버그",
   "debugMenu": "디버그 메뉴",
@@ -117,7 +117,7 @@
   "reactionThumbsUp": "좋아요 반응",
   "confessionTitle": "고민 나누기",
   "confessionSubtitle": "안전하게 고민을 나누고 따뜻한 답변을 받아보세요",
-  "confessionPlaceholder": "당신의 고민을 적어주세요...",
+  "confessionPlaceholder": "마음속 이야기를 들려주세요...",
   "send": "보내기",
   "emailPlaceholder": "이메일 주소 입력",
   "addTags": "태그 추가",
@@ -131,9 +131,12 @@
     "study": "학업",
     "health": "건강",
     "social": "사회",
-    "other": "기타"
+    "other": "기타",
+    "academic": "학교",
+    "school": "성적",
+    "career": "진로"
   },
-  "confessionPlaceholderHint": "여기에 당신의 고백이 표시됩니다.",
+  "confessionPlaceholderHint": "당신의 이야기가 여기에 표시됩니다.",
   "viewMyPost": "내 게시물 보기",
   "replies": "답글",
   "yourReply": "당신의 답글",
@@ -283,5 +286,14 @@
   "savedCodes": "저장된 액세스 코드",
   "savedCodesDesc": "이 기기에서 제출한 게시물",
   "noSavedCodes": "저장된 코드가 없습니다",
-  "orEnterManually": "또는 코드를 직접 입력"
+  "orEnterManually": "또는 코드를 직접 입력",
+  "adminTitle": "관리자 로그인",
+  "adminSubtitle": "Problem Solver 관리 시스템",
+  "adminEmailRequired": "이메일을 입력하세요",
+  "adminEmailInvalid": "이메일 형식이 올바르지 않습니다",
+  "adminPasswordRequired": "비밀번호를 입력하세요",
+  "adminEmailPlaceholder": "이메일",
+  "adminPasswordPlaceholder": "비밀번호",
+  "adminLoggingIn": "로그인 중...",
+  "adminLoginButton": "로그인"
 }
