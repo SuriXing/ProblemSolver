@@ -75,6 +75,53 @@ export default [
     },
   },
   {
+    // Backend + tooling: the Vercel function, node scripts, and the
+    // playwright specs were invisible to eslint (only src/ was linted), so
+    // a typo there could ride to production in silence. Give them Node
+    // globals and the same pragmatic rules as src. Real rule errors in
+    // these dirs surface here instead of never.
+    files: ['api/**/*.ts', 'scripts/**/*.{js,mjs}', 'e2e/**/*.ts'],
+    languageOptions: {
+      ecmaVersion: 2020,
+      sourceType: 'module',
+      globals: { ...globals.node, ...globals.es2020, ...globals.browser },
+      parser: tseslint.parser,
+      parserOptions: {
+        ecmaFeatures: { jsx: true },
+      },
+    },
+    rules: {
+      ...tseslint.configs.recommended.rules,
+      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/no-unused-vars': [
+        'warn',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+          destructuredArrayIgnorePattern: '^_',
+          caughtErrors: 'none',
+        },
+      ],
+      'no-undef': 'error',
+    },
+  },
+  {
+    // Playwright specs: release test-only rules that are noisy in specs.
+    files: ['e2e/**/*.ts'],
+    rules: {
+      '@typescript-eslint/no-non-null-assertion': 'off',
+      '@typescript-eslint/no-unused-vars': 'off',
+    },
+  },
+  {
+    // Plain CommonJS scripts (extract-translations.js) legitimately use
+    // require() — the ESM-only rule shouldn't flag them. .mjs stays strict.
+    files: ['scripts/**/*.js'],
+    rules: {
+      '@typescript-eslint/no-require-imports': 'off',
+    },
+  },
+  {
     // Context providers & the Notebook intentionally export hooks + components
     // from the same file — documented exceptions from the old config.
     files: [
