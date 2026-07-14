@@ -138,7 +138,7 @@ async function runUser(userIdx) {
     try {
       const data = await postRes.json();
       postId = Array.isArray(data) ? data[0]?.id : data?.id;
-    } catch {}
+    } catch { /* marshal failure just leaves postId null */ }
   }
 
   // 2. Look up the post 3 times (matches the user model)
