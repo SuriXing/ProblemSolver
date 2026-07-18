@@ -25,9 +25,9 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
-    "type-check": "tsc --noEmit",
+    "type-check": "tsc --noEmit && tsc --noEmit -p tsconfig.api.json",
     "preview": "vite preview --host --strictPort --port 5001",
-    "lint": "eslint src --report-unused-disable-directives",
+    "lint": "eslint src api scripts e2e --report-unused-disable-directives",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
@@ -35,7 +35,8 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "serve": "serve -s dist -l 5000",
-    "prepare": "husky"
+    "prepare": "husky",
+    "setup:gates": "husky && node scripts/setup-gates.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",
@@ -83,6 +84,15 @@
   "lint-staged": {
     "*.{ts,tsx}": [
       "eslint --max-warnings 0"
+    ],
+    "*.{js,mjs}": [
+      "eslint --max-warnings 0"
+    ],
+    "*.sql": [
+      "node scripts/lint-sql.mjs"
+    ],
+    "src/**/*.test.{ts,tsx}": [
+      "vitest run --reporter=dot --passWithNoTests"
     ]
   }
 }
