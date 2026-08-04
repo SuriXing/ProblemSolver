@@ -107,18 +107,16 @@ BEGIN
     RETURN false;
   END IF;
 
-  -- --- Note on rate limiting ---------------------------------------------
-  --   This RPC DOES NOT call rate_limit_check(). When this migration was first
-  --   written it reused the per-IP rate_limit_check() from 2026_04_24, but
-  --   that function (and the rate_limit_buckets table) do NOT exist on the
-  --   live AnonCafe-v2 database — that migration never fully landed there.
-  --   Calling a missing function makes the whole opt-in fail, so the call was
-  --   removed. Trade-off: opt-in is a single idempotent upsert of a validated
-  --   (access_code, email) pair into a PII-closed table; abuse here is bounded
-  --   by the format/length CHECKs above and can't relay email (the send side
-  --   isn't wired yet). If/when the core rate-limit migrations are applied, add
-  --   `IF NOT rate_limit_check('email_optin'::text, request_ip_hash(), 10, 600)`
-  --   back in front of the upsert.
+  -- --- Per-IP rate limit ---------------------------------------------------
+  --   The June version ran call-less on purpose: the buckets and
+  --   rate_limit_check() did not exist on the live AnonCafe-v2 database back
+  --   then, so calling a missing function would have failed every opt-in.
+  --   2026_07_18 backfilled both objects (verbatim from 2026_04_24), so the
+  --   guard goes back in front of the upsert, same shape the three lookups
+  --   have used since April: 10 opt-ins per hashed IP per 10 minutes.
+  IF NOT rate_limit_check('email_optin'::text, request_ip_hash(), 10, 600) THEN
+    RETURN false;
+  END IF;
 
   -- --- Upsert the consent ---------------------------------------------------------
   --   ON CONFLICT lets a user who opts in, then submits another post, overwrite
