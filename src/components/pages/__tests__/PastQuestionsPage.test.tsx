@@ -4,6 +4,7 @@ import '../../../test/mocks/supabase';
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
+import { NavigationLockProvider } from '../../../context/NavigationLockContext';
 
 const mockNavigate = vi.fn();
 vi.mock('react-router-dom', async () => {
@@ -52,7 +53,7 @@ describe('PastQuestionsPage', () => {
   });
 
   it('renders page title and access code input', async () => {
-    render(<MemoryRouter><PastQuestionsPage /></MemoryRouter>);
+    render(<MemoryRouter><NavigationLockProvider><PastQuestionsPage /></NavigationLockProvider></MemoryRouter>);
     await waitFor(() => {
       expect(screen.getByText('goToPastQuestions')).toBeInTheDocument();
       expect(screen.getByLabelText('enterAccessCode')).toBeInTheDocument();
@@ -60,7 +61,7 @@ describe('PastQuestionsPage', () => {
   });
 
   it('renders placeholder when no post is fetched', async () => {
-    render(<MemoryRouter><PastQuestionsPage /></MemoryRouter>);
+    render(<MemoryRouter><NavigationLockProvider><PastQuestionsPage /></NavigationLockProvider></MemoryRouter>);
     await waitFor(() => {
       expect(screen.getByAltText('placeholder')).toBeInTheDocument();
     });
@@ -75,7 +76,7 @@ describe('PastQuestionsPage', () => {
     });
     mockGetRepliesByPostId.mockResolvedValue([]);
 
-    render(<MemoryRouter><PastQuestionsPage /></MemoryRouter>);
+    render(<MemoryRouter><NavigationLockProvider><PastQuestionsPage /></NavigationLockProvider></MemoryRouter>);
 
     await waitFor(() => {
       expect(screen.getByLabelText('enterAccessCode')).toBeInTheDocument();
@@ -95,7 +96,7 @@ describe('PastQuestionsPage', () => {
   it('shows error when access code not found', async () => {
     mockGetPostByAccessCode.mockResolvedValue(null);
 
-    render(<MemoryRouter><PastQuestionsPage /></MemoryRouter>);
+    render(<MemoryRouter><NavigationLockProvider><PastQuestionsPage /></NavigationLockProvider></MemoryRouter>);
 
     await waitFor(() => {
       expect(screen.getByLabelText('enterAccessCode')).toBeInTheDocument();
@@ -123,7 +124,7 @@ describe('PastQuestionsPage', () => {
       { id: 'r2', content: 'Reply content 2' },
     ]);
 
-    render(<MemoryRouter><PastQuestionsPage /></MemoryRouter>);
+    render(<MemoryRouter><NavigationLockProvider><PastQuestionsPage /></NavigationLockProvider></MemoryRouter>);
 
     await waitFor(() => {
       expect(screen.getByLabelText('enterAccessCode')).toBeInTheDocument();
@@ -147,7 +148,7 @@ describe('PastQuestionsPage', () => {
     });
     mockGetRepliesByPostId.mockResolvedValue([]);
 
-    render(<MemoryRouter><PastQuestionsPage /></MemoryRouter>);
+    render(<MemoryRouter><NavigationLockProvider><PastQuestionsPage /></NavigationLockProvider></MemoryRouter>);
 
     await waitFor(() => {
       expect(screen.getByLabelText('enterAccessCode')).toBeInTheDocument();
@@ -163,7 +164,7 @@ describe('PastQuestionsPage', () => {
   });
 
   it('uppercases access code input', async () => {
-    render(<MemoryRouter><PastQuestionsPage /></MemoryRouter>);
+    render(<MemoryRouter><NavigationLockProvider><PastQuestionsPage /></NavigationLockProvider></MemoryRouter>);
     await waitFor(() => {
       expect(screen.getByLabelText('enterAccessCode')).toBeInTheDocument();
     });

@@ -4,6 +4,7 @@ import '../../../test/mocks/supabase';
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
+import { NavigationLockProvider } from '../../../context/NavigationLockContext';
 
 const mockNavigate = vi.fn();
 const mockLocationState: any = { state: { accessCode: 'TEST1234' } };
@@ -39,20 +40,20 @@ describe('SuccessPage', () => {
   });
 
   it('shows the access code from location state', async () => {
-    render(<MemoryRouter><SuccessPage /></MemoryRouter>);
+    render(<MemoryRouter><NavigationLockProvider><SuccessPage /></NavigationLockProvider></MemoryRouter>);
     await waitFor(() => {
       expect(screen.getByText('TEST1234')).toBeInTheDocument();
     });
   });
 
   it('renders success title and subtitle', () => {
-    render(<MemoryRouter><SuccessPage /></MemoryRouter>);
+    render(<MemoryRouter><NavigationLockProvider><SuccessPage /></NavigationLockProvider></MemoryRouter>);
     expect(screen.getByText('thankYouTitle')).toBeInTheDocument();
     expect(screen.getByText('thankYouSubtitle')).toBeInTheDocument();
   });
 
   it('renders copy button', () => {
-    render(<MemoryRouter><SuccessPage /></MemoryRouter>);
+    render(<MemoryRouter><NavigationLockProvider><SuccessPage /></NavigationLockProvider></MemoryRouter>);
     expect(screen.getByTitle('copyAccessCode')).toBeInTheDocument();
   });
 
@@ -60,7 +61,7 @@ describe('SuccessPage', () => {
     const writeText = vi.fn().mockResolvedValue(undefined);
     Object.assign(navigator, { clipboard: { writeText } });
 
-    render(<MemoryRouter><SuccessPage /></MemoryRouter>);
+    render(<MemoryRouter><NavigationLockProvider><SuccessPage /></NavigationLockProvider></MemoryRouter>);
     const copyBtn = screen.getByTitle('copyAccessCode');
     fireEvent.click(copyBtn);
 
@@ -71,18 +72,18 @@ describe('SuccessPage', () => {
   });
 
   it('renders home and help links', () => {
-    render(<MemoryRouter><SuccessPage /></MemoryRouter>);
+    render(<MemoryRouter><NavigationLockProvider><SuccessPage /></NavigationLockProvider></MemoryRouter>);
     expect(screen.getByText('returnHome')).toBeInTheDocument();
     expect(screen.getByText('helpOthers')).toBeInTheDocument();
   });
 
   it('renders view post button', () => {
-    render(<MemoryRouter><SuccessPage /></MemoryRouter>);
+    render(<MemoryRouter><NavigationLockProvider><SuccessPage /></NavigationLockProvider></MemoryRouter>);
     expect(screen.getByText('viewMyPost')).toBeInTheDocument();
   });
 
   it('renders what happens next section', () => {
-    render(<MemoryRouter><SuccessPage /></MemoryRouter>);
+    render(<MemoryRouter><NavigationLockProvider><SuccessPage /></NavigationLockProvider></MemoryRouter>);
     expect(screen.getByText('whatHappensNext')).toBeInTheDocument();
   });
 
@@ -90,7 +91,7 @@ describe('SuccessPage', () => {
     mockLocationState.state = null;
     localStorage.setItem('accessCode', 'STORED99');
 
-    render(<MemoryRouter><SuccessPage /></MemoryRouter>);
+    render(<MemoryRouter><NavigationLockProvider><SuccessPage /></NavigationLockProvider></MemoryRouter>);
     await waitFor(() => {
       expect(screen.getByText('STORED99')).toBeInTheDocument();
     });
