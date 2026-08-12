@@ -3,7 +3,13 @@ import handler, { __resetRateLimits } from '../send-reply-notification';
 
 // ---------------------------------------------------------------------------
 // Test harness — fake Vercel req/res
+//
+// S3.3: the only accepted caller is the DB trigger, authenticated by the
+// shared secret. There is no Origin path anymore — requests shaped like the
+// old browser callers must be rejected.
 // ---------------------------------------------------------------------------
+
+const TEST_SECRET = 'test-trigger-secret';
 
 function makeReq(overrides: Partial<{
   method: string;
@@ -12,7 +18,7 @@ function makeReq(overrides: Partial<{
 }> = {}) {
   return {
     method: 'POST',
-    headers: { origin: 'https://problem-solver.app', 'x-forwarded-for': '203.0.113.7' },
+    headers: { 'x-trigger-secret': TEST_SECRET },
     body: {
       email: 'user@example.com',
       postId: 'p1',
@@ -20,7 +26,6 @@ function makeReq(overrides: Partial<{
       postContent: 'help me',
       replyContent: 'here is help',
     },
-    socket: { remoteAddress: '203.0.113.7' },
     ...overrides,
   };
 }
@@ -41,8 +46,10 @@ function makeRes() {
 beforeEach(() => {
   vi.clearAllMocks();
   __resetRateLimits();
-  process.env.APP_BASE_URL = 'https://problem-solver.app';
+  process.env.NOTIFICATION_TRIGGER_SECRET = TEST_SECRET;
+  process.env.APP_BASE_URL = 'https://anoncafe.life';
   delete process.env.RESEND_API_KEY; // default to stub-mode unless test overrides
+  delete process.env.RESEND_FROM_ADDRESS;
   vi.unstubAllGlobals();
 });
 
@@ -60,12 +67,12 @@ describe('method gate', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Origin allowlist
+// Shared-secret gate (S3.3)
 // ---------------------------------------------------------------------------
 
-describe('origin allowlist', () => {
-  it('returns 500 when APP_BASE_URL is missing (fail closed)', async () => {
-    delete process.env.APP_BASE_URL;
+describe('shared-secret gate', () => {
+  it('returns 500 when NOTIFICATION_TRIGGER_SECRET is missing (fail closed)', async () => {
+    delete process.env.NOTIFICATION_TRIGGER_SECRET;
     const req = makeReq();
     const res = makeRes();
     await handler(req, res);
@@ -73,31 +80,34 @@ describe('origin allowlist', () => {
     expect(res.body.reason).toBe('misconfigured');
   });
 
-  it('returns 403 when Origin header is missing', async () => {
-    const req = makeReq({ headers: { 'x-forwarded-for': '203.0.113.7' } });
+  it('returns 403 when the secret header is missing', async () => {
+    const req = makeReq({ headers: {} });
     const res = makeRes();
     await handler(req, res);
     expect(res.statusCode).toBe(403);
-    expect(res.body.reason).toBe('forbidden_origin');
+    expect(res.body.reason).toBe('forbidden');
   });
 
-  it('returns 403 when Origin does not match APP_BASE_URL', async () => {
+  it('returns 403 when the secret is wrong', async () => {
+    const req = makeReq({ headers: { 'x-trigger-secret': 'wrong-secret' } });
+    const res = makeRes();
+    await handler(req, res);
+    expect(res.statusCode).toBe(403);
+    expect(res.body.reason).toBe('forbidden');
+  });
+
+  it('rejects the old browser shape (valid Origin, no secret) with 403', async () => {
+    // The S3.1-era accepted request shape must not authenticate anymore.
     const req = makeReq({
-      headers: { origin: 'https://evil.com', 'x-forwarded-for': '203.0.113.7' },
+      headers: {
+        origin: 'https://anoncafe.life',
+        'x-forwarded-for': '203.0.113.7',
+      },
     });
     const res = makeRes();
     await handler(req, res);
     expect(res.statusCode).toBe(403);
-  });
-
-  it('accepts matching Origin (with trailing slash on either side)', async () => {
-    process.env.APP_BASE_URL = 'https://problem-solver.app/';
-    const req = makeReq({
-      headers: { origin: 'https://problem-solver.app', 'x-forwarded-for': '203.0.113.7' },
-    });
-    const res = makeRes();
-    await handler(req, res);
-    expect(res.statusCode).toBe(200);
+    expect(res.body.reason).toBe('forbidden');
   });
 });
 
@@ -165,7 +175,9 @@ describe('input validation', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Rate limit
+// Rate limit — recipient axis only (S3.3 dropped the per-IP axis: trigger
+// calls share Supabase's egress IP, so that bucket would be a shared
+// false-positive).
 // ---------------------------------------------------------------------------
 
 describe('rate limit', () => {
@@ -181,33 +193,21 @@ describe('rate limit', () => {
     expect(blocked.body.reason).toBe('rate_limit_recipient');
   });
 
-  it('blocks more than 30 emails from the same IP regardless of recipient', async () => {
-    for (let i = 0; i < 30; i++) {
+  it('keeps counting separate recipients independently', async () => {
+    for (let i = 0; i < 5; i++) {
       const res = makeRes();
-      // Different recipient each loop so the recipient cap doesn't fire first.
       await handler(
-        makeReq({
-          body: {
-            email: `user${i}@example.com`,
-            replyContent: 'hi',
-          },
-        }),
+        makeReq({ body: { email: `user${i}@example.com`, replyContent: 'hi' } }),
         res,
       );
       expect(res.statusCode).toBe(200);
     }
-    const blocked = makeRes();
+    const res = makeRes();
     await handler(
-      makeReq({
-        body: {
-          email: 'user-final@example.com',
-          replyContent: 'hi',
-        },
-      }),
-      blocked,
+      makeReq({ body: { email: 'user-final@example.com', replyContent: 'hi' } }),
+      res,
     );
-    expect(blocked.statusCode).toBe(429);
-    expect(blocked.body.reason).toBe('rate_limit_ip');
+    expect(res.statusCode).toBe(200);
   });
 });
 
@@ -234,7 +234,8 @@ describe('real send path', () => {
     process.env.RESEND_API_KEY = 're_fake_test_key';
   });
 
-  it('calls Resend with html-escaped body', async () => {
+  it('calls Resend with html-escaped body and the env From address', async () => {
+    process.env.RESEND_FROM_ADDRESS = 'no-reply@mail.example.me';
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
       status: 200,
@@ -259,11 +260,32 @@ describe('real send path', () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
     const [, init] = fetchMock.mock.calls[0]!;
     const sentBody = JSON.parse(init.body);
+    expect(sentBody.from).toBe('Problem Solver <no-reply@mail.example.me>');
+    expect(sentBody.to).toEqual(['user@example.com']);
     expect(sentBody.html).not.toContain('<script>');
     expect(sentBody.html).toContain('&lt;script&gt;');
     expect(sentBody.html).toContain('&lt;img onerror=x&gt;');
-    // viewUrl uses APP_BASE_URL, not request-supplied origin
-    expect(sentBody.html).toContain('https://problem-solver.app/#/past-questions?code=AB12');
+    // viewUrl comes from APP_BASE_URL, never from the request
+    expect(sentBody.html).toContain('https://anoncafe.life/#/past-questions?code=AB12');
+  });
+
+  it('defaults the footer link to anoncafe.life when APP_BASE_URL is unset', async () => {
+    delete process.env.APP_BASE_URL;
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ id: 'm' }),
+      text: async () => '',
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    const req = makeReq({ body: { email: 'a@b.co', replyContent: 'ok', accessCode: 'ZZ99' } });
+    const res = makeRes();
+    await handler(req, res);
+
+    expect(res.statusCode).toBe(200);
+    const [, init] = fetchMock.mock.calls[0]!;
+    expect(JSON.parse(init.body).html).toContain('https://anoncafe.life/#/past-questions?code=ZZ99');
   });
 
   it('returns 502 when Resend returns non-OK', async () => {
@@ -293,99 +315,5 @@ describe('real send path', () => {
     // S3.2 round 1 fix: do not echo err.message back to caller — info leak.
     expect(JSON.stringify(res.body)).not.toContain('SECRET-INTERNAL-PATH');
     expect(res.body.message).toBeUndefined();
-  });
-});
-
-// ---------------------------------------------------------------------------
-// IP extraction — S3.2 round 1: leftmost XFF is attacker-controlled on Vercel
-// (Vercel APPENDS rather than replaces). Use rightmost XFF / x-vercel-XFF.
-// ---------------------------------------------------------------------------
-
-describe('client IP extraction (XFF spoofing defense)', () => {
-  beforeEach(() => {
-    process.env.RESEND_API_KEY = 're_fake_test_key';
-    vi.stubGlobal(
-      'fetch',
-      vi.fn().mockResolvedValue({
-        ok: true,
-        status: 200,
-        json: async () => ({ id: 'm' }),
-        text: async () => '',
-      }),
-    );
-  });
-
-  it('uses x-vercel-forwarded-for when present (most trustworthy)', async () => {
-    // 30 requests from real IP "10.0.0.1" should hit the IP cap regardless
-    // of the spoofed leftmost x-forwarded-for value.
-    for (let i = 0; i < 30; i++) {
-      const res = makeRes();
-      await handler(
-        {
-          method: 'POST',
-          headers: {
-            origin: 'https://problem-solver.app',
-            // Attacker rotates leftmost XFF — should NOT change bucket.
-            'x-forwarded-for': `198.51.100.${i}, 10.0.0.1`,
-            'x-vercel-forwarded-for': '10.0.0.1',
-          },
-          body: { email: `u${i}@x.co`, replyContent: 'hi' },
-          socket: { remoteAddress: '10.0.0.1' },
-        },
-        res,
-      );
-      expect(res.statusCode).toBe(200);
-    }
-    const blocked = makeRes();
-    await handler(
-      {
-        method: 'POST',
-        headers: {
-          origin: 'https://problem-solver.app',
-          'x-forwarded-for': '198.51.100.250, 10.0.0.1',
-          'x-vercel-forwarded-for': '10.0.0.1',
-        },
-        body: { email: 'last@x.co', replyContent: 'hi' },
-        socket: { remoteAddress: '10.0.0.1' },
-      },
-      blocked,
-    );
-    expect(blocked.statusCode).toBe(429);
-    expect(blocked.body.reason).toBe('rate_limit_ip');
-  });
-
-  it('falls back to RIGHTMOST x-forwarded-for when x-vercel-forwarded-for is absent', async () => {
-    // Same attack: rotate leftmost XFF, real client always rightmost.
-    for (let i = 0; i < 30; i++) {
-      const res = makeRes();
-      await handler(
-        {
-          method: 'POST',
-          headers: {
-            origin: 'https://problem-solver.app',
-            'x-forwarded-for': `198.51.100.${i}, 10.0.0.7`,
-          },
-          body: { email: `q${i}@x.co`, replyContent: 'hi' },
-          socket: { remoteAddress: '10.0.0.7' },
-        },
-        res,
-      );
-      expect(res.statusCode).toBe(200);
-    }
-    const blocked = makeRes();
-    await handler(
-      {
-        method: 'POST',
-        headers: {
-          origin: 'https://problem-solver.app',
-          'x-forwarded-for': '198.51.100.99, 10.0.0.7',
-        },
-        body: { email: 'q-final@x.co', replyContent: 'hi' },
-        socket: { remoteAddress: '10.0.0.7' },
-      },
-      blocked,
-    );
-    expect(blocked.statusCode).toBe(429);
-    expect(blocked.body.reason).toBe('rate_limit_ip');
   });
 });
