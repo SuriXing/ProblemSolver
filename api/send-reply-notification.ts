@@ -1,58 +1,56 @@
 /**
- * Vercel serverless function: send email notification when a reply is posted.
+ * Vercel serverless function: send the email notification when a reply lands.
  *
- * Called by DatabaseService.createReply() after a successful reply insert.
- * Uses Resend (https://resend.com) to deliver email.
+ * Called by the `replies_notify_owner` DB trigger (2026_08_19 migration) via
+ * pg_net. Uses Resend (https://resend.com) to deliver email.
  *
  * ---------------------------------------------------------------------------
- * S3.1 hardening (2026-04-20)
+ * S3.3 hardening (2026-08): trigger-only contract
  * ---------------------------------------------------------------------------
- * The pre-S3.1 handler was an open relay: any internet caller could POST a
- * recipient + arbitrary HTML-escaped body and Resend would deliver it on our
- * project's quota and From: domain. With the free tier at 3k emails/month and
- * Resend reputation tied to the From: domain, that's both a billing-DoS and
- * a phishing/spam vector that would burn our sender reputation.
+ * The S3.1-era handler was built for a caller that never actually shipped:
+ * the browser, after DatabaseService.createReply(). Its trust model was an
+ * Origin allowlist PLUS a caller-supplied recipient email — mitigated, but
+ * still trusting the request for WHO gets emailed.
  *
- * Mitigations layered here:
+ * With the trigger landing, the caller class is exactly one: our own
+ * database. The redesign removes the browser path entirely:
  *
- *   1. **Origin allowlist** — `APP_BASE_URL` env (e.g. https://problem-solver.app)
- *      is the ONLY accepted Origin. Requests with no Origin or a different
- *      Origin are rejected 403. This blocks the trivial `curl` open-relay.
- *      Note: Origin can be spoofed by a non-browser client, so this is one
- *      layer of defense, not the whole fence — combined with rate limiting
- *      below, the practical exploit cost goes way up.
+ *   1. **Shared-secret gate** — `X-Trigger-Secret` must equal the
+ *      NOTIFICATION_TRIGGER_SECRET env, provisioned on the DB side via
+ *      ALTER DATABASE ... SET app.notification_trigger_secret (same pattern
+ *      as app.rate_limit_ip_salt). Missing env fails closed (500); wrong or
+ *      missing secret is 403. There is no Origin/Referer parsing anywhere —
+ *      a browser caller can't even reach the relay, so the S3.1 open-relay
+ *      shape is gone rather than mitigated.
  *
- *   2. **Dual-axis in-memory LRU rate limit** — capped at:
- *        - 5 emails per recipient address per 10 min
- *        - 30 emails per source IP per 10 min
- *      Bucket is process-local (fine on Vercel — each instance shares a
- *      bucket and instances are reused via Fluid Compute). Across cold-start
- *      churn, a determined attacker still hits the recipient cap because
- *      that key is the email itself.
+ *   2. **Recipient is trigger-supplied** — the trigger already read
+ *      `post_notifications` in SQL (PII-closed table, no anon grants) and
+ *      chose the recipient server-side. The request can't nominate an
+ *      address anymore; this handler only format-checks it.
  *
- *   3. **Length caps** — recipient/post/reply hard-bounded BEFORE the
- *      Resend call. Prevents a 10MB POST from being relayed verbatim.
+ *   3. **Per-recipient LRU kept, per-IP LRU dropped** — every trigger call
+ *      now shares Supabase's pg_net egress IP, so a per-IP bucket would be
+ *      one shared false-positive across all users. Reply INSERTs are already
+ *      throttled server-side upstream; the recipient cap (5 / 10 min) stays
+ *      as the real flood bound.
  *
- *   4. **html-escaper package** instead of hand-rolled escaping — fewer
- *      bugs around named-vs-numeric entities and surrogate pairs.
+ *   4. **Length caps** — unchanged: recipient/post/reply hard-bounded BEFORE
+ *      the Resend call, so even a compromised trigger can't relay 10MB.
  *
- * Why no JWT bearer auth: the caller (`DatabaseService.createReply`) runs
- * for ANONYMOUS users (no login required to post a reply on this app). There
- * is no JWT to forward. The caller IS already gated by Supabase RLS for the
- * actual reply insert; this notification endpoint is best-effort UX. If/when
- * we add auth to replies, add `Authorization: Bearer <jwt>` here and verify
- * via supabase.auth.getUser().
+ *   5. **html-escaper package** instead of hand-rolled escaping — unchanged.
  *
  * ---------------------------------------------------------------------------
  * Env vars
  * ---------------------------------------------------------------------------
+ *   NOTIFICATION_TRIGGER_SECRET — required. Shared with the DB via
+ *                           ALTER DATABASE ... SET
+ *                           app.notification_trigger_secret. If missing the
+ *                           handler returns 500 — fail closed.
  *   RESEND_API_KEY        — required for real send. Free 3k/mo at resend.com.
  *                           If missing, handler returns 200 { sent: false,
  *                           reason: 'no_api_key' } so dev/preview don't break.
- *   APP_BASE_URL          — required for the Origin allowlist (e.g.
- *                           https://problem-solver.app). If missing the
- *                           handler returns 500 — fail closed, do NOT silently
- *                           accept all origins.
+ *   APP_BASE_URL          — optional link target in the email footer.
+ *                           Defaults to https://anoncafe.life.
  *   RESEND_FROM_ADDRESS   — optional From: header. Defaults to Resend's
  *                           shared sandbox onboarding@resend.dev.
  *
@@ -100,11 +98,9 @@ const MAX_POST_ID_LEN = 64;
 // ---------------------------------------------------------------------------
 const WINDOW_MS = 10 * 60 * 1000; // 10 minutes
 const PER_RECIPIENT_LIMIT = 5;
-const PER_IP_LIMIT = 30;
 
 type Bucket = Map<string, number[]>;
 const recipientBucket: Bucket = new Map();
-const ipBucket: Bucket = new Map();
 
 function rateLimitHit(bucket: Bucket, key: string, limit: number, now: number): boolean {
   // Evict global stale entries cheaply (only when the bucket grows past 500).
@@ -129,47 +125,17 @@ function rateLimitHit(bucket: Bucket, key: string, limit: number, now: number): 
 /** Test-only: clear in-memory rate buckets between specs. */
 export function __resetRateLimits(): void {
   recipientBucket.clear();
-  ipBucket.clear();
 }
 
 // ---------------------------------------------------------------------------
-// Origin extraction — Vercel sets x-forwarded-for; req.headers may be a
-// Headers object or a plain dict depending on runtime. Normalize.
+// Header extraction — req.headers may be a Headers object or a plain dict
+// depending on runtime. Normalize.
 // ---------------------------------------------------------------------------
 function header(req: any, name: string): string | undefined {
   const h = req.headers;
   if (!h) return undefined;
   const v = typeof h.get === 'function' ? h.get(name) : h[name] ?? h[name.toLowerCase()];
   return typeof v === 'string' ? v : undefined;
-}
-
-function clientIp(req: any): string {
-  // ON VERCEL there are TWO XFF-shaped headers with OPPOSITE trust semantics:
-  //
-  //   - `x-vercel-forwarded-for` is set by Vercel's edge proxy. Single trusted
-  //     client IP (occasionally a chain if a customer proxy sits in front).
-  //     LEFTMOST = original client. NOT client-controllable.
-  //
-  //   - `x-forwarded-for` is the standard header. Vercel APPENDS the real
-  //     client to the right rather than replacing, so RIGHTMOST = trusted on
-  //     Vercel, LEFTMOST = whatever the attacker put in the request.
-  //
-  // (S3.2 round 1: the old code took leftmost of x-forwarded-for and the per-IP
-  // rate limit was a free bypass — rotate the header per request → fresh
-  // bucket. Round 2: the round-1 fix mistakenly applied "rightmost" to BOTH
-  // headers, which is wrong for x-vercel-forwarded-for if it's ever a chain.)
-  const vercel = header(req, 'x-vercel-forwarded-for');
-  if (vercel) {
-    const first = vercel.split(',')[0];
-    if (first) return first.trim();
-  }
-  const xff = header(req, 'x-forwarded-for');
-  if (xff) {
-    const parts = xff.split(',');
-    const last = parts[parts.length - 1];
-    if (last) return last.trim();
-  }
-  return header(req, 'x-real-ip') || (req.socket?.remoteAddress as string) || 'unknown';
 }
 
 export default async function handler(req: any, res: any) {
@@ -179,20 +145,23 @@ export default async function handler(req: any, res: any) {
   }
 
   // -----------------------------------------------------------------------
-  // 1. Origin allowlist — fail closed if APP_BASE_URL is unset.
+  // 1. Shared-secret gate — fail closed if the env is unset. No Origin
+  //    parsing anywhere: the only accepted caller is the DB trigger.
   // -----------------------------------------------------------------------
-  const appBaseUrl = process.env.APP_BASE_URL;
-  if (!appBaseUrl) {
-    console.error('[email] APP_BASE_URL env not set — refusing to serve.');
+  const triggerSecret = process.env.NOTIFICATION_TRIGGER_SECRET;
+  if (!triggerSecret) {
+    console.error('[email] NOTIFICATION_TRIGGER_SECRET env not set — refusing to serve.');
     res.status(500).json({ sent: false, reason: 'misconfigured' });
     return;
   }
-  const expectedOrigin = appBaseUrl.replace(/\/+$/, '');
-  const origin = header(req, 'origin');
-  if (!origin || origin.replace(/\/+$/, '') !== expectedOrigin) {
-    res.status(403).json({ sent: false, reason: 'forbidden_origin' });
+  if (header(req, 'x-trigger-secret') !== triggerSecret) {
+    res.status(403).json({ sent: false, reason: 'forbidden' });
     return;
   }
+
+  // The view link in the email footer. Not a trust decision anymore — the
+  // only trusted caller authenticated itself with the secret above.
+  const appBaseUrl = (process.env.APP_BASE_URL || 'https://anoncafe.life').replace(/\/+$/, '');
 
   // -----------------------------------------------------------------------
   // 2. Body parse + field validation
@@ -231,17 +200,14 @@ export default async function handler(req: any, res: any) {
   }
 
   // -----------------------------------------------------------------------
-  // 3. Rate limit — recipient first (the spam target), then IP.
+  // 3. Rate limit — recipient first (the spam target). The old per-IP axis
+  //    is gone: trigger calls share Supabase's egress IP, so that bucket
+  //    would be one shared false-positive across all users.
   // -----------------------------------------------------------------------
   const now = Date.now();
   const recipientKey = email.toLowerCase();
-  const ipKey = clientIp(req);
   if (rateLimitHit(recipientBucket, recipientKey, PER_RECIPIENT_LIMIT, now)) {
     res.status(429).json({ sent: false, reason: 'rate_limit_recipient' });
-    return;
-  }
-  if (rateLimitHit(ipBucket, ipKey, PER_IP_LIMIT, now)) {
-    res.status(429).json({ sent: false, reason: 'rate_limit_ip' });
     return;
   }
 
@@ -262,8 +228,8 @@ export default async function handler(req: any, res: any) {
 
   const fromAddress = process.env.RESEND_FROM_ADDRESS || 'onboarding@resend.dev';
   const viewUrl = accessCode
-    ? `${expectedOrigin}/#/past-questions?code=${encodeURIComponent(accessCode)}`
-    : expectedOrigin;
+    ? `${appBaseUrl}/#/past-questions?code=${encodeURIComponent(accessCode)}`
+    : appBaseUrl;
 
   const postSnippet = truncate(postContent || '(your post)', 200);
   const replySnippet = truncate(replyContent, 400);
