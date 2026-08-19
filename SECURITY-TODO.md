@@ -32,6 +32,7 @@
   1. Supabase dashboard → Project Settings → API → "Reset service_role key".
   2. Update `SUPABASE_SERVICE_ROLE_KEY` (no `VITE_` prefix) in Vercel env (Production + Preview only — never Development browser).
   3. Audit `vercel env ls` to confirm no `VITE_*SERVICE*` or `VITE_*SECRET*` keys exist.
+- [x] Provision the reply-notification trigger secret (2026-08-19, wired with the reply → Resend send side). Lives in TWO places that must stay in sync: `notification_config.trigger_secret` on AnonCafe-v2 (single-row table, revoke-closed from anon/authenticated) and `NOTIFICATION_TRIGGER_SECRET` in Vercel env (Production). Rotate by updating BOTH (`UPDATE notification_config SET trigger_secret = '...'` through the Management API + `vercel env rm NOTIFICATION_TRIGGER_SECRET -y` / `vercel env add`, then redeploy). `api/send-reply-notification.ts` refuses every caller without it (403); the trigger skips silently when the table row is missing, so a desync degrades to "no emails", never to an open relay.
 - [x] Audit git history for other leaked literals. Done in S1.1 — see `.harness/git-leak-audit.txt`. Patterns checked: `sb_publishable_`, `bihltxhebindflclsutw`, `sk-`. All current tracked source files are clean.
 - [ ] **HUMAN ACTION REQUIRED:** After rotation, purge any pre-554672d prod deployment whose bundle still contains the old key. Steps:
   1. `vercel ls` → find any deployments older than commit 554672d still aliased to a prod or preview domain.
