@@ -99,6 +99,21 @@ test.describe('Journey: confession submit → access code → lookup', () => {
       await route.continue();
     });
 
+    // get_post_by_access_code is a SECURITY DEFINER RPC (U-X8); route it separately
+    await page.route(/\/rest\/v1\/rpc\/get_post_by_access_code(\?.*)?$/, async (route: Route) => {
+      const body = route.request().postDataJSON() || {};
+      const code = String(body.p_access_code || '').toUpperCase();
+      if (fakePosts[code]) {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({ ...fakePosts[code], replies: [] }),
+        });
+      } else {
+        await route.fulfill({ status: 200, contentType: 'application/json', body: 'null' });
+      }
+    });
+
     // Also handle /rest/v1/replies for the details page
     await page.route(/\/rest\/v1\/replies(\?.*)?$/, async (route) => {
       await route.fulfill({
