@@ -11,6 +11,11 @@ export default defineConfig({
     baseURL: 'http://localhost:3000',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
+    // When PLAYWRIGHT_CHANNEL is set (e.g. "chrome"), drive the system browser
+    // instead of the bundled chromium. The pre-push gate sets this so local e2e
+    // can run without downloading a Playwright browser build; CI does not set it
+    // and uses the official chromium that `playwright install` provides.
+    ...(process.env.PLAYWRIGHT_CHANNEL ? { channel: process.env.PLAYWRIGHT_CHANNEL } : {}),
   },
   projects: [
     {
