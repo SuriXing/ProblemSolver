@@ -34,7 +34,7 @@
   "shareMyPost": "내 게시물 공유",
   "postAnonymously": "익명으로 게시",
   "keepPrivate": "비공개 유지",
-  "notifyViaEmail": "이메일로 알림",
+  "notifyViaEmail": "이메일 알림 (곧 출시)",
   "confessionRequired": "고민 내용을 입력해주세요",
   "validEmailRequired": "유효한 이메일 주소를 입력해주세요",
   "submitReply": "답변 제출",
@@ -175,7 +175,7 @@
   "whatHappensNext": "다음에 무엇이 일어날까요?",
   "communityWillSee": "당신의 게시물이 지원을 위해 커뮤니티에 표시됩니다",
   "replyIn24h": "배려심 있는 커뮤니티 구성원들로부터 24시간 내에 답글을 받을 수 있습니다",
-  "emailNotification": "누군가 답글을 달면 이메일 알림을 받게 됩니다 (활성화된 경우)",
+  "emailNotification": "답글은 ACCESS CODE로 확인하세요 — 이메일 알림이 준비 중입니다.",
   "checkWithCode": "언제든지 액세스 코드를 사용하여 답글과 업데이트를 확인할 수 있습니다",
   "dismiss": "닫기",
   "privacyWarningTitle": "중요한 개인정보 보호 안내",
@@ -295,5 +295,6 @@
   "adminEmailPlaceholder": "이메일",
   "adminPasswordPlaceholder": "비밀번호",
   "adminLoggingIn": "로그인 중...",
-  "adminLoginButton": "로그인"
+  "adminLoginButton": "로그인",
+  "notifyComingSoon": "이메일 알림은 아직 제공되지 않습니다. 액세스 코드로 내 게시물에서 답글을 확인하세요."
 }

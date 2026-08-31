@@ -34,7 +34,7 @@
   "shareMyPost": "Compartir mi publicación",
   "postAnonymously": "Publicar anónimamente",
   "keepPrivate": "Mantener privado",
-  "notifyViaEmail": "Notificar por correo",
+  "notifyViaEmail": "Notificaciones por correo (próximamente)",
   "confessionRequired": "Por favor ingrese su confesión",
   "validEmailRequired": "Por favor ingrese un correo válido",
   "submitReply": "Enviar respuesta",
@@ -179,7 +179,7 @@
   "whatHappensNext": "¿Qué sucede ahora?",
   "communityWillSee": "Tu publicación será visible para la comunidad para recibir apoyo",
   "replyIn24h": "Espera respuestas dentro de 24 horas de miembros solidarios de la comunidad",
-  "emailNotification": "Recibirás notificaciones por correo cuando alguien responda (si está habilitado)",
+  "emailNotification": "Las respuestas se ven aquí con tu código — las notificaciones por correo llegan pronto.",
   "checkWithCode": "Usa tu código de acceso en cualquier momento para revisar respuestas y actualizaciones",
   "dismiss": "Cerrar",
   "privacyWarningTitle": "Aviso Importante de Privacidad",
@@ -294,5 +294,6 @@
   "adminEmailPlaceholder": "Correo electrónico",
   "adminPasswordPlaceholder": "Contraseña",
   "adminLoggingIn": "Iniciando sesión...",
-  "adminLoginButton": "Iniciar sesión"
+  "adminLoginButton": "Iniciar sesión",
+  "notifyComingSoon": "Las notificaciones por correo aún no están disponibles — revisa las respuestas en “Mis publicaciones” con tu código de acceso."
 }

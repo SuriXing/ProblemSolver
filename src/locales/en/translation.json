@@ -19,7 +19,7 @@
   "shareMyPost": "Share My Post",
   "postAnonymously": "Post Anonymously",
   "keepPrivate": "Keep Private",
-  "notifyViaEmail": "Notify me via email",
+  "notifyViaEmail": "Email notifications (coming soon)",
   "confessionRequired": "Please enter your confession",
   "validEmailRequired": "Please enter a valid email address",
   "submitReply": "Submit Reply",
@@ -202,7 +202,7 @@
   "whatHappensNext": "What Happens Next?",
   "communityWillSee": "Your post will be visible to the community for support",
   "replyIn24h": "Expect replies within 24 hours from caring community members",
-  "emailNotification": "You'll receive email notifications when someone responds (if enabled)",
+  "emailNotification": "Replies show here with your access code — email reminders are coming soon",
   "checkWithCode": "Use your access code anytime to check replies and updates",
   "dismiss": "Dismiss",
   "privacyWarningTitle": "Important Privacy Notice",
@@ -294,5 +294,6 @@
   "adminEmailPlaceholder": "Email",
   "adminPasswordPlaceholder": "Password",
   "adminLoggingIn": "Logging in...",
-  "adminLoginButton": "Login"
+  "adminLoginButton": "Login",
+  "notifyComingSoon": "Email reminders aren't available yet — check replies under “My Posts” with your access code instead."
 }

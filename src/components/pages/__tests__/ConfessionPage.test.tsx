@@ -67,24 +67,17 @@ describe('ConfessionPage', () => {
     });
   });
 
-  it('shows email validation error when email notification checked without valid email', async () => {
+  it('shows the email opt-in as disabled (not yet available)', async () => {
     render(<MemoryRouter><NavigationLockProvider><ConfessionPage /></NavigationLockProvider></MemoryRouter>);
 
-    // Type a confession
-    const textarea = screen.getByPlaceholderText('confessionPlaceholder');
-    fireEvent.change(textarea, { target: { value: 'My confession text' } });
-
-    // Enable email notification
-    const emailCheckbox = screen.getByText('notifyViaEmail');
-    fireEvent.click(emailCheckbox);
-
-    // Submit without email
-    const submitBtn = screen.getByText('send');
-    fireEvent.click(submitBtn);
-
-    await waitFor(() => {
-      expect(screen.getByText('Please enter a valid email address')).toBeInTheDocument();
-    });
+    // Email notifications aren't wired up server-side yet, so the opt-in must be
+    // visibly disabled rather than silently collecting an email that would never
+    // notify anyone. No email is required to submit.
+    const checkbox = screen.getByText('notifyViaEmail')
+      .closest('label')
+      ?.querySelector('input[type="checkbox"]') as HTMLInputElement | null;
+    expect(checkbox).not.toBeNull();
+    expect(checkbox!.disabled).toBe(true);
   });
 
   it('navigates to /success on successful submission', async () => {

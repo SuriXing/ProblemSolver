@@ -354,16 +354,11 @@ test.describe('Session verification — all fixes', () => {
 
     const confessionText = 'SESSION VERIFY: need help processing feedback at work';
 
-    // Step 1: submit confession with email opt-in
+    // Step 1: submit the confession (email opt-in is disabled in the UI — it
+    // is not wired to anything server-side yet, so there is no box to check)
     await page.goto('/#/confession');
     await expect(page.locator('textarea').first()).toBeVisible({ timeout: 10000 });
     await page.fill('.confession-textarea', confessionText);
-
-    // Opt into email notifications
-    const emailCheckbox = page.locator('input[type="checkbox"]').first();
-    await emailCheckbox.check();
-    const emailInput = page.locator('input[type="email"]');
-    await emailInput.fill('me@example.com');
 
     await page.screenshot({ path: `${SHOTS}/F8a-confession-form.png` });
 
