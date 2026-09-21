@@ -292,7 +292,7 @@ const AdminDashboardPage: React.FC = () => {
       }}>
         <div style={{ display: 'flex', alignItems: 'center' }}>
           <Title level={3} style={{ margin: 0, color: '#1890ff' }}>
-            Problem Solver 管理后台
+            Anon Cafe 管理后台
           </Title>
         </div>
         
