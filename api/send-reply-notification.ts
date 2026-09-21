@@ -231,32 +231,30 @@ export default async function handler(req: any, res: any) {
     ? `${appBaseUrl}/#/past-questions?code=${encodeURIComponent(accessCode)}`
     : appBaseUrl;
 
-  const postSnippet = truncate(postContent || '(your post)', 200);
+  const postEcho = postContent
+    ? `<p style="margin: 0 0 20px; font-size: 13px; color: #737373;">on your post: ${htmlEscape(
+        truncate(postContent.replace(/\s+/g, ' ').trim(), 90),
+      )}</p>`
+    : '';
   const replySnippet = truncate(replyContent, 400);
 
+  // Text-first notification: no emoji, no colored info cards, no button.
+  // The reply quote is the email; everything else stays out of its way.
   const htmlBody = `
-    <div style="font-family: -apple-system, Segoe UI, Arial, sans-serif; max-width: 560px; margin: 0 auto; padding: 24px; color: #222;">
-      <h2 style="margin: 0 0 16px; color: #4f7cff;">Someone replied to your post 💬</h2>
-      <p style="margin: 0 0 12px; color: #555;">You asked for help, and someone from the community took the time to respond.</p>
-
-      <div style="background: #f8f9fb; border-left: 3px solid #4f7cff; padding: 12px 16px; margin: 16px 0; border-radius: 4px;">
-        <div style="font-size: 12px; color: #888; margin-bottom: 4px;">Your original post:</div>
-        <div style="color: #333; white-space: pre-wrap;">${htmlEscape(postSnippet)}</div>
-      </div>
-
-      <div style="background: #eef2ff; border-left: 3px solid #52c41a; padding: 12px 16px; margin: 16px 0; border-radius: 4px;">
-        <div style="font-size: 12px; color: #52c41a; font-weight: 600; margin-bottom: 4px;">New reply:</div>
-        <div style="color: #222; white-space: pre-wrap;">${htmlEscape(replySnippet)}</div>
-      </div>
-
-      <p style="margin: 24px 0 8px;">
-        <a href="${htmlEscape(viewUrl)}" style="display: inline-block; background: #4f7cff; color: #fff; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-weight: 500;">View the full reply</a>
-      </p>
-      <p style="font-size: 12px; color: #999; margin-top: 24px;">
-        You're receiving this because you opted into email notifications when you submitted your post on Problem Solver.
-      </p>
-    </div>
-  `;
+<div style="font-family: -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 36px 24px; font-size: 15px; line-height: 1.65; color: #1f1f1f;">
+  <p style="margin: 0 0 20px;">Someone replied to your post.</p>
+  ${postEcho}
+  <blockquote style="margin: 0 0 24px; padding: 2px 16px; border-left: 2px solid #d4d4d4; white-space: pre-wrap;">${htmlEscape(
+    replySnippet,
+  )}</blockquote>
+  <p style="margin: 0;">
+    <a href="${htmlEscape(viewUrl)}" style="color: #1f1f1f; text-decoration: underline;">Open the reply</a>
+  </p>
+  <p style="margin: 32px 0 0; padding-top: 14px; border-top: 1px solid #ececec; font-size: 12px; line-height: 1.55; color: #a3a3a3;">
+    You asked for an email when someone replied. One email per reply, nothing else.<br>
+    Anon cafe
+  </p>
+</div>`;
 
   try {
     const response = await fetch('https://api.resend.com/emails', {
@@ -266,7 +264,7 @@ export default async function handler(req: any, res: any) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: `Problem Solver <${fromAddress}>`,
+        from: `Anon cafe <${fromAddress}>`,
         to: [email],
         subject: 'Someone replied to your post',
         html: htmlBody,
