@@ -25,9 +25,20 @@ time, mark, audio, video {
 }
 
 /* HTML5 display-role reset for older browsers */
-article, aside, details, figcaption, figure, 
+article, aside, details, figcaption, figure,
 footer, header, hgroup, menu, nav, section {
   display: block;
+}
+
+/* Form controls never inherit the document font by default — every real
+ * <button> in the header (instruction, language, theme) rendered in the
+ * browser fallback (Arial) beside inherited anchors, which read as the
+ * text being the wrong size. */
+button, input, optgroup, select, textarea {
+  font-family: inherit;
+  font-size: 100%;
+  line-height: inherit;
+  margin: 0;
 }
 
 body {
