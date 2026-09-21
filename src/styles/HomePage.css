@@ -75,9 +75,22 @@
 }
 
 #home-view {
+  /* Fill the space between the fixed header and the footer (flex: 1 inside
+   * .main-content's column). The hero + cards center via the auto margins on
+   * the two children below — NOT via justify-content: center, which splits
+   * overflow across both ends and hides the top behind the fixed header on
+   * short viewports. Auto margins collapse to zero instead, top-anchoring
+   * the group when the content outgrows the viewport. */
+  flex: 1;
+  display: flex;
+  flex-direction: column;
   /* Defect #5: hint compositor for filter+transform+opacity changes. */
   will-change: filter, transform, opacity;
   animation: home-page-enter 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+#home-view > .hero {
+  margin-top: auto;
 }
 
 #home-view.home-page-exit {
@@ -243,7 +256,17 @@
 
 /* Home View */
 #home-view {
-  padding-bottom: var(--space-12);
+  /* Scroll clearance on short viewports only — with justify-content center
+   * a large bottom padding would shift the centered group visually up. */
+  padding-bottom: var(--space-4);
+}
+
+/* Flex auto margins distribute around MARGIN boxes; the cards wrapper's own
+ * fixed bottom margin would otherwise read as extra weight below the group.
+ * (The section's actual last child is a classless render artifact, so the
+ * wrapper is targeted by class, not by position.) */
+#home-view > .options-container {
+  margin-bottom: auto;
 }
 
 /* Add these new styles at the end of the file */
