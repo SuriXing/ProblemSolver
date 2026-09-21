@@ -51,5 +51,6 @@ coverage/
 playwright-report/
 test-results/
 .vercel
+.vercel-home/
 .harness.archive-*/
 .harness.old-2026-04/
