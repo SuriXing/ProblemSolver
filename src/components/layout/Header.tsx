@@ -13,7 +13,9 @@ const Header: React.FC = () => {
   const { changeLanguage } = useTranslationContext();
   const [showInstruction, setShowInstruction] = useState(false);
   const [pinned, setPinned] = useState(false);
+  const [langOpen, setLangOpen] = useState(false);
   const instructionRef = useRef<HTMLDivElement>(null);
+  const languageRef = useRef<HTMLDivElement>(null);
 
   const languages = [
     { code: 'zh-CN' as SupportedLanguages, name: '中文' },
@@ -25,7 +27,20 @@ const Header: React.FC = () => {
 
   const handleLanguageChange = async (languageCode: SupportedLanguages) => {
     await changeLanguage(languageCode);
+    setLangOpen(false);
   };
+  // The dropdown is click-toggled (touch devices have no hover); this
+  // dismisses it when a click lands anywhere outside the selector.
+  useEffect(() => {
+    if (!langOpen) return;
+    const handleClick = (e: MouseEvent) => {
+      if (languageRef.current && !languageRef.current.contains(e.target as Node)) {
+        setLangOpen(false);
+      }
+    };
+    document.addEventListener('click', handleClick);
+    return () => document.removeEventListener('click', handleClick);
+  }, [langOpen]);
   const siteNameLabel = withLocalSuffix(t('siteName'));
 
   // Close the instruction box when clicking outside if pinned
@@ -172,11 +187,17 @@ const Header: React.FC = () => {
               )}
             </div>
           )}
-          <div className="language-selector">
-            <div className="language-button">
+          <div className={`language-selector ${langOpen ? 'open' : ''}`} ref={languageRef}>
+            <button
+              type="button"
+              className="language-button"
+              aria-haspopup="true"
+              aria-expanded={langOpen}
+              onClick={() => setLangOpen(v => !v)}
+            >
               <FontAwesomeIcon icon={faGlobe} />
               <span>{languages.find(lang => lang.code === i18n.language)?.name || '中文'}</span>
-            </div>
+            </button>
             <div className="language-dropdown">
               {languages.map(language => (
                 <div

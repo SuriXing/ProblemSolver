@@ -223,53 +223,6 @@ footer {
   display: inline-block;
 }
 
-.language-button {
-  background-color: rgba(255, 255, 255, 0.1);
-  border-radius: 20px;
-  padding: 6px 12px;
-  color: var(--light-gray);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  transition: background-color 0.2s;
-}
-
-.language-button i {
-  margin-right: 5px;
-}
-
-.language-button:hover {
-  background-color: rgba(0, 0, 0, 0.05);
-}
-
-.language-dropdown {
-  display: none;
-  position: absolute;
-  top: 100%;
-  right: 0;
-  margin-top: 5px;
-  background-color: var(--bg-surface);
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  z-index: 100;
-  min-width: 150px;
-  overflow: hidden;
-}
-
-.language-dropdown.show {
-  display: block;
-}
-
-.language-option {
-  padding: 10px 15px;
-  color: var(--text-primary);
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.language-option:hover {
-  background-color: #f3f4f6;
-}
 
 .language-option.active {
   background-color: #f3f4f6;

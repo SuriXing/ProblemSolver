@@ -113,6 +113,7 @@
   padding: 0.5rem 1rem;
   border-radius: 4px;
   cursor: pointer;
+  font-family: inherit;
   font-size: 0.9rem;
   font-weight: 400;
   color: var(--text-secondary);
@@ -148,7 +149,18 @@
   transition: all 0.2s;
 }
 
-.language-selector:hover .language-dropdown {
+/* Hover is a desktop enhancement only — touch devices have no hover, and a
+ * bare :hover rule would trap iOS sticky-hover and keep the menu open.
+ * Everywhere else, the click toggle (.open) is the interaction. */
+@media (hover: hover) {
+  .language-selector:hover .language-dropdown {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+}
+
+.language-selector.open .language-dropdown {
   opacity: 1;
   visibility: visible;
   transform: translateY(0);
