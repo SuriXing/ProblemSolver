@@ -88,7 +88,7 @@ const LandingPage: React.FC = () => {
             <div className="landing-icon-box icon-ps">
               <ProblemSolverIcon />
             </div>
-            <div className="landing-card-name">Problem Solver</div>
+            <div className="landing-card-name">Anon Cafe</div>
             <div className="landing-card-desc">Drop your worry in</div>
             <span className="landing-enter-btn btn-ps">Explore →</span>
           </div>

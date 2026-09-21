@@ -287,7 +287,7 @@
   "noSavedCodes": "保存されたコードはありません",
   "orEnterManually": "またはコードを手動で入力",
   "adminTitle": "管理者ログイン",
-  "adminSubtitle": "Problem Solver 管理システム",
+  "adminSubtitle": "Anon Cafe 管理システム",
   "adminEmailRequired": "メールアドレスを入力してください",
   "adminEmailInvalid": "メールアドレスの形式が正しくありません",
   "adminPasswordRequired": "パスワードを入力してください",

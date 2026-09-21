@@ -32,19 +32,19 @@ describe('LandingPage', () => {
     expect(screen.getByText(/A growing collection/)).toBeInTheDocument();
   });
 
-  it('renders Problem Solver and Mentor Table cards', () => {
+  it('renders Anon Cafe and Mentor Table cards', () => {
     render(<MemoryRouter><LandingPage /></MemoryRouter>);
     act(() => { vi.advanceTimersByTime(1200); });
 
-    expect(screen.getByText('Problem Solver')).toBeInTheDocument();
+    expect(screen.getByText('Anon Cafe')).toBeInTheDocument();
     expect(screen.getByText('Mentor Table')).toBeInTheDocument();
   });
 
-  it('navigates to /problem-solver on Problem Solver card click', () => {
+  it('navigates to /problem-solver on Anon Cafe card click', () => {
     render(<MemoryRouter><LandingPage /></MemoryRouter>);
     act(() => { vi.advanceTimersByTime(1200); });
 
-    fireEvent.click(screen.getByText('Problem Solver'));
+    fireEvent.click(screen.getByText('Anon Cafe'));
     expect(mockNavigate).toHaveBeenCalledWith('/problem-solver');
   });
 

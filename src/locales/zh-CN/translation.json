@@ -287,7 +287,7 @@
   "noSavedCodes": "还没有保存的访问码",
   "orEnterManually": "或手动输入访问码",
   "adminTitle": "管理员登录",
-  "adminSubtitle": "Problem Solver 管理系统",
+  "adminSubtitle": "Anon Cafe 管理系统",
   "adminEmailRequired": "请输入邮箱",
   "adminEmailInvalid": "邮箱格式不正确",
   "adminPasswordRequired": "请输入密码",
