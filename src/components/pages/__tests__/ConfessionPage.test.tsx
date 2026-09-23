@@ -107,6 +107,7 @@ describe('ConfessionPage', () => {
     expect(mockOptIn).toHaveBeenCalledWith({
       accessCode: 'XYZ789',
       email: 'me@example.com',
+      locale: 'en',
     });
   });
 

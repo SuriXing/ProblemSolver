@@ -237,15 +237,17 @@ export const DatabaseService = {
    * send happens server-side (future change). This stores the address in the
    * PII-closed post_notifications table via the opt_in_email_notification RPC
    * (the RPC rate-limits per IP and validates the email, so we don't open a
-   * spam / PII-enumeration path).
+   * spam / PII-enumeration path). The optional locale records the browser
+   * language the owner opted in with, so their reply emails render in it.
    *
    * Returns true when the consent was recorded (or already existed).
    */
-  async optInEmailNotifications(options: { accessCode: string; email: string }): Promise<boolean> {
+  async optInEmailNotifications(options: { accessCode: string; email: string; locale?: string }): Promise<boolean> {
     try {
       const { error } = await supabase.rpc('opt_in_email_notification', {
         p_access_code: options.accessCode,
         p_email: options.email,
+        p_locale: options.locale,
       });
       if (error) {
         console.error('[db] optInEmailNotifications RPC error:', error.message, error.code);
