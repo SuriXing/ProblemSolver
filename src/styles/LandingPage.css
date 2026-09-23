@@ -1,11 +1,14 @@
 /* LandingPage.css — ReactBits-inspired product hub */
 
 .landing-page {
-  min-height: 100vh;
+  /* Fill the space between the fixed header and the footer (flex: 1 inside
+   * .main-content's column). The content centers via auto margins on
+   * .landing-content below — NOT justify-content: center, which splits
+   * overflow across both ends on short viewports. */
+  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
   padding: 32px 24px;
   position: relative;
   overflow: hidden;
@@ -78,6 +81,10 @@
 .landing-content {
   position: relative;
   z-index: 1;
+  /* Auto margins center the block when there is spare space and collapse to
+   * top-anchor when the content outgrows the viewport. */
+  margin-top: auto;
+  margin-bottom: auto;
   display: flex;
   flex-direction: column;
   align-items: center;
