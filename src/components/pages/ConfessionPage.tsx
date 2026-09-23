@@ -13,7 +13,7 @@ import CrisisModal from '../shared/CrisisModal';
 import { useCrisisDetection } from '../../hooks/useCrisisDetection';
 
 const ConfessionPage: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { navigateWithExit } = useExitNavigate();
   const [confession, setConfession] = useState('');
@@ -135,7 +135,7 @@ const ConfessionPage: React.FC = () => {
       // rate-limited + validates the address server-side, so a bad row can't
       // land here.
       if (notifyViaEmail && email.trim()) {
-        DatabaseService.optInEmailNotifications({ accessCode, email: email.trim() }).catch(
+        DatabaseService.optInEmailNotifications({ accessCode, email: email.trim(), locale: i18n.language }).catch(
           (optErr) => console.error('[db] email opt-in failed (non-blocking):', optErr)
         );
       }

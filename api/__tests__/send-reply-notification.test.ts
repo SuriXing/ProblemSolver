@@ -269,6 +269,50 @@ describe('real send path', () => {
     expect(sentBody.html).toContain('https://anoncafe.life/#/past-questions?code=AB12');
   });
 
+  it('renders subject and copy in the locale the trigger supplies', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ id: 'msg-zh' }),
+      text: async () => '',
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    const req = makeReq({ body: { email: 'user@example.com', replyContent: 'ok', postContent: 'help me', accessCode: 'AB12CD34', locale: 'zh-CN' } });
+    const res = makeRes();
+    await handler(req, res);
+
+    expect(res.statusCode).toBe(200);
+    const [, init] = fetchMock.mock.calls[0]!;
+    const sentBody = JSON.parse(init.body);
+    expect(sentBody.subject).toBe('有人回复了你的帖子');
+    expect(sentBody.html).toContain('有人回复了你的帖子。');
+    expect(sentBody.html).toContain('你的帖子：');
+    expect(sentBody.html).toContain('查看回复');
+    // The brand line is locale-independent
+    expect(sentBody.html).toContain('Anon Cafe');
+  });
+
+  it('falls back to en copy when the locale is unknown or malformed', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ id: 'msg-en' }),
+      text: async () => '',
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    const req = makeReq({ body: { email: 'user@example.com', replyContent: 'ok', locale: 'not-a-locale' } });
+    const res = makeRes();
+    await handler(req, res);
+
+    expect(res.statusCode).toBe(200);
+    const [, init] = fetchMock.mock.calls[0]!;
+    const sentBody = JSON.parse(init.body);
+    expect(sentBody.subject).toBe('Someone replied to your post');
+    expect(sentBody.html).toContain('Someone replied to your post.');
+  });
+
   it('defaults the footer link to anoncafe.life when APP_BASE_URL is unset', async () => {
     delete process.env.APP_BASE_URL;
     const fetchMock = vi.fn().mockResolvedValue({
