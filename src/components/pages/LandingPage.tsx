@@ -31,6 +31,10 @@ const LandingPage: React.FC = () => {
     return (saved === 'light' || saved === 'dark') ? saved : 'dark';
   });
   const [step, setStep] = useState(0);
+  // Mentor Table is a separate deployment; its address comes from the env so
+  // the live landing never points visitors at a dev localhost. Until the var
+  // is set, the card is simply not rendered.
+  const mentorTableUrl = import.meta.env.VITE_MENTOR_TABLE_URL as string | undefined;
 
   useEffect(() => {
     document.title = "Suri's Lab";
@@ -93,20 +97,22 @@ const LandingPage: React.FC = () => {
             <span className="landing-enter-btn btn-ps">Explore →</span>
           </div>
 
-          <div
-            className={`landing-card card-mt ${step >= 5 ? 'visible' : ''}`}
-            onClick={() => window.open('http://localhost:9999/', '_blank')}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => e.key === 'Enter' && window.open('http://localhost:9999/', '_blank')}
-          >
-            <div className="landing-icon-box icon-mt">
-              <MentorTableIcon />
+          {mentorTableUrl && (
+            <div
+              className={`landing-card card-mt ${step >= 5 ? 'visible' : ''}`}
+              onClick={() => window.open(mentorTableUrl, '_blank')}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => e.key === 'Enter' && window.open(mentorTableUrl, '_blank')}
+            >
+              <div className="landing-icon-box icon-mt">
+                <MentorTableIcon />
+              </div>
+              <div className="landing-card-name">Mentor Table</div>
+              <div className="landing-card-desc">Chat with great minds</div>
+              <span className="landing-enter-btn btn-mt">Explore →</span>
             </div>
-            <div className="landing-card-name">Mentor Table</div>
-            <div className="landing-card-desc">Chat with great minds</div>
-            <span className="landing-enter-btn btn-mt">Explore →</span>
-          </div>
+          )}
         </div>
       </div>
 
