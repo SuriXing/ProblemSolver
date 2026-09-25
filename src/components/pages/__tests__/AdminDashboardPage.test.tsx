@@ -107,7 +107,7 @@ describe('AdminDashboardPage', () => {
   it('renders dashboard title', async () => {
     render(<MemoryRouter><AdminDashboardPage /></MemoryRouter>);
     await waitFor(() => {
-      expect(screen.getByText('Problem Solver 管理后台')).toBeInTheDocument();
+      expect(screen.getByText('Anon Cafe 管理后台')).toBeInTheDocument();
     });
   });
 

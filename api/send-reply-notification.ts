@@ -252,7 +252,7 @@ export default async function handler(req: any, res: any) {
   </p>
   <p style="margin: 32px 0 0; padding-top: 14px; border-top: 1px solid #ececec; font-size: 12px; line-height: 1.55; color: #a3a3a3;">
     You asked for an email when someone replied. One email per reply, nothing else.<br>
-    Anon cafe
+    Anon Cafe
   </p>
 </div>`;
 
@@ -264,7 +264,7 @@ export default async function handler(req: any, res: any) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: `Anon cafe <${fromAddress}>`,
+        from: `Anon Cafe <${fromAddress}>`,
         to: [email],
         subject: 'Someone replied to your post',
         html: htmlBody,

@@ -260,7 +260,7 @@ describe('real send path', () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
     const [, init] = fetchMock.mock.calls[0]!;
     const sentBody = JSON.parse(init.body);
-    expect(sentBody.from).toBe('Anon cafe <no-reply@mail.example.me>');
+    expect(sentBody.from).toBe('Anon Cafe <no-reply@mail.example.me>');
     expect(sentBody.to).toEqual(['user@example.com']);
     expect(sentBody.html).not.toContain('<script>');
     expect(sentBody.html).toContain('&lt;script&gt;');
