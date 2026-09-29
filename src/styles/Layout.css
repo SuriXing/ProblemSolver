@@ -45,7 +45,14 @@
 
 .main-content {
   flex: 1;
-  padding-top: 64px; /* 考虑 header 的高度 */
+  /* Flex column so pages that opt in (the homepage) can fill the leftover
+   * space between the fixed header and the footer with flex: 1; pages that
+   * don't opt in keep their natural stacked heights. */
+  display: flex;
+  flex-direction: column;
+  /* Clear the fixed header — measured 74px tall (1rem padding x2 + the nav
+   * row); 64 left the top of every page hiding 10px behind the blur. */
+  padding-top: 80px;
   transition: opacity 0.3s ease-out;
 }
 
@@ -81,7 +88,9 @@ html[data-theme-mode="light"] .footer,
 /* 响应式设计 */
 @media (max-width: 768px) {
   .main-content {
-    padding-top: 56px;
+    /* The compact mobile header still measures ~76px tall; 56 buried the
+     * top of every page 20px behind the blur. */
+    padding-top: 84px;
     /* U-X2: leave room at the bottom so the fixed Notebook (bottom-left)
        and ThemePicker (bottom-right) icons don't visually overlap content
        at the very bottom of the page (e.g. confession textarea). */
