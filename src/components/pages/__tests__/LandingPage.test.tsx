@@ -20,6 +20,7 @@ describe('LandingPage', () => {
 
   afterEach(() => {
     vi.useRealTimers();
+    vi.unstubAllEnvs();
   });
 
   it('renders brand pill, title, and tagline after animation', () => {
@@ -32,7 +33,16 @@ describe('LandingPage', () => {
     expect(screen.getByText(/A growing collection/)).toBeInTheDocument();
   });
 
-  it('renders Anon Cafe and Mentor Table cards', () => {
+  it('renders Anon Cafe card and hides Mentor Table while no URL is configured', () => {
+    render(<MemoryRouter><LandingPage /></MemoryRouter>);
+    act(() => { vi.advanceTimersByTime(1200); });
+
+    expect(screen.getByText('Anon Cafe')).toBeInTheDocument();
+    expect(screen.queryByText('Mentor Table')).not.toBeInTheDocument();
+  });
+
+  it('renders Mentor Table card when a URL is configured', () => {
+    vi.stubEnv('VITE_MENTOR_TABLE_URL', 'https://mentor.example');
     render(<MemoryRouter><LandingPage /></MemoryRouter>);
     act(() => { vi.advanceTimersByTime(1200); });
 
@@ -48,13 +58,14 @@ describe('LandingPage', () => {
     expect(mockNavigate).toHaveBeenCalledWith('/problem-solver');
   });
 
-  it('opens Mentor Table external URL in new tab on card click', () => {
+  it('opens configured Mentor Table external URL in new tab on card click', () => {
+    vi.stubEnv('VITE_MENTOR_TABLE_URL', 'https://mentor.example');
     const openSpy = vi.spyOn(window, 'open').mockImplementation(() => null);
     render(<MemoryRouter><LandingPage /></MemoryRouter>);
     act(() => { vi.advanceTimersByTime(1200); });
 
     fireEvent.click(screen.getByText('Mentor Table'));
-    expect(openSpy).toHaveBeenCalledWith('http://localhost:9999/', '_blank');
+    expect(openSpy).toHaveBeenCalledWith('https://mentor.example', '_blank');
     openSpy.mockRestore();
   });
 
