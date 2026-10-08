@@ -70,7 +70,69 @@ type ReqBody = {
   accessCode?: string;
   postContent?: string;
   replyContent?: string;
+  locale?: string;
 };
+
+// ---------------------------------------------------------------------------
+// Email copy per locale. The opt-in records the owner's browser language
+// (post_notifications.locale, validated server-side); the trigger forwards
+// it and this map renders the subject + body in that language. Unknown or
+// missing locale falls back to en — the only locale the DB guarantees.
+// ---------------------------------------------------------------------------
+type EmailCopy = {
+  subject: string;
+  intro: string;
+  echo: string;
+  link: string;
+  footer: string;
+};
+
+const EN_COPY: EmailCopy = {
+  subject: 'Someone replied to your post',
+  intro: 'Someone replied to your post.',
+  echo: 'on your post: ',
+  link: 'Open the reply',
+  footer: 'You asked for an email when someone replied. One email per reply, nothing else.',
+};
+
+const EMAIL_COPY: Record<string, EmailCopy> = {
+  en: EN_COPY,
+  'zh-CN': {
+    subject: '有人回复了你的帖子',
+    intro: '有人回复了你的帖子。',
+    echo: '你的帖子：',
+    link: '查看回复',
+    footer: '你选择了有人回复时收到邮件。每条回复一封，没有别的。',
+  },
+  ja: {
+    subject: '投稿に返信がありました',
+    intro: '投稿に返信がありました。',
+    echo: 'あなたの投稿：',
+    link: '返信を開く',
+    footer: '返信があったときにメールを受け取るよう設定しました。返信ごとに1通、それだけです。',
+  },
+  ko: {
+    subject: '게시물에 답글이 달렸습니다',
+    intro: '게시물에 답글이 달렸습니다.',
+    echo: '내 게시물: ',
+    link: '답글 열기',
+    footer: '답글이 달리면 이메일을 받기로 설정했습니다. 답글당 한 통뿐입니다.',
+  },
+  es: {
+    subject: 'Alguien respondió a tu publicación',
+    intro: 'Alguien respondió a tu publicación.',
+    echo: 'tu publicación: ',
+    link: 'Abrir la respuesta',
+    footer: 'Pediste un email cuando alguien respondiera. Un email por respuesta, nada más.',
+  },
+};
+
+// The locale is a display hint from our own trigger — never a trust decision
+// and never worth an email. Anything malformed absorbs to the en copy.
+function resolveCopy(raw: unknown): EmailCopy {
+  const locale = typeof raw === 'string' && /^[a-zA-Z]{2}(-[a-zA-Z]{2,4})?$/.test(raw) ? raw : 'en';
+  return EMAIL_COPY[locale] ?? EN_COPY;
+}
 
 // ---------------------------------------------------------------------------
 // Length caps — applied BEFORE we call Resend. The point isn't to validate
@@ -168,7 +230,7 @@ export default async function handler(req: any, res: any) {
   // -----------------------------------------------------------------------
   const body: ReqBody =
     typeof req.body === 'string' ? safeParseJson(req.body) : req.body || {};
-  const { email, postId, accessCode, postContent, replyContent } = body;
+  const { email, postId, accessCode, postContent, replyContent, locale } = body;
 
   if (!email || !replyContent) {
     res.status(400).json({ error: 'Missing required fields: email, replyContent' });
@@ -198,6 +260,8 @@ export default async function handler(req: any, res: any) {
     res.status(400).json({ error: 'postId invalid' });
     return;
   }
+  // locale is never rejected: resolveCopy() absorbs anything malformed to the
+  // en copy, so a display hint can't cost the email itself.
 
   // -----------------------------------------------------------------------
   // 3. Rate limit — recipient first (the spam target). The old per-IP axis
@@ -230,11 +294,12 @@ export default async function handler(req: any, res: any) {
   const viewUrl = accessCode
     ? `${appBaseUrl}/#/past-questions?code=${encodeURIComponent(accessCode)}`
     : appBaseUrl;
+  const copy = resolveCopy(locale);
 
   const postEcho = postContent
-    ? `<p style="margin: 0 0 20px; font-size: 13px; color: #737373;">on your post: ${htmlEscape(
-        truncate(postContent.replace(/\s+/g, ' ').trim(), 90),
-      )}</p>`
+    ? `<p style="margin: 0 0 20px; font-size: 13px; color: #737373;">${htmlEscape(
+        copy.echo,
+      )}${htmlEscape(truncate(postContent.replace(/\s+/g, ' ').trim(), 90))}</p>`
     : '';
   const replySnippet = truncate(replyContent, 400);
 
@@ -242,16 +307,16 @@ export default async function handler(req: any, res: any) {
   // The reply quote is the email; everything else stays out of its way.
   const htmlBody = `
 <div style="font-family: -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 36px 24px; font-size: 15px; line-height: 1.65; color: #1f1f1f;">
-  <p style="margin: 0 0 20px;">Someone replied to your post.</p>
+  <p style="margin: 0 0 20px;">${htmlEscape(copy.intro)}</p>
   ${postEcho}
   <blockquote style="margin: 0 0 24px; padding: 2px 16px; border-left: 2px solid #d4d4d4; white-space: pre-wrap;">${htmlEscape(
     replySnippet,
   )}</blockquote>
   <p style="margin: 0;">
-    <a href="${htmlEscape(viewUrl)}" style="color: #1f1f1f; text-decoration: underline;">Open the reply</a>
+    <a href="${htmlEscape(viewUrl)}" style="color: #1f1f1f; text-decoration: underline;">${htmlEscape(copy.link)}</a>
   </p>
   <p style="margin: 32px 0 0; padding-top: 14px; border-top: 1px solid #ececec; font-size: 12px; line-height: 1.55; color: #a3a3a3;">
-    You asked for an email when someone replied. One email per reply, nothing else.<br>
+    ${htmlEscape(copy.footer)}<br>
     Anon Cafe
   </p>
 </div>`;
@@ -266,7 +331,7 @@ export default async function handler(req: any, res: any) {
       body: JSON.stringify({
         from: `Anon Cafe <${fromAddress}>`,
         to: [email],
-        subject: 'Someone replied to your post',
+        subject: copy.subject,
         html: htmlBody,
       }),
     });
