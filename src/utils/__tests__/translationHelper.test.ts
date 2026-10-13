@@ -14,10 +14,10 @@ describe('translationHelper', () => {
       expect(getCurrentLanguage()).toBe('ja');
     });
 
-    it('returns zh-CN for Chinese browser language', () => {
+    it('returns en for Chinese browser language (English is the default)', () => {
       localStorage.removeItem('language');
       Object.defineProperty(navigator, 'language', { value: 'zh-TW', configurable: true });
-      expect(getCurrentLanguage()).toBe('zh-CN');
+      expect(getCurrentLanguage()).toBe('en');
     });
 
     it('returns en for English browser language', () => {
