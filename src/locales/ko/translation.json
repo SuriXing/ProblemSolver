@@ -78,7 +78,7 @@
   "pleaseEnterAccessCode": "액세스 코드를 입력해주세요",
   "accessCodeCopied": "액세스 코드가 복사되었습니다",
   "copyFailed": "복사 실패",
-  "footerText": "© 2025 고민 해결사 - 모든 권리 보유",
+  "footerText": "© 2025 걱정 해결 잡화점 - 모든 권리 보유",
   "views": "조회수",
   "helpPageTitle": "도움 커뮤니티",
   "helpPageDescription": "커뮤니티의 질문을 보거나 자신의 질문을 올려보세요.",
@@ -133,8 +133,7 @@
     "social": "사회",
     "other": "기타",
     "academic": "학교",
-    "school": "성적",
-    "career": "진로"
+    "school": "성적"
   },
   "confessionPlaceholderHint": "당신의 이야기가 여기에 표시됩니다.",
   "viewMyPost": "내 게시물 보기",
