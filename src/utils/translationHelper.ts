@@ -51,11 +51,11 @@ export function getCurrentLanguage(): SupportedLanguages {
   }
 
   // Try to detect from browser
+  // English is the product default: a zh browser falls through to the map
+  // below and lands on 'en', like any unsupported language. Chinese is one
+  // click away in the switcher — only a saved choice wins by default.
   const browserLang = navigator.language;
-  if (browserLang.startsWith('zh')) {
-    return 'zh-CN';
-  }
-  
+
   // Map browser language codes to our supported languages
   const languageMap: Record<string, SupportedLanguages> = {
     'ja': 'ja',
