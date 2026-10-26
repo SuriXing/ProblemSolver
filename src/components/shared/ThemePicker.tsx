@@ -1,7 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useTheme, THEMES, ThemeId, ThemeMode } from '../../hooks/useTheme';
 
 const ThemePicker: React.FC = () => {
+  const { t } = useTranslation();
   const { themeId, setTheme, mode, setMode } = useTheme();
   const [open, setOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 576);
@@ -92,7 +94,7 @@ const ThemePicker: React.FC = () => {
                     transition: 'all 0.15s ease',
                   }}
                 >
-                  {m === 'light' ? '☀️ Light' : '🌙 Dark'}
+                  {m === 'light' ? `☀️ ${t('theme.light')}` : `🌙 ${t('theme.dark')}`}
                 </button>
               );
             })}
@@ -106,7 +108,7 @@ const ThemePicker: React.FC = () => {
               paddingLeft: 4,
             }}
           >
-            主题色 · Theme
+            {t('theme.sectionTitle')}
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             {themeList.map((theme) => {
@@ -154,7 +156,7 @@ const ThemePicker: React.FC = () => {
                       flexShrink: 0,
                     }}
                   />
-                  <span>{theme.name}</span>
+                  <span>{t(`theme.${theme.id}`)}</span>
                 </button>
               );
             })}
@@ -184,8 +186,8 @@ const ThemePicker: React.FC = () => {
         onMouseLeave={(e) => {
           e.currentTarget.style.transform = 'scale(1)';
         }}
-        title="Change theme"
-        aria-label="Change theme color"
+        title={t('theme.pickerTitle')}
+        aria-label={t('theme.pickerHint')}
         aria-expanded={open}
       >
         <span role="img" aria-hidden="true">🎨</span>

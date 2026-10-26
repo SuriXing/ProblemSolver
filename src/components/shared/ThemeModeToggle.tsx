@@ -1,11 +1,13 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../hooks/useTheme';
 
 const ThemeModeToggle: React.FC = () => {
+  const { t } = useTranslation();
   const { mode, setMode } = useTheme();
   const isDark = mode === 'dark';
   const nextMode = isDark ? 'light' : 'dark';
-  const label = isDark ? 'Switch to light mode' : 'Switch to dark mode';
+  const label = isDark ? t('theme.modeLight') : t('theme.modeDark');
 
   return (
     <button

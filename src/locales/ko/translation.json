@@ -295,5 +295,17 @@
   "adminPasswordPlaceholder": "비밀번호",
   "adminLoggingIn": "로그인 중...",
   "adminLoginButton": "로그인",
-  "notifyComingSoon": "이메일 알림은 아직 제공되지 않습니다. 액세스 코드로 내 게시물에서 답글을 확인하세요."
+  "notifyComingSoon": "이메일 알림은 아직 제공되지 않습니다. 액세스 코드로 내 게시물에서 답글을 확인하세요.",
+  "theme.sectionTitle": "테마 색상",
+  "theme.light": "라이트",
+  "theme.dark": "다크",
+  "theme.blue": "딥 블루",
+  "theme.purple": "딥 퍼플",
+  "theme.teal": "딥 틸",
+  "theme.sunset": "석양",
+  "theme.forest": "딥 포레스트",
+  "theme.pickerTitle": "테마 변경",
+  "theme.pickerHint": "테마 색상 변경",
+  "theme.modeLight": "라이트 모드로 전환",
+  "theme.modeDark": "다크 모드로 전환"
 }
