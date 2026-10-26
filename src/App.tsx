@@ -11,6 +11,7 @@ import './styles/transitions.css';
 // to get downloaded — first-paint cost is just App + router + i18n shell.
 // LoadingPage is eager because it's the Suspense fallback itself.
 import LoadingPage from './components/pages/LoadingPage';
+import { ToastContainer } from './components/ui/Toast';
 import ProtectedRoute from './components/ProtectedRoute';
 import ErrorBoundary from './components/ErrorBoundary';
 
@@ -115,6 +116,7 @@ function App() {
             </>
           )}
           </NavigationLockProvider>
+          <ToastContainer />
         </HashRouter>
       </Suspense>
     </TranslationProvider>

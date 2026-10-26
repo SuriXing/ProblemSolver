@@ -140,6 +140,61 @@
   color: var(--gray-800);
 }
 
+/* Native reply form (replaced the antd Form/Input/Button — see ReplyForm). */
+.reply-form-native {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.reply-textarea {
+  width: 100%;
+  min-height: 110px;
+  padding: 12px 14px;
+  border: 1px solid var(--gray-300, #d1d5db);
+  border-radius: 8px;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  font-family: inherit;
+  color: var(--gray-900, #111827);
+  background: var(--surface, #ffffff);
+  resize: vertical;
+}
+
+.reply-textarea:focus {
+  outline: 2px solid var(--primary, #6366f1);
+  outline-offset: 1px;
+}
+
+.reply-form-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.reply-char-count {
+  font-size: 0.8rem;
+  color: var(--gray-500, #6b7280);
+}
+
+.section-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 26px 0 16px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--gray-800, #1f2937);
+}
+
+.section-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--gray-200, #e5e7eb);
+}
+
 .loading-message, .error-message {
   text-align: center;
   padding: 50px 0;
