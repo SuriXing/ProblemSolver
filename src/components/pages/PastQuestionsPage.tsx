@@ -3,11 +3,11 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useTypeSafeTranslation } from '../../utils/translationHelper';
 import { useExitNavigate } from '../../context/NavigationLockContext';
 import Layout from '../layout/Layout';
+import { showToast } from '../ui/toastEmitter';
 import DebugMenu from '../DebugMenu';
 import { DatabaseService } from '../../services/database.service';
-import { Button, Card, Input } from 'antd';
+
 import { Post } from '../../types/database.types';
-import { message } from 'antd';
 import ConfessionPlaceholderSVG from '../../assets/placeholder_confession.svg';
 import ErrorPlaceholderSVG from '../../assets/placeholder_error.svg';
 import AccessCodeNotebook from './AccessCodeNotebook';
@@ -119,9 +119,9 @@ const PastQuestionsPage: React.FC<PastQuestionsPageProps> = ({ showDebug, debugP
     if (!fetchedPost?.access_code) return;
     const success = await DatabaseService.updatePostStatusByAccessCode(fetchedPost.access_code, 'solved');
     if (success) {
-      message.success(t('problemMarkedSolved'));
+      showToast(t('problemMarkedSolved'), 'success');
     } else {
-      message.error(t('errorOccurred'));
+      showToast(t('errorOccurred'), 'error');
     }
     setTimeout(() => {
       navigate('/');
@@ -132,9 +132,9 @@ const PastQuestionsPage: React.FC<PastQuestionsPageProps> = ({ showDebug, debugP
     if (!fetchedPost?.access_code) return;
     const success = await DatabaseService.updatePostStatusByAccessCode(fetchedPost.access_code, 'open');
     if (success) {
-      message.info(t('problemMarkedUnsolved'));
+      showToast(t('problemMarkedUnsolved'), 'info');
     } else {
-      message.error(t('errorOccurred'));
+      showToast(t('errorOccurred'), 'error');
     }
     setTimeout(() => {
       navigate('/');
@@ -196,13 +196,14 @@ const PastQuestionsPage: React.FC<PastQuestionsPageProps> = ({ showDebug, debugP
         )}
         <form onSubmit={handleAccessCodeSubmit} className="accessCodeForm" style={{ marginBottom: 32, display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', maxWidth: 400 }}>
           <label htmlFor="access-code-input" style={{ fontWeight: 500, textAlign: 'center', marginBottom: 8 }}>{t('enterAccessCode')}</label>
-          <Input
+          <input
             id="access-code-input"
             className="accessCodeInput"
+            type="text"
             value={accessCode}
             onChange={e => setAccessCode(e.target.value.toUpperCase())}
             placeholder={t('enterAccessCode')}
-            style={{ marginBottom: 16, maxWidth: 300, textAlign: 'center', textTransform: 'uppercase' }}
+            style={{ marginBottom: 16, maxWidth: 300, width: '100%', padding: '8px 12px', border: '1px solid var(--lighter-gray, #d1d5db)', borderRadius: 6, textAlign: 'center', textTransform: 'uppercase' }}
             autoComplete="off"
           />
           <button type="submit" className="btn-primary" style={{ width: '100%', maxWidth: 300 }} disabled={fetchingPost}>
@@ -229,7 +230,8 @@ const PastQuestionsPage: React.FC<PastQuestionsPageProps> = ({ showDebug, debugP
 
         {/* Show fetched post and replies if available */}
         {fetchedPost && (
-          <Card title={fetchedPost.title || t('untitled')} style={{ marginBottom: 24, width: '100%', maxWidth: 600 }}>
+          <div className="fetched-post-card" style={{ marginBottom: 24, width: '100%', maxWidth: 600, background: '#fff', borderRadius: 8, boxShadow: '0 2px 10px rgba(0,0,0,0.07)', padding: 20 }}>
+            <h3 style={{ marginTop: 0 }}>{fetchedPost.title || t('untitled')}</h3>
             <p>{fetchedPost.content}</p>
             <div style={{ marginBottom: 12 }}>
               <b>{t('replies')}:</b>
@@ -247,14 +249,14 @@ const PastQuestionsPage: React.FC<PastQuestionsPageProps> = ({ showDebug, debugP
             )}
             {/* Problem solved buttons */}
             <div style={{ display: 'flex', gap: 16, marginTop: 24, justifyContent: 'center' }}>
-              <Button type="primary" onClick={handleProblemSolved}>{t('problemSolved')}</Button>
-              <Button onClick={handleProblemNotSolved}>{t('problemNotSolved')}</Button>
+              <button type="button" className="btn-primary" onClick={handleProblemSolved}>{t('problemSolved')}</button>
+              <button type="button" className="btn-primary-outline" onClick={handleProblemNotSolved}>{t('problemNotSolved')}</button>
             </div>
             {/* Back to Home button */}
             <div style={{ display: 'flex', justifyContent: 'center', marginTop: 16 }}>
-              <Button type="default" onClick={() => navigateWithExit('/')}>{t('backToHome')}</Button>
+              <button type="button" className="btn-primary-outline" onClick={() => navigateWithExit('/')}>{t('backToHome')}</button>
             </div>
-          </Card>
+          </div>
         )}
       </div>
       <AccessCodeNotebook />

@@ -249,7 +249,7 @@ test.describe('Session verification — all fixes', () => {
     await page.locator('button[type="submit"]').click();
 
     // The post card appears...
-    await expect(page.locator('.ant-card').first()).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('.fetched-post-card').first()).toBeVisible({ timeout: 10000 });
     // ... AND the reply shows up even though the /replies GET returned []
     await expect(page.locator('text=I have the answer to your question')).toBeVisible({
       timeout: 5000,
@@ -397,7 +397,7 @@ test.describe('Session verification — all fixes', () => {
     await page.goto(`/#/past-questions?code=${accessCode}`);
 
     // Step 6: verify the reply appears (exercises the 0-replies fallback)
-    await expect(page.locator('.ant-card').first()).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('.fetched-post-card').first()).toBeVisible({ timeout: 10000 });
     await expect(page.locator(`text=${replyText}`)).toBeVisible({ timeout: 5000 });
 
     await page.screenshot({ path: `${SHOTS}/F8c-lookup-with-reply.png` });
