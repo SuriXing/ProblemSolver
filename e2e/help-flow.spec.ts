@@ -64,7 +64,7 @@ test.describe('Help Flow', () => {
     await expect(page.locator('img[alt="error"]')).toBeVisible({ timeout: 10000 });
 
     // And the fetched post card should NOT be shown
-    await expect(page.locator('.ant-card')).not.toBeVisible();
+    await expect(page.locator('.post-card')).not.toBeVisible();
   });
 
   test('past questions uppercases access code input automatically', async ({ page }) => {

@@ -2,20 +2,13 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useTypeSafeTranslation } from '../../utils/translationHelper';
-import { 
-  Input, 
-  Card,
-  Pagination,
-  Radio,
-  Button
-} from 'antd';
-import type { RadioChangeEvent } from 'antd/es/radio';
-import { 
-  EyeOutlined,
-  MessageOutlined,
-  ArrowLeftOutlined,
-  SearchOutlined
-} from '@ant-design/icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import {
+  faArrowLeft,
+  faEye,
+  faComments,
+  faSearch,
+} from '@fortawesome/free-solid-svg-icons';
 import Layout from '../layout/Layout';
 import { Post } from '../../types/database.types';
 import { DatabaseService } from '../../services/database.service';
@@ -117,8 +110,9 @@ const HelpPage: React.FC = () => {
   };
 
   // Handle filter change
-  const handleFilterChange = (e: RadioChangeEvent) => {
-    setActiveFilter(e.target.value);
+  const handleFilterChange = (filter: 'all' | 'newest' | 'solved') => {
+    setActiveFilter(filter);
+    setCurrentPage(1);
   };
 
   // Filter posts by search term and tag
@@ -139,6 +133,7 @@ const HelpPage: React.FC = () => {
   const indexOfLastPost = currentPage * postsPerPage;
   const indexOfFirstPost = indexOfLastPost - postsPerPage;
   const currentPosts = filteredPosts.slice(indexOfFirstPost, indexOfLastPost);
+  const totalPages = Math.max(1, Math.ceil(filteredPosts.length / postsPerPage));
 
   // Change page
   const handlePageChange = (page: number) => {
@@ -165,29 +160,34 @@ const HelpPage: React.FC = () => {
               onClick={() => navigateWithExit('/')}
               style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
             >
-              <Button type="default" icon={<ArrowLeftOutlined />}>
-                {t('backToHome')}
-              </Button>
+              <FontAwesomeIcon icon={faArrowLeft} /> {t('backToHome')}
             </button>
           </div>
         </div>
 
         <div className="search-filter-container">
-          <div className="search-box">
-            <Input
+          <div className="search-bar">
+            <FontAwesomeIcon icon={faSearch} aria-hidden="true" />
+            <input
+              className="search-input"
+              type="search"
               placeholder={t('searchPlaceholder')}
-              prefix={<SearchOutlined />}
               value={searchTerm}
               onChange={handleSearch}
             />
           </div>
 
           <div className="filter-options">
-            <Radio.Group value={activeFilter} onChange={handleFilterChange}>
-              <Radio.Button value="all">{t('allPosts')}</Radio.Button>
-              <Radio.Button value="newest">{t('newest')}</Radio.Button>
-              <Radio.Button value="solved">{t('solved')}</Radio.Button>
-            </Radio.Group>
+            {(['all', 'newest', 'solved'] as const).map((filter) => (
+              <button
+                key={filter}
+                type="button"
+                className={`filter-button ${activeFilter === filter ? 'active' : ''}`}
+                onClick={() => handleFilterChange(filter)}
+              >
+                {filter === 'all' ? t('allPosts') : filter === 'newest' ? t('newest') : t('solved')}
+              </button>
+            ))}
           </div>
         </div>
 
@@ -211,9 +211,9 @@ const HelpPage: React.FC = () => {
         ) : error ? (
           <div className="error-container">
             <p>{error}</p>
-            <Button type="primary" onClick={fetchPosts} style={{ marginTop: 12 }}>
+            <button type="button" className="btn-primary-outline" onClick={fetchPosts} style={{ marginTop: 12 }}>
               {t('retryLoad')}
-            </Button>
+            </button>
           </div>
         ) : helpItems.length === 0 ? (
           <div className="no-posts-container">
@@ -226,7 +226,7 @@ const HelpPage: React.FC = () => {
         ) : (
           <div className="posts-container">
             {currentPosts.map(post => (
-              <Card key={post.id} className="post-card">
+              <div key={post.id} className="post-card">
                 <Link to={`/help/${post.access_code}`} className="post-link">
                   <div className="post-content">
                     <div className="post-text">{post.content}</div>
@@ -240,25 +240,45 @@ const HelpPage: React.FC = () => {
                     </div>
                     <div className="post-stats">
                       <span className="post-views">
-                        <EyeOutlined /> {post.views || 0}
+                        <FontAwesomeIcon icon={faEye} /> {post.views || 0}
                       </span>
                       <span className="post-replies">
-                        <MessageOutlined /> {post.replies?.length || 0}
+                        <FontAwesomeIcon icon={faComments} /> {post.replyCount ?? post.replies?.length ?? 0}
                       </span>
                     </div>
                   </div>
                 </Link>
-              </Card>
+              </div>
             ))}
 
-            <Pagination
-              current={currentPage}
-              pageSize={postsPerPage}
-              total={filteredPosts.length}
-              onChange={handlePageChange}
-              showSizeChanger={false}
-              className="pagination"
-            />
+            <div className="pagination">
+              <button
+                type="button"
+                className={`pagination-button ${currentPage === 1 ? 'disabled' : ''}`}
+                disabled={currentPage === 1}
+                onClick={() => handlePageChange(currentPage - 1)}
+              >
+                ‹
+              </button>
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                <button
+                  key={page}
+                  type="button"
+                  className={`pagination-button ${page === currentPage ? 'active' : ''}`}
+                  onClick={() => handlePageChange(page)}
+                >
+                  {page}
+                </button>
+              ))}
+              <button
+                type="button"
+                className={`pagination-button ${currentPage === totalPages ? 'disabled' : ''}`}
+                disabled={currentPage === totalPages}
+                onClick={() => handlePageChange(currentPage + 1)}
+              >
+                ›
+              </button>
+            </div>
           </div>
         )}
       </div>
