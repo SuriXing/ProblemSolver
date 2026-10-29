@@ -295,5 +295,17 @@
   "adminPasswordPlaceholder": "パスワード",
   "adminLoggingIn": "ログイン中...",
   "adminLoginButton": "ログイン",
-  "notifyComingSoon": "メール通知はまだ利用できません。アクセスコードで返信をご確認ください。"
+  "notifyComingSoon": "メール通知はまだ利用できません。アクセスコードで返信をご確認ください。",
+  "theme.sectionTitle": "テーマカラー",
+  "theme.light": "ライト",
+  "theme.dark": "ダーク",
+  "theme.blue": "ディープブルー",
+  "theme.purple": "ディープパープル",
+  "theme.teal": "ディープティール",
+  "theme.sunset": "サンセット",
+  "theme.forest": "ダークフォレスト",
+  "theme.pickerTitle": "テーマを変更",
+  "theme.pickerHint": "テーマカラーを変更",
+  "theme.modeLight": "ライトモードに切り替え",
+  "theme.modeDark": "ダークモードに切り替え"
 }

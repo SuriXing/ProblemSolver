@@ -295,5 +295,17 @@
   "adminPasswordPlaceholder": "Password",
   "adminLoggingIn": "Logging in...",
   "adminLoginButton": "Login",
-  "notifyComingSoon": "Email reminders aren't available yet — check replies under “My Posts” with your access code instead."
+  "notifyComingSoon": "Email reminders aren't available yet — check replies under “My Posts” with your access code instead.",
+  "theme.sectionTitle": "Theme color",
+  "theme.light": "Light",
+  "theme.dark": "Dark",
+  "theme.blue": "Dark Blue",
+  "theme.purple": "Dark Purple",
+  "theme.teal": "Dark Teal",
+  "theme.sunset": "Dark Sunset",
+  "theme.forest": "Dark Forest",
+  "theme.pickerTitle": "Change theme",
+  "theme.pickerHint": "Change theme color",
+  "theme.modeLight": "Switch to light mode",
+  "theme.modeDark": "Switch to dark mode"
 }

@@ -295,5 +295,17 @@
   "adminPasswordPlaceholder": "Contraseña",
   "adminLoggingIn": "Iniciando sesión...",
   "adminLoginButton": "Iniciar sesión",
-  "notifyComingSoon": "Las notificaciones por correo aún no están disponibles — revisa las respuestas en “Mis publicaciones” con tu código de acceso."
+  "notifyComingSoon": "Las notificaciones por correo aún no están disponibles — revisa las respuestas en “Mis publicaciones” con tu código de acceso.",
+  "theme.sectionTitle": "Color del tema",
+  "theme.light": "Claro",
+  "theme.dark": "Oscuro",
+  "theme.blue": "Azul oscuro",
+  "theme.purple": "Púrpura oscuro",
+  "theme.teal": "Verde azulado oscuro",
+  "theme.sunset": "Atardecer",
+  "theme.forest": "Bosque oscuro",
+  "theme.pickerTitle": "Cambiar tema",
+  "theme.pickerHint": "Cambiar el color del tema",
+  "theme.modeLight": "Cambiar a modo claro",
+  "theme.modeDark": "Cambiar a modo oscuro"
 }

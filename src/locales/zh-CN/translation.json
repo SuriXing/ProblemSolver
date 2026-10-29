@@ -295,5 +295,17 @@
   "adminPasswordPlaceholder": "密码 / Password",
   "adminLoggingIn": "登录中...",
   "adminLoginButton": "登录",
-  "notifyComingSoon": "邮件提醒功能尚未上线，请用访问码在“我的投稿”里查看回复。"
+  "notifyComingSoon": "邮件提醒功能尚未上线，请用访问码在“我的投稿”里查看回复。",
+  "theme.sectionTitle": "主题色",
+  "theme.light": "浅色",
+  "theme.dark": "深色",
+  "theme.blue": "深蓝",
+  "theme.purple": "暗紫",
+  "theme.teal": "深青",
+  "theme.sunset": "夕阳",
+  "theme.forest": "暗林",
+  "theme.pickerTitle": "更换主题",
+  "theme.pickerHint": "更改主题色",
+  "theme.modeLight": "切换到浅色模式",
+  "theme.modeDark": "切换到深色模式"
 }
