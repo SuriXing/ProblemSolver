@@ -16,6 +16,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 
 const HomePage = lazy(() => import('./components/pages/HomePage'));
 const HelpPage = lazy(() => import('./components/pages/HelpPage'));
+const LandingPage = lazy(() => import('./components/pages/LandingPage'));
 const ConfessionPage = lazy(() => import('./components/pages/ConfessionPage'));
 const SuccessPage = lazy(() => import('./components/pages/SuccessPage'));
 const HelpSuccessPage = lazy(() => import('./components/pages/HelpSuccessPage'));
@@ -61,6 +62,7 @@ function App() {
             <>
               <Routes>
                 <Route path="/" element={<HomePage />} />
+                <Route path="/landing" element={<LandingPage />} />
                 <Route path="/problem-solver" element={<Navigate to="/" replace />} />
                 <Route path="/help" element={<HelpPage />} />
                 <Route path="/help/:accessCode" element={<HelpDetailPage />} />
