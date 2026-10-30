@@ -3,7 +3,7 @@ import { useLocation } from 'react-router-dom';
 import { useTypeSafeTranslation } from '../../utils/translationHelper';
 import { useExitNavigate } from '../../context/NavigationLockContext';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCircleCheck, faEye, faCopy, faHome, faHandsHelping, faCircleInfo, faBookmark, faComments } from '@fortawesome/free-solid-svg-icons';
+import { faCircleCheck, faEye, faCopy, faHome, faHandsHelping, faCircleInfo, faBookmark, faComments, faTriangleExclamation } from '@fortawesome/free-solid-svg-icons';
 import StorageSystem, { UserData } from '../../utils/StorageSystem';
 import styles from './SuccessPage.module.css';
 import Layout from '../layout/Layout';
@@ -108,8 +108,11 @@ const SuccessPage: React.FC = () => {
             </button>
           </div>
           {copied && <p className={styles.copyStatus}>{t('copied')}</p>}
+          <div className={styles.codeWarning} role="alert">
+            <FontAwesomeIcon icon={faTriangleExclamation} />
+            <span>{t('saveAccessCode')}</span>
+          </div>
           <p className={styles.screenshotHint}>{t('screenshotHint')}</p>
-          <p className={styles.accessCodeDesc}>{t('saveAccessCode')}</p>
           <button id="view-post-btn" className={styles.viewPostBtn} onClick={viewPost}>
             <FontAwesomeIcon icon={faEye} /> <span>{t('viewMyPost')}</span>
           </button>

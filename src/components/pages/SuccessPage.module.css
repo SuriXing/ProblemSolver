@@ -93,10 +93,25 @@
   font-weight: 600;
 }
 
-.accessCodeDesc {
-  font-size: 0.9rem;
-  color: var(--text-secondary);
-  margin-bottom: 1.5rem;
+.codeWarning {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  max-width: 520px;
+  margin: 0 auto 1.2rem;
+  padding: 10px 16px;
+  border: 1px solid #f0c36d;
+  border-radius: 8px;
+  background: #fdf6e3;
+  color: #8a5a00;
+  font-size: 0.92rem;
+  font-weight: 600;
+  text-align: left;
+}
+
+.codeWarning svg {
+  flex-shrink: 0;
 }
 
 .notebookTip {
