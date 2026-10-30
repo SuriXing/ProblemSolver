@@ -2,7 +2,6 @@ import { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTypeSafeTranslation } from '../../utils/translationHelper';
 import Layout from '../layout/Layout';
-import { Button, Alert, Spin } from 'antd';
 
 /**
  * SharePage is a thin redirector: /share/:accessCode → stash the code in
@@ -34,10 +33,10 @@ const SharePage: React.FC = () => {
     return (
       <Layout>
         <div style={{ padding: '20px' }}>
-          <Alert message="No access code provided" type="error" showIcon />
-          <Button onClick={() => navigate('/past-questions')} style={{ marginTop: 12 }}>
+          <div className="error-message" role="alert">No access code provided</div>
+          <button type="button" className="btn-primary-outline" onClick={() => navigate('/past-questions')} style={{ marginTop: 12 }}>
             {t('goToPastQuestions')}
-          </Button>
+          </button>
         </div>
       </Layout>
     );
@@ -46,7 +45,7 @@ const SharePage: React.FC = () => {
   return (
     <Layout>
       <div style={{ textAlign: 'center', padding: '50px 0' }}>
-        <Spin size="large" />
+        <div className="loading-spinner" style={{ margin: '0 auto 12px' }}></div>
         <p>{t('redirecting')}</p>
       </div>
     </Layout>

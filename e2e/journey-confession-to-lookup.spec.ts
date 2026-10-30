@@ -158,7 +158,7 @@ test.describe('Journey: confession submit → access code → lookup', () => {
 
     // ---------- STEP 4: Verify the ORIGINAL confession content is displayed ----------
     // The PastQuestionsPage should render an Ant Card with the post content
-    await expect(page.locator('.ant-card').first()).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('.fetched-post-card').first()).toBeVisible({ timeout: 10000 });
     await expect(page.locator(`text=${confessionText}`)).toBeVisible({ timeout: 5000 });
 
     // Screenshot: lookup result showing original content
@@ -166,7 +166,7 @@ test.describe('Journey: confession submit → access code → lookup', () => {
 
     // ---------- STEP 5: Verify round-trip integrity ----------
     // The content shown on /past-questions must EXACTLY match what was submitted
-    const renderedContent = await page.locator('.ant-card').first().textContent();
+    const renderedContent = await page.locator('.fetched-post-card').first().textContent();
     expect(renderedContent).toContain(confessionText);
   });
 });
