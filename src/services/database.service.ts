@@ -137,9 +137,12 @@ export const DatabaseService = {
     try {
       // U-X12: filter out soft-deleted posts. Public users never see trashed
       // confessions even if a moderator hasn't yet permanently deleted them.
+      // The list only needs reply COUNTS — pulling every reply body made the
+      // payload grow linearly with the whole community's reply history.
+      // The detail page keeps the full `replies(*)` join (F4 fallback path).
       const { data, error } = await supabase
         .from('posts')
-        .select('*, replies(*)')
+        .select('*, replies(count)')
         .eq('purpose', purpose)
         .is('deleted_at', null)
         .order('created_at', { ascending: false });
@@ -164,7 +167,15 @@ export const DatabaseService = {
         return fallbackData || [];
       }
 
-      return data || [];
+      // replies(count) comes back as [{ count: N }]; expose it as replyCount
+      // so the list UI doesn't need to know the PostgREST shape.
+      return (data || []).map((row) => {
+        const countRow = (row as { replies?: Array<{ count?: number }> }).replies?.[0];
+        return {
+          ...row,
+          replyCount: typeof countRow?.count === 'number' ? countRow.count : undefined,
+        } as Post;
+      });
     } catch (error) {
       console.error('Exception fetching posts by purpose:', error);
       throw error;

@@ -16,6 +16,7 @@ export type Post = {
   // Public lookups filter `WHERE deleted_at IS NULL`.
   deleted_at?: string | null;
   replies?: Reply[]; // Add replies property
+  replyCount?: number; // Count-aggregated list queries (replies(count))
   // Email notification opt-in (added 2026-04-12)
   notify_email?: string | null;
   notify_via_email?: boolean | null;
