@@ -2,17 +2,9 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import { useTypeSafeTranslation } from '../../utils/translationHelper';
 import { useExitNavigate } from '../../context/NavigationLockContext';
-import { 
-  Card, 
-  Button, 
-  Divider,
-  message,
-} from 'antd';
-import { 
-  ArrowLeftOutlined,
-  EyeOutlined,
-  MessageOutlined
-} from '@ant-design/icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faArrowLeft, faEye, faComments } from '@fortawesome/free-solid-svg-icons';
+import { showToast } from '../ui/toastEmitter';
 import Layout from '../layout/Layout';
 import '../../styles/HelpDetailPage.css';
 import { DatabaseService } from '../../services/database.service';
@@ -118,13 +110,13 @@ const HelpDetailPage: React.FC = () => {
       if (success) {
         // Refresh the replies to show the updated solution status
         fetchPostAndReplies();
-        message.success(t('markedAsSolution'));
+        showToast(t('markedAsSolution'), 'success');
       } else {
-        message.error(t('errorMarkingSolution'));
+        showToast(t('errorMarkingSolution'), 'error');
       }
     } catch (err) {
       console.error('Error marking reply as solution:', err);
-      message.error(t('errorMarkingSolution'));
+      showToast(t('errorMarkingSolution'), 'error');
     }
   };
   
@@ -145,7 +137,7 @@ const HelpDetailPage: React.FC = () => {
         <div className="error-container">
           <h2>{t('postNotFound')}</h2>
           <p>{t('postNotFoundDesc')}</p>
-          <Button type="primary" onClick={() => navigateWithExit('/help')}>{t('backToHelp')}</Button>
+          <button type="button" className="btn-primary-outline" onClick={() => navigateWithExit('/help')}>{t('backToHelp')}</button>
         </div>
       </Layout>
     );
@@ -154,14 +146,14 @@ const HelpDetailPage: React.FC = () => {
   return (
     <Layout>
       <div className="help-detail-container page-fade-in">
-        <Card className="post-card">
+        <div className="post-card">
           <div className="post-header">
             <a
               href="#/help"
               className="back-link"
               onClick={(e) => { e.preventDefault(); navigateWithExit('/help'); }}
             >
-              <ArrowLeftOutlined /> {t('backToHelp')}
+              <FontAwesomeIcon icon={faArrowLeft} /> {t('backToHelp')}
             </a>
             
             <div className="post-meta">
@@ -170,10 +162,10 @@ const HelpDetailPage: React.FC = () => {
             
             <div className="post-stats">
               <span className="post-stat">
-                <EyeOutlined /> {post.views || 0} {t('views')}
+                <FontAwesomeIcon icon={faEye} /> {post.views || 0} {t('views')}
               </span>
               <span className="post-stat">
-                <MessageOutlined /> {post.replies?.length || 0} {t('replies')}
+                <FontAwesomeIcon icon={faComments} /> {post.replies?.length || 0} {t('replies')}
               </span>
             </div>
           </div>
@@ -190,7 +182,7 @@ const HelpDetailPage: React.FC = () => {
             ))}
           </div>
           
-          <Divider>{t('replies')} ({replies.length})</Divider>
+          <div className="section-divider">{t('replies')} ({replies.length})</div>
           
           {/* Display replies */}
           <div className="replies-section">
@@ -217,12 +209,13 @@ const HelpDetailPage: React.FC = () => {
                     
                     {/* Show mark as solution button for post owner */}
                     {post?.user_id === currentUserId && !reply.is_solution && (
-                      <Button 
-                        size="small" 
+                      <button
+                        type="button"
+                        className="btn-primary-outline solution-btn"
                         onClick={() => handleMarkAsSolution(reply.id)}
                       >
                         {t('markAsSolution')}
-                      </Button>
+                      </button>
                     )}
                     
                     {reply.is_solution && (
@@ -242,7 +235,7 @@ const HelpDetailPage: React.FC = () => {
               />
             </div>
           </div>
-        </Card>
+        </div>
       </div>
     </Layout>
   );

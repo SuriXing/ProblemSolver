@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { Form, Input, Button, message } from 'antd';
 import { DatabaseService } from '../services/database.service';
 import { InsertTables } from '../types/database.types';
 import { useTypeSafeTranslation } from '../utils/translationHelper';
 import { getCurrentUserId } from '../utils/authHelpers';
 import { checkThrottle, recordAction, THROTTLE_RULES } from '../utils/rateLimit';
+import { showToast } from './ui/toastEmitter';
 
 interface ReplyFormProps {
   postId: string;
@@ -18,20 +18,21 @@ const ReplyForm: React.FC<ReplyFormProps> = ({ postId, onReplyAdded }) => {
 
   const handleSubmit = async () => {
     if (!content.trim()) {
-      message.warning(t('replyCannotBeEmpty') || 'Reply cannot be empty');
+      showToast(t('replyCannotBeEmpty') || 'Reply cannot be empty', 'warning');
       return;
     }
     if (!postId) {
-      message.error(t('cannotSubmitNoPost') || 'Cannot submit: post is not loaded');
+      showToast(t('cannotSubmitNoPost') || 'Cannot submit: post is not loaded', 'error');
       return;
     }
 
     const throttle = checkThrottle(THROTTLE_RULES.reply);
     if (!throttle.allowed) {
       const secs = Math.ceil(throttle.retryAfterMs / 1000);
-      message.warning(
+      showToast(
         (t('throttleTryAgainIn', { seconds: secs }) as string) ||
-          `You're replying too fast. Please try again in ${secs}s.`
+          `You're replying too fast. Please try again in ${secs}s.`,
+        'warning',
       );
       return;
     }
@@ -54,49 +55,56 @@ const ReplyForm: React.FC<ReplyFormProps> = ({ postId, onReplyAdded }) => {
       if (newReply) {
         recordAction(THROTTLE_RULES.reply);
         setContent('');
-        message.success(t('replyPostedSuccess') || 'Reply posted successfully');
+        showToast(t('replyPostedSuccess') || 'Reply posted successfully', 'success');
         onReplyAdded();
       } else {
         // createReply returned null — DB write failed (auth, network, RLS, etc.).
         // Surface visibly. No silent fallback (runbook hard rule 13).
-        message.error(
-          t('replyFailedToSubmit') ||
-            'Failed to submit reply. Check the browser console for details.'
+        showToast(
+          t('replyFailedToSubmit') || 'Failed to submit reply. Check the browser console for details.',
+          'error',
         );
       }
     } catch (error) {
       console.error('Error submitting reply:', error);
-      message.error(t('replyFailedToSubmit') || 'Failed to submit reply');
+      showToast(t('replyFailedToSubmit') || 'Failed to submit reply', 'error');
     } finally {
       setIsSubmitting(false);
     }
   };
-  
+
   return (
-    <Form layout="vertical" onFinish={handleSubmit}>
-      <Form.Item label={t('yourReply')}>
-        <Input.TextArea
-          rows={4}
-          maxLength={4000}
-          showCount
-          value={content}
-          onChange={(e) => setContent(e.target.value.slice(0, 4000))}
-          placeholder={t('replyPlaceholder')}
-        />
-      </Form.Item>
-      
-      <Form.Item>
-        <Button 
-          type="primary" 
-          htmlType="submit" 
-          loading={isSubmitting}
-          disabled={!content.trim()}
+    <form
+      className="reply-form-native"
+      onSubmit={(event) => {
+        event.preventDefault();
+        void handleSubmit();
+      }}
+    >
+      <label htmlFor="reply-content" className="sr-only">
+        {t('yourReply')}
+      </label>
+      <textarea
+        id="reply-content"
+        className="reply-textarea"
+        rows={4}
+        maxLength={4000}
+        value={content}
+        onChange={(event) => setContent(event.target.value.slice(0, 4000))}
+        placeholder={t('replyPlaceholder')}
+      />
+      <div className="reply-form-footer">
+        <span className="reply-char-count">{content.length}/4000</span>
+        <button
+          type="submit"
+          className="btn-primary-outline"
+          disabled={!content.trim() || isSubmitting}
         >
-          {t('submitReply')}
-        </Button>
-      </Form.Item>
-    </Form>
+          {isSubmitting ? t('submitting') : t('submitReply')}
+        </button>
+      </div>
+    </form>
   );
 };
 
-export default ReplyForm; 
+export default ReplyForm;
