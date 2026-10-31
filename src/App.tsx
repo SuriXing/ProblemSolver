@@ -72,19 +72,7 @@ function App() {
                 <Route path="/success" element={<SuccessPage />} />
                 <Route 
                   path="/past-questions" 
-                  element={
-                    <PastQuestionsPage 
-                      showDebug={!IS_PROD} 
-                      debugProps={{
-                        showTest,
-                        setShowTest,
-                        useDirectClient,
-                        setUseDirectClient,
-                        showEnvDebug,
-                        setShowEnvDebug
-                      }} 
-                    />
-                  } 
+                  element={<PastQuestionsPage />} 
                 />
                 <Route path="/topics/:topicId" element={<TopicDetailPage />} />
                 <Route path="/share/:accessCode" element={<SharePage />} />

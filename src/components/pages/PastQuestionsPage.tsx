@@ -4,7 +4,6 @@ import { useTypeSafeTranslation } from '../../utils/translationHelper';
 import { useExitNavigate } from '../../context/NavigationLockContext';
 import Layout from '../layout/Layout';
 import { showToast } from '../ui/toastEmitter';
-import DebugMenu from '../DebugMenu';
 import { DatabaseService } from '../../services/database.service';
 
 import { Post } from '../../types/database.types';
@@ -12,20 +11,7 @@ import ConfessionPlaceholderSVG from '../../assets/placeholder_confession.svg';
 import ErrorPlaceholderSVG from '../../assets/placeholder_error.svg';
 import AccessCodeNotebook from './AccessCodeNotebook';
 
-// Add type for PastQuestionsPageProps
-interface PastQuestionsPageProps {
-  showDebug?: boolean;
-  debugProps?: {
-    showTest: boolean;
-    setShowTest: (show: boolean) => void;
-    useDirectClient: boolean;
-    setUseDirectClient: (use: boolean) => void;
-    showEnvDebug: boolean;
-    setShowEnvDebug: (show: boolean) => void;
-  };
-}
-
-const PastQuestionsPage: React.FC<PastQuestionsPageProps> = ({ showDebug, debugProps }) => {
+const PastQuestionsPage: React.FC = () => {
   const { t } = useTypeSafeTranslation();
   const navigate = useNavigate();
   const location = useLocation();
@@ -260,17 +246,6 @@ const PastQuestionsPage: React.FC<PastQuestionsPageProps> = ({ showDebug, debugP
         )}
       </div>
       <AccessCodeNotebook />
-      {/* 使用传入的 showDebug 属性控制调试菜单的显示 */}
-      {showDebug && debugProps && (
-        <DebugMenu 
-          showTest={debugProps.showTest}
-          setShowTest={debugProps.setShowTest}
-          useDirectClient={debugProps.useDirectClient}
-          setUseDirectClient={debugProps.setUseDirectClient}
-          showEnvDebug={debugProps.showEnvDebug}
-          setShowEnvDebug={debugProps.setShowEnvDebug}
-        />
-      )}
     </Layout>
   );
 };
