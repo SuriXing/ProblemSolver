@@ -10,3 +10,5 @@ Round 4 — DeepSeek Harness <noreply@deepseek.com>
 Round 5 — Codex <noreply@openai.com>
 
 Round 6 — Claude <noreply@anthropic.com>
+
+Round 7 — DeepSeek Harness <noreply@deepseek.com>
