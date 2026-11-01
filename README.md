@@ -13,13 +13,13 @@ back. No account, no profile; the whole exchange stays anonymous.
 - **Anonymous sharing** — submit a worry without signing up
 - **Access codes** — the only key to your post; come back any time to read replies
 - **Email notifications** — a nudge when someone answers (optional, server-side)
-- **Bilingual UI** — English / 中文, auto-detected and switchable
+- **Five UI languages** — English / 中文 / 日本語 / 한국어 / Español, auto-detected and switchable
 - **Responsive** — comfortable on desktop and mobile
 
 ## Stack
 
 - React 18 + TypeScript + Vite
-- Ant Design for the UI
+- Plain React + the site's own CSS components (no UI framework in the public pages)
 - i18next for translations
 - Supabase (Postgres + Row Level Security) for data and access-code auth
 - A Vercel serverless function for reply notifications (`api/`)
