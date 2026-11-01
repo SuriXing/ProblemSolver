@@ -22,3 +22,5 @@ Round 10 — DeepSeek Harness <noreply@deepseek.com>
 Round 11 — Codex <noreply@openai.com>
 
 Round 12 — Claude <noreply@anthropic.com>
+
+Round 13 — DeepSeek Harness <noreply@deepseek.com>
