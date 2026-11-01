@@ -23,7 +23,7 @@
      ```
   4. Verify with: `SELECT * FROM admin_users;` (must show ≥1 row).
   5. From a logged-in admin client, confirm `SELECT public.is_admin();` returns `true`.
-- [ ] **HUMAN ACTION REQUIRED:** Rotate Supabase anon key. Exposed in git history before commit 554672d via hardcoded fallback in `src/lib/supabase.ts` (also in `scripts/load-test.mjs` until S1.1). Steps:
+- [ ] **HUMAN ACTION REQUIRED:** Rotate Supabase anon key. Exposed in git history before the v1.0.0 snapshot (2026-06-19) via hardcoded fallback in `src/lib/supabase.ts` (also in `scripts/load-test.mjs` until S1.1). Steps:
   1. Open Supabase dashboard → Project Settings → API.
   2. Click "Reset anon key" (or, if using new keyring, revoke `sb_publishable_ochy1eHzpFRMSCOndm3FQg_mLvGhDrL` and issue a new publishable key).
   3. Update `VITE_SUPABASE_ANON_KEY` in Vercel project env (Production, Preview, Development) and any local `.env.local`.
@@ -34,8 +34,8 @@
   3. Audit `vercel env ls` to confirm no `VITE_*SERVICE*` or `VITE_*SECRET*` keys exist.
 - [x] Provision the reply-notification trigger secret (2026-08-19, wired with the reply → Resend send side). Lives in TWO places that must stay in sync: `notification_config.trigger_secret` on AnonCafe-v2 (single-row table, revoke-closed from anon/authenticated) and `NOTIFICATION_TRIGGER_SECRET` in Vercel env (Production). Rotate by updating BOTH (`UPDATE notification_config SET trigger_secret = '...'` through the Management API + `vercel env rm NOTIFICATION_TRIGGER_SECRET -y` / `vercel env add`, then redeploy). `api/send-reply-notification.ts` refuses every caller without it (403); the trigger skips silently when the table row is missing, so a desync degrades to "no emails", never to an open relay.
 - [x] Audit git history for other leaked literals. Done in S1.1 — see `.harness/git-leak-audit.txt`. Patterns checked: `sb_publishable_`, `bihltxhebindflclsutw`, `sk-`. All current tracked source files are clean.
-- [ ] **HUMAN ACTION REQUIRED:** After rotation, purge any pre-554672d prod deployment whose bundle still contains the old key. Steps:
-  1. `vercel ls` → find any deployments older than commit 554672d still aliased to a prod or preview domain.
+- [ ] **HUMAN ACTION REQUIRED:** After rotation, purge any prod deployment built before the v1.0.0 snapshot (2026-06-19) whose bundle still contains the old key. Steps:
+  1. `vercel ls` → find any deployments older than the 2026-06-19 snapshot still aliased to a prod or preview domain.
   2. For each: `vercel rm <deployment-url> --yes`.
   3. Confirm the prod alias points to a post-rotation deployment via `vercel inspect <prod-domain>`.
 
