@@ -12,18 +12,19 @@ describe('EnvDebug', () => {
     expect(screen.getByText('Vite Environment Variables')).toBeInTheDocument();
   });
 
-  it('renders Process Environment Variables heading', () => {
+  it('never reads process.env (the 2026-11-01 bundle leak regression)', () => {
     render(<EnvDebug />);
-    expect(screen.getByText('Process Environment Variables')).toBeInTheDocument();
+    // The panel must not render any process-env section: reading
+    // Object.keys(process.env) made Vite inline the whole build env.
+    expect(screen.queryByText('Process Environment Variables')).not.toBeInTheDocument();
   });
 
-  it('renders two pre tags containing valid JSON', () => {
+  it('renders one pre tag containing a valid JSON object', () => {
     const { container } = render(<EnvDebug />);
     const pres = container.querySelectorAll('pre');
-    expect(pres.length).toBe(2);
-    // Both pre tags should contain valid JSON (empty objects are valid)
+    // Exactly one section — the Vite one.
+    expect(pres.length).toBe(1);
     expect(() => JSON.parse(pres[0].textContent || '{}')).not.toThrow();
-    expect(() => JSON.parse(pres[1].textContent || '{}')).not.toThrow();
   });
 
   it('vite env pre tag contains an object (not an array or primitive)', () => {
