@@ -1,83 +1,66 @@
-# Worry Solver React App
+# AnonCafe
 
-> **Local setup:** copy `.env.example` to `.env.local` and fill in real values. Never commit secrets — `.gitignore` blocks `.env.local` and `*.local`.
+![AnonCafe](docs/screenshots/anoncafe.png)
 
-A React conversion of the original "解忧杂货铺" (Worry-Solving Shop) web application. This application allows users to anonymously share their concerns and receive helpful responses from others, with access code-based authentication for checking replies.
+An online version of 解忧杂货铺 ("The Miraculous Kiosk of Lost Time") — write
+your worry into the box, get an access code, and read the replies when you come
+back. No account, no profile; the whole exchange stays anonymous.
+
+**Live:** [anoncafe.life](https://anoncafe.life)
 
 ## Features
 
-- **Multilingual Support**: Switch between Chinese and English
-- **Access Code System**: Secure access to your posts using unique access codes
-- **Anonymous Sharing**: Share your concerns without revealing your identity
-- **Responsive Design**: Works on mobile and desktop devices
+- **Anonymous sharing** — submit a worry without signing up
+- **Access codes** — the only key to your post; come back any time to read replies
+- **Email notifications** — a nudge when someone answers (optional, server-side)
+- **Bilingual UI** — English / 中文, auto-detected and switchable
+- **Responsive** — comfortable on desktop and mobile
 
-## Demo Access Codes
+## Stack
 
-The application comes with demo access codes for testing:
+- React 18 + TypeScript + Vite
+- Ant Design for the UI
+- i18next for translations
+- Supabase (Postgres + Row Level Security) for data and access-code auth
+- A Vercel serverless function for reply notifications (`api/`)
+- Vitest for unit tests, Playwright for e2e
 
-- `TSZT-VVSM-8F8Y`: A sample submission in Chinese about social anxiety
-- `J23B-F42A-LCRZ`: A sample submission about academic stress
+## Quickstart
 
-## Getting Started
-
-### Prerequisites
-
-- Node.js (v14.x or higher)
-- npm (v6.x or higher)
-
-### Installation
-
-1. Clone the repository
-   ```
-   git clone <repository-url>
-   cd worry-solver
-   ```
-
-2. Install dependencies
-   ```
-   npm install
-   ```
-
-3. Start the development server
-   ```
-   npm start
-   ```
-
-4. Open your browser and navigate to http://localhost:3000
-
-## Available Scripts
-
-In the project directory, you can run:
-
-- `npm start`: Runs the app in development mode
-- `npm test`: Launches the test runner
-- `npm run build`: Builds the app for production
-- `npm run eject`: Ejects the create-react-app configuration
-
-## Project Structure
-
-```
-worry-solver/
-├── public/              # Static files
-├── src/                 # Source code
-│   ├── assets/          # CSS, images, etc.
-│   │   ├── layout/      # Layout components
-│   │   └── pages/       # Page components
-│   ├── context/         # React context
-│   ├── hooks/           # Custom hooks
-│   ├── utils/           # Utility functions
-│   └── App.tsx          # Main app component
-├── package.json         # Dependencies and scripts
-└── tsconfig.json        # TypeScript configuration
+```bash
+npm install
+cp .env.example .env.local   # fill VITE_SUPABASE_URL + VITE_SUPABASE_ANON_KEY
+npm run dev                  # http://localhost:3000
 ```
 
-## License
+Optional, server-side only (reply emails): set `RESEND_API_KEY` and
+`RESEND_FROM_ADDRESS`. `SUPABASE_SERVICE_ROLE_KEY` belongs in `api/**` against
+a local env — never in a `VITE_` variable, which would ship it to the browser.
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+## Scripts
 
-## Acknowledgements
+| Command | What it does |
+|---|---|
+| `npm run dev` | Vite dev server on :3000 |
+| `npm run build` | Type-check + production build |
+| `npm run type-check` | `tsc` for app + api |
+| `npm run lint` | ESLint |
+| `npm test` | Vitest unit suite |
+| `npm run test:e2e` | Playwright e2e (needs `npx playwright install chromium`) |
 
-- This project is a React conversion of the original HTML/CSS/JS implementation
-- FontAwesome for the icons
-- React Router for routing
-- i18next for internationalization
+## Layout
+
+- `src/components` — screens, forms and shared UI
+- `src/context` — session context
+- `src/lib` — helpers (storage, i18n, Supabase client)
+- `api/` — Vercel serverless functions
+- `supabase/migrations` — database schema
+- `e2e/` — Playwright specs
+- `docs/` — setup and ops notes
+
+## What it is
+
+The worry box comes from Keigo Higashino's novel *The Miraculous Kiosk of Lost
+Time* (东野圭吾《解忧杂货店》): people write their worries and slip them through
+the shop's mail slot, and a reply comes back. The app keeps the part that
+matters — writing it down helps, and a stranger who cares can write back.
