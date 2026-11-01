@@ -52,6 +52,7 @@ function hasDrivableBrowser() {
 
 // Mirrors the exact order and commands of the ci.yml "test" job.
 const STEPS = [
+  ['commit-date audit (A=C, timezone, future, style)', 'node scripts/audit-commit-dates.mjs'],
   ['audit production deps (fail on high)', 'npm audit --omit=dev --audit-level=high'],
   ['lint (zero warnings)', 'npm run lint -- --max-warnings 0'],
   ['type-check', 'npm run type-check'],
