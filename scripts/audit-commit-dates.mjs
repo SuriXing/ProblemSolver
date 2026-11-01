@@ -52,7 +52,7 @@ for (const row of rows) {
     problems.push(`${row.hash.slice(0, 7)} future-dated: ${row.ad}`);
   }
   if (row.ad >= STYLE_SINCE) {
-    if (!row.subject.startsWith('Today I ')) {
+    if (!/^Today I[, ]/.test(row.subject)) {
       problems.push(`${row.hash.slice(0, 7)} subject not in diary voice: ${row.subject.slice(0, 50)}`);
     }
     if (row.subject.endsWith('.')) {
