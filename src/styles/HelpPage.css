@@ -337,3 +337,9 @@
     align-items: center;
   }
 }
+
+.no-reply-hint {
+  font-size: 0.8rem;
+  color: var(--primary-color, #5B7BFA);
+  font-weight: 500;
+}

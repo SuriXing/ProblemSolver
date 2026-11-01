@@ -245,6 +245,9 @@ const HelpPage: React.FC = () => {
                       <span className="post-replies">
                         <FontAwesomeIcon icon={faComments} /> {post.replyCount ?? post.replies?.length ?? 0}
                       </span>
+                      {(post.replyCount ?? post.replies?.length ?? 0) === 0 && (
+                        <span className="no-reply-hint">{t('beFirstToReply')}</span>
+                      )}
                     </div>
                   </div>
                 </Link>
