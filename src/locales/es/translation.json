@@ -307,5 +307,6 @@
   "theme.pickerTitle": "Cambiar tema",
   "theme.pickerHint": "Cambiar el color del tema",
   "theme.modeLight": "Cambiar a modo claro",
-  "theme.modeDark": "Cambiar a modo oscuro"
+  "theme.modeDark": "Cambiar a modo oscuro",
+  "confirmDiscardDraft": "¿Descartar este borrador?"
 }

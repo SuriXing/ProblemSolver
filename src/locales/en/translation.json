@@ -307,5 +307,6 @@
   "theme.pickerTitle": "Change theme",
   "theme.pickerHint": "Change theme color",
   "theme.modeLight": "Switch to light mode",
-  "theme.modeDark": "Switch to dark mode"
+  "theme.modeDark": "Switch to dark mode",
+  "confirmDiscardDraft": "Discard this draft?"
 }

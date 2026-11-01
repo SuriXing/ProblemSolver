@@ -269,7 +269,10 @@ const ConfessionPage: React.FC = () => {
               <button
                 type="button"
                 className="btn-primary-outline"
-                onClick={() => navigateWithExit('/')}
+                onClick={() => {
+                  if (confession.trim() && !window.confirm(t('confirmDiscardDraft') || 'Discard this draft?')) return;
+                  navigateWithExit('/');
+                }}
               >
                 {t('returnHome')}
               </button>

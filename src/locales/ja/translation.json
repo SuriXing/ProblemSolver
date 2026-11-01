@@ -307,5 +307,6 @@
   "theme.pickerTitle": "テーマを変更",
   "theme.pickerHint": "テーマカラーを変更",
   "theme.modeLight": "ライトモードに切り替え",
-  "theme.modeDark": "ダークモードに切り替え"
+  "theme.modeDark": "ダークモードに切り替え",
+  "confirmDiscardDraft": "この下書きを破棄しますか？"
 }

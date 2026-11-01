@@ -307,5 +307,6 @@
   "theme.pickerTitle": "更换主题",
   "theme.pickerHint": "更改主题色",
   "theme.modeLight": "切换到浅色模式",
-  "theme.modeDark": "切换到深色模式"
+  "theme.modeDark": "切换到深色模式",
+  "confirmDiscardDraft": "确定放弃草稿吗？"
 }
