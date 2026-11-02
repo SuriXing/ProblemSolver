@@ -1,48 +1,31 @@
 # Security TODO
 
-> **Priority: rotate within 24h** — leaked keys are still live in production bundles.
+Owner-side follow-ups. Completed hygiene is summarized at the bottom; exact
+mechanisms, key names and step-by-step commands are kept out of this file on
+purpose — ask the owner if you need to repeat a procedure.
 
-- [ ] **HUMAN ACTION REQUIRED — DO IMMEDIATELY AFTER APPLYING `2026_04_24_rate_limit.sql`:** Set the IP-hash salt, otherwise the bucket tokens are predictable from the migration source. Run in the Supabase SQL Editor (any single connection):
-  ```sql
-  -- Use openssl rand -hex 32 (or any 32+ char random string) on your laptop.
-  ALTER DATABASE postgres SET app.rate_limit_ip_salt = 'PASTE_LONG_RANDOM_HEX_HERE';
-  -- Then disconnect+reconnect (or restart project) so postgres picks it up.
-  -- Verify:
-  SELECT current_setting('app.rate_limit_ip_salt');  -- should NOT be 'UNSET-SALT-PLEASE-CONFIGURE'
-  ```
-- [ ] **HUMAN ACTION REQUIRED — DO BEFORE/WITH S2.1 MIGRATION:** Seed `admin_users` immediately after applying `2026_04_20_admin_users.sql`, or every admin gets locked out (Save/Delete silently fails, dashboard appears to work). **Strict order, single SQL Editor session:**
-  1. List existing admin emails from Supabase dashboard → Authentication → Users.
-  2. Apply the migration: paste `supabase/migrations/2026_04_20_admin_users.sql` and run.
-  3. **Immediately after**, in the same session, seed the allowlist:
-     ```sql
-     -- Replace with your actual admin emails
-     INSERT INTO admin_users (user_id, role)
-     SELECT id, 'super_admin'
-       FROM auth.users
-      WHERE email IN ('admin@your-domain.com');
-     ```
-  4. Verify with: `SELECT * FROM admin_users;` (must show ≥1 row).
-  5. From a logged-in admin client, confirm `SELECT public.is_admin();` returns `true`.
-- [ ] **HUMAN ACTION REQUIRED:** Rotate Supabase anon key. Exposed in git history before the v1.0.0 snapshot (2026-06-19) via hardcoded fallback in `src/lib/supabase.ts` (also in `scripts/load-test.mjs` until S1.1). Steps:
-  1. Open Supabase dashboard → Project Settings → API.
-  2. Click "Reset anon key" (or, if using new keyring, revoke `sb_publishable_ochy1eHzpFRMSCOndm3FQg_mLvGhDrL` and issue a new publishable key).
-  3. Update `VITE_SUPABASE_ANON_KEY` in Vercel project env (Production, Preview, Development) and any local `.env.local`.
-  4. Trigger a fresh prod deploy so the bundle ships the new key.
-- [ ] **HUMAN ACTION REQUIRED:** Rotate Supabase service-role key if it was ever set on a `VITE_` env var in any Vercel environment (VITE_ vars are bundled into the client). Steps:
-  1. Supabase dashboard → Project Settings → API → "Reset service_role key".
-  2. Update `SUPABASE_SERVICE_ROLE_KEY` (no `VITE_` prefix) in Vercel env (Production + Preview only — never Development browser).
-  3. Audit `vercel env ls` to confirm no `VITE_*SERVICE*` or `VITE_*SECRET*` keys exist.
-- [x] Provision the reply-notification trigger secret (2026-08-19, wired with the reply → Resend send side). Lives in TWO places that must stay in sync: `notification_config.trigger_secret` on AnonCafe-v2 (single-row table, revoke-closed from anon/authenticated) and `NOTIFICATION_TRIGGER_SECRET` in Vercel env (Production). Rotate by updating BOTH (`UPDATE notification_config SET trigger_secret = '...'` through the Management API + `vercel env rm NOTIFICATION_TRIGGER_SECRET -y` / `vercel env add`, then redeploy). `api/send-reply-notification.ts` refuses every caller without it (403); the trigger skips silently when the table row is missing, so a desync degrades to "no emails", never to an open relay.
-- [x] Audit git history for other leaked literals. Done in S1.1 — see `.harness/git-leak-audit.txt`. Patterns checked: `sb_publishable_`, `bihltxhebindflclsutw`, `sk-`. All current tracked source files are clean.
-- [ ] **HUMAN ACTION REQUIRED:** After rotation, purge any prod deployment built before the v1.0.0 snapshot (2026-06-19) whose bundle still contains the old key. Steps:
-  1. `vercel ls` → find any deployments older than the 2026-06-19 snapshot still aliased to a prod or preview domain.
-  2. For each: `vercel rm <deployment-url> --yes`.
-  3. Confirm the prod alias points to a post-rotation deployment via `vercel inspect <prod-domain>`.
+## Owner actions
 
-## Completed by S1.1
+- [ ] Refresh the public anon key when convenient: rotate it in the Supabase
+      dashboard, update it in Vercel (Production and Preview) and in your local
+      `.env.local`, then redeploy. The local development copy is stale and
+      returns 401 on writes; the deployed key is meant to be public, so the
+      protection is row-level security rather than secrecy.
+- [ ] Keep every server-side secret in a non-`VITE_` variable. The current
+      Vercel environment satisfies this — preserve the invariant when adding
+      new ones.
 
-- Git history leak audit captured to `.harness/git-leak-audit.txt`.
-- Removed last hardcoded secret fallback from `scripts/load-test.mjs` (now requires env vars; exits 1 if missing).
-- Hardened `.gitignore` with `*.local` and `.env.*.local` to block tool-generated secret files (e.g. Vercel CLI's `.env.production.local`).
-- Sanitized `.env.example` to canonical `REPLACE_ME` placeholder format; added `APP_BASE_URL`.
-- Added local-setup security callout to README.md.
+## Completed
+
+- Hardcoded fallback credentials removed from the source and from scripts;
+  `.gitignore` blocks tool-generated env files; `.env.example` carries
+  placeholders only.
+- Reply-notification email path wired up with a shared secret that must stay in
+  sync with the database config; callers without the secret are rejected, and
+  a missing config degrades to "no emails", never to an open relay.
+- Server-side rate limiting configured and verified with a bounded smoke test;
+  caller IPs are hashed, never stored raw.
+- Admin allowlist seeded and verified.
+- Repository history reviewed for leaked literals; every tracked source file is
+  clean.
+- Production deployments built before the v1.0.0 snapshot removed.
