@@ -1,17 +1,10 @@
-# Claude worktrees
-.claude/worktrees/
-
-# macOS system files
+# 操作系统生成的文件
 .DS_Store
 .DS_Store?
 ._*
 .Spotlight-V100
 .Trashes
 ehthumbs.db
-Thumbs.db 
-
-# 操作系统生成的文件
-.DS_Store
 Thumbs.db
 
 # 日志文件
@@ -37,22 +30,21 @@ supabase/.temp/
 # 缓存文件
 *.cache
 
-
 # Test coverage output
 coverage/
-
-# OPC harness state
-.harness/
-
-# Superpowers brainstorm artifacts
-.superpowers/
 
 # Playwright artifacts
 playwright-report/
 test-results/
+
+# Vercel
 .vercel
 .vercel-home/
-.harness.archive-*/
-.harness.old-2026-04/
+
+# 本地工具目录（不入库）
 .claude/
 .cursor/
+.harness/
+.harness.archive-*/
+.harness.old-2026-04/
+.superpowers/
