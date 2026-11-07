@@ -56,7 +56,7 @@ a local env — never in a `VITE_` variable, which would ship it to the browser.
 - `api/` — Vercel serverless functions
 - `supabase/migrations` — database schema
 - `e2e/` — Playwright specs
-- `docs/` — setup and ops notes
+- `docs/` — setup and ops notes (see `docs/HISTORY.md` for a note about the commit history)
 
 ## What it is
 
